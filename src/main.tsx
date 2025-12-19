@@ -6,13 +6,15 @@ import "simplebar-react/dist/simplebar.min.css";
 import App from "./App.tsx";
 import { AppWrapper } from "./components/common/PageMeta.tsx";
 import { ThemeProvider } from "./context/ThemeContext.tsx";
-
+import { GoogleOAuthProvider } from '@react-oauth/google';
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ThemeProvider>
-      <AppWrapper>
-        <App />
-      </AppWrapper>
-    </ThemeProvider>
-  </StrictMode>
+    <GoogleOAuthProvider clientId="542189176362-hhg8cin8gqog2839dcsjenouppinb3si.apps.googleusercontent.com">
+      <StrictMode>
+        <ThemeProvider>
+          <AppWrapper>
+            <App />
+          </AppWrapper>
+        </ThemeProvider>
+      </StrictMode>
+    </GoogleOAuthProvider>
 );
