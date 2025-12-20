@@ -24,7 +24,7 @@ const tableData: Product[] = [
     name: "TailGrids",
     category: "UI Kits",
     country: "/images/country/country-01.svg",
-    cr: "Dashboard",
+    cr: "FInance",
     value: "12,499", // Replace with actual image URL
   },
   {
@@ -32,7 +32,7 @@ const tableData: Product[] = [
     name: "GrayGrids",
     category: "Templates",
     country: "/images/country/country-02.svg",
-    cr: "Dashboard",
+    cr: "FInance",
     value: "5498", // Replace with actual image URL
   },
   {
@@ -40,7 +40,7 @@ const tableData: Product[] = [
     name: "Uideck",
     category: "Templates",
     country: "/images/country/country-03.svg",
-    cr: "Dashboard",
+    cr: "FInance",
     value: "4621", // Replace with actual image URL
   },
   {
@@ -48,7 +48,7 @@ const tableData: Product[] = [
     name: "FormBold",
     category: "SaaS",
     country: "/images/country/country-04.svg",
-    cr: "Dashboard",
+    cr: "FInance",
     value: "13843", // Replace with actual image URL
   },
   {
@@ -56,7 +56,7 @@ const tableData: Product[] = [
     name: "NextAdmin",
     category: "Templates",
     country: "/images/country/country-05.svg",
-    cr: "Dashboard",
+    cr: "FInance",
     value: "7523", // Replace with actual image URL
   },
   {
@@ -64,7 +64,7 @@ const tableData: Product[] = [
     name: "Form Builder",
     category: "Templates",
     country: "/images/country/country-06.svg",
-    cr: "Dashboard",
+    cr: "FInance",
     value: "1,377", // Replace with actual image URL
   },
   {
@@ -72,7 +72,7 @@ const tableData: Product[] = [
     name: "AyroUI",
     category: "Templates",
     country: "/images/country/country-07.svg",
-    cr: "Dashboard",
+    cr: "FInance",
     value: "599,00", // Replace with actual image URL
   },
 ];

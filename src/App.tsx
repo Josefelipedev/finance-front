@@ -1,10 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 
-import Ecommerce from "./pages/Dashboard/Ecommerce";
-import Stocks from "./pages/Dashboard/Stocks";
-import Crm from "./pages/Dashboard/Crm";
-import Marketing from "./pages/Dashboard/Marketing";
-import Analytics from "./pages/Dashboard/Analytics";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -25,7 +20,6 @@ import Notifications from "./pages/UiElements/Notifications";
 import LineChart from "./pages/Charts/LineChart";
 import BarChart from "./pages/Charts/BarChart";
 import PieChart from "./pages/Charts/PieChart";
-import Invoices from "./pages/Invoices";
 import ComingSoon from "./pages/OtherPage/ComingSoon";
 import FileManager from "./pages/FileManager";
 import Calendar from "./pages/Calendar";
@@ -53,10 +47,10 @@ import TwoStepVerification from "./pages/AuthPages/TwoStepVerification";
 import Success from "./pages/OtherPage/Success";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import Saas from "./pages/Dashboard/Saas";
 import ProtectedRoute from "./components/protected-route";
 import AuthChecker from "./components/auth-checker";
 import PublicRoute from "./components/public-route";
+import FinancePage from "./pages/FInance/FinancePage.tsx";
 
 export default function App() {
   return (
@@ -80,17 +74,12 @@ export default function App() {
               {/* Rotas Protegidas (requerem autenticação) */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
-                  <Route index path="/" element={<Ecommerce />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/marketing" element={<Marketing />} />
-                  <Route path="/crm" element={<Crm />} />
-                  <Route path="/stocks" element={<Stocks />} />
-                  <Route path="/saas" element={<Saas />} />
+                  <Route index path="/" element={<FinancePage />} />
+
 
                   {/* Others Page */}
                   <Route path="/profile" element={<UserProfiles />} />
                   <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/invoice" element={<Invoices />} />
                   <Route path="/faq" element={<Faqs />} />
                   <Route path="/pricing-tables" element={<PricingTables />} />
                   <Route path="/blank" element={<Blank />} />

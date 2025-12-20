@@ -1,0 +1,167 @@
+// src/components/finance-metrics/FinanceMetrics.tsx
+import React from "react";
+import Badge from "../ui/badge/Badge";
+
+interface FinanceMetricsProps {
+    totalBalance: number;
+    totalIncome: number;
+    totalExpense: number;
+    netBalance: number;
+    dateRange?: {
+        startDate: string;
+        endDate: string;
+    };
+}
+
+const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
+                                                           totalBalance,
+                                                           totalIncome,
+                                                           totalExpense,
+                                                           netBalance,
+                                                           dateRange,
+                                                       }) => {
+    // Calcular variações (simulado - você pode adaptar para dados reais)
+    const getVariation = (current: number, previous: number = current * 0.8) => {
+        if (previous === 0) return 0;
+        return ((current - previous) / previous) * 100;
+    };
+
+    const incomeVariation = getVariation(totalIncome);
+    const expenseVariation = getVariation(totalExpense);
+    const balanceVariation = getVariation(netBalance, totalIncome * 0.2);
+
+    const metrics = [
+        {
+            id: 1,
+            title: "Saldo Total",
+            value: `R$ ${totalBalance?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            change: totalBalance >= 0 ? "+" : "",
+            direction: totalBalance >= 0 ? "up" : "down",
+            comparisonText: "Disponível",
+            icon: "wallet",
+            color: totalBalance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400",
+            bgColor: totalBalance >= 0 ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20",
+        },
+        {
+            id: 2,
+            title: "Total de Ganhos",
+            value: `R$ ${totalIncome?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            change: incomeVariation >= 0 ? "+" : "",
+            direction: incomeVariation >= 0 ? "up" : "down",
+            comparisonText: `vs período anterior`,
+            icon: "arrow-up",
+            color: "text-green-600 dark:text-green-400",
+            bgColor: "bg-green-50 dark:bg-green-900/20",
+        },
+        {
+            id: 3,
+            title: "Total de Despesas",
+            value: `R$ ${totalExpense?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            change: expenseVariation <= 0 ? "+" : "-",
+            direction: expenseVariation <= 0 ? "up" : "down",
+            comparisonText: `vs período anterior`,
+            icon: "arrow-down",
+            color: "text-red-600 dark:text-red-400",
+            bgColor: "bg-red-50 dark:bg-red-900/20",
+        },
+        {
+            id: 4,
+            title: "Saldo Líquido",
+            value: `R$ ${netBalance?.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            change: netBalance >= 0 ? "+" : "",
+            direction: netBalance >= 0 ? "up" : "down",
+            comparisonText: "Ganhos - Despesas",
+            icon: "balance-scale",
+            color: netBalance >= 0 ? "text-blue-600 dark:text-blue-400" : "text-yellow-600 dark:text-yellow-400",
+            bgColor: netBalance >= 0 ? "bg-blue-50 dark:bg-blue-900/20" : "bg-yellow-50 dark:bg-yellow-900/20",
+        },
+    ];
+
+    const periodText = dateRange?.startDate && dateRange?.endDate
+        ? `Período: ${new Date(dateRange.startDate).toLocaleDateString('pt-BR')} à ${new Date(dateRange.endDate).toLocaleDateString('pt-BR')}`
+        : 'Período: Total';
+
+    return (
+        <div>
+            <div className="mb-4">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    Resumo Financeiro
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {periodText}
+                </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {metrics.map((item) => (
+                    <div
+                        key={item.id}
+                        className={`rounded-xl border p-5 transition-all duration-300 hover:shadow-lg ${item.bgColor} border-transparent`}
+                    >
+                        <div className="flex items-center justify-between mb-3">
+                            <div className={`p-2 rounded-lg ${item.bgColor.replace('bg-', 'bg-').replace('/20', '/30')}`}>
+                                <i className={`fas fa-${item.icon} ${item.color} text-lg`}></i>
+                            </div>
+                            <Badge
+                                color={
+                                    item.direction === "up"
+                                        ? "success"
+                                        : item.direction === "down"
+                                            ? "error"
+                                            : "warning"
+                                }
+                            >
+                <span className="text-xs font-medium">
+                  {item.change}{item.id === 2 || item.id === 3 ? Math.abs(incomeVariation).toFixed(1) + '%' : ''}
+                </span>
+                            </Badge>
+                        </div>
+
+                        <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-1">
+                            {item.title}
+                        </p>
+                        <div className="flex items-end justify-between">
+                            <div>
+                                <h4 className={`text-2xl font-bold ${item.color}`}>
+                                    {item.value}
+                                </h4>
+                            </div>
+                        </div>
+
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <span className="text-gray-500 dark:text-gray-400 text-xs">
+                {item.comparisonText}
+              </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Barra de progresso do saldo */}
+            <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+                <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Proporção Ganhos/Despesas
+          </span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {totalIncome > 0 ? Math.round((totalExpense / totalIncome) * 100) : 0}%
+          </span>
+                </div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-gradient-to-r from-green-500 to-red-500 transition-all duration-500"
+                        style={{
+                            width: `${totalIncome > 0 ? Math.min(100, (totalExpense / totalIncome) * 100) : 0}%`
+                        }}
+                    ></div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    <span>Ganhos: R$ {totalIncome?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span>Despesas: R$ {totalExpense?.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default FinanceMetrics;
