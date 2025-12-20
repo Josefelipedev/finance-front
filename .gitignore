@@ -127,6 +127,10 @@ dist/
 .env
 # Grunt usually preprocesses files such as coffeescript, compass... inside the .tmp directory
 .tmp/
+.idea
+node_modules
+package-lock.json
+
 
 
 ### SublimeText ###

@@ -5,13 +5,10 @@ import { Link, useLocation } from "react-router";
 import {
   BoxCubeIcon,
   CalenderIcon,
-  ChatIcon,
   ChevronDownIcon,
-  DocsIcon,
   GridIcon,
   HorizontaLDots,
   ListIcon,
-  MailIcon,
   PageIcon,
   PieChartIcon,
   PlugInIcon,
@@ -148,26 +145,7 @@ const othersItems: NavItem[] = [
   },
 ];
 
-const supportItems: NavItem[] = [
-  {
-    icon: <ChatIcon />,
-    name: "Chat",
-    path: "/chat",
-  },
-  {
-    icon: <MailIcon />,
-    name: "Email",
-    subItems: [
-      { name: "Inbox", path: "/inbox" },
-      { name: "Details", path: "/inbox-details" },
-    ],
-  },
-  {
-    icon: <DocsIcon />,
-    name: "Invoice",
-    path: "/invoice",
-  },
-];
+
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
@@ -195,9 +173,8 @@ const AppSidebar: React.FC = () => {
         menuType === "main"
           ? navItems
           : menuType === "support"
-          ? supportItems
-          : othersItems;
-      items.forEach((nav, index) => {
+          ? othersItems : null;
+      items?.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
             if (isActive(subItem.path)) {
@@ -452,7 +429,6 @@ const AppSidebar: React.FC = () => {
                   <HorizontaLDots />
                 )}
               </h2>
-              {renderMenuItems(supportItems, "support")}
             </div>
             <div className="">
               <h2

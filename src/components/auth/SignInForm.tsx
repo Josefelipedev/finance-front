@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
@@ -9,7 +9,8 @@ import { useGoogleLogin } from "@react-oauth/google";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signInSchema } from "../../schemas/auth.ts";
-import api from "../../services/api.ts";
+import {useAuth} from "../../context/AuthContext.tsx";
+
 
 interface SignInFormData {
     email: string;
@@ -29,12 +30,19 @@ export default function SignInForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
     const [isSendingCode, setIsSendingCode] = useState(false);
     const [isVerifyingCode, setIsVerifyingCode] = useState(false);
     const [verificationSent, setVerificationSent] = useState(false);
     const [countdown, setCountdown] = useState(0);
     const navigate = useNavigate();
+
+    const {
+        login,
+        loginWithGoogle,
+        loginWithPhone,
+        sendVerificationCode,
+        isLoading,
+    } = useAuth();
 
     // Form para email/senha
     const {
@@ -62,12 +70,12 @@ export default function SignInForm() {
     } = useForm<WhatsAppLoginData>();
 
     // Countdown para reenvio de código
-    useState(() => {
+    useEffect(() => {
         if (countdown > 0) {
             const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(timer);
         }
-    });
+    }, [countdown]);
 
     // Função para enviar código de verificação via WhatsApp
     const sendWhatsAppCode = async () => {
@@ -82,9 +90,8 @@ export default function SignInForm() {
         setSuccess("");
 
         try {
-            const response = await api.post("/auth/send-code", { phone });
-
-            if (response.data.success) {
+            const result = await sendVerificationCode(phone);
+            if (result.success) {
                 setVerificationSent(true);
                 setCountdown(60); // 60 segundos para reenvio
                 setSuccess("Verification code sent via WhatsApp");
@@ -95,10 +102,12 @@ export default function SignInForm() {
                         codeInput.focus();
                     }
                 }, 100);
+            } else {
+                setError("Failed to send verification code");
             }
         } catch (error: any) {
             console.error("Erro ao enviar código:", error);
-            setError(error.response?.data?.message || "Failed to send verification code");
+            setError(error.message || "Failed to send verification code");
         } finally {
             setIsSendingCode(false);
         }
@@ -111,20 +120,19 @@ export default function SignInForm() {
         setSuccess("");
 
         try {
-            const response = await api.post("/auth/verify-code", {
-                phone: data.phone,
-                code: data.code,
-            });
-
-            if (response.data.token) {
-                localStorage.setItem("token", response.data.token);
-                localStorage.setItem("user", JSON.stringify(response.data.user));
+            const result = await loginWithPhone(data.phone, data.code);
+            if (result.success && result.user) {
+                if (data.phone) {
+                    localStorage.setItem("rememberPhone", data.phone);
+                }
                 setSuccess("Login successful! Redirecting...");
-                setTimeout(() => navigate("/dashboard"), 1000);
+                setTimeout(() => navigate("/"), 1000);
+            } else {
+                setError("Invalid verification code");
             }
         } catch (error: any) {
             console.error("Erro ao verificar código:", error);
-            setError(error.response?.data?.message || "Invalid verification code");
+            setError(error.message || "Invalid verification code");
         } finally {
             setIsVerifyingCode(false);
         }
@@ -132,72 +140,49 @@ export default function SignInForm() {
 
     // Função para login com email e senha
     const onSubmitEmail = async (data: SignInFormData) => {
-        setIsLoading(true);
         setError("");
         setSuccess("");
 
         try {
-            const response = await api.post("/auth/login", {
-                email: data.email,
-                password: data.password,
-            });
-
-            if (response.data.token) {
-                localStorage.setItem("token", response.data.token);
-                localStorage.setItem("user", JSON.stringify(response.data.user));
-
+            const result = await login(data.email, data.password);
+            console.log("Resultado do login page:", result);
+            if (result.success && result.user) {
                 if (data.rememberMe) {
                     localStorage.setItem("rememberMe", "true");
                 }
-
                 setSuccess("Login successful! Redirecting...");
-                setTimeout(() => navigate("/dashboard"), 1000);
+                setTimeout(() => navigate("/"), 1000);
+            } else {
+                setError("Invalid credentials");
             }
         } catch (error: any) {
             console.error("Erro no login:", error);
-            setError(error.response?.data?.message || "Invalid credentials");
-        } finally {
-            setIsLoading(false);
+            setError(error.message || "Invalid credentials");
         }
     };
 
     // Função para login com Google
-    const loginWithGoogle = useGoogleLogin({
+    const loginWithGoogleHook = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            setIsLoading(true);
             setError("");
             setSuccess("");
 
             try {
-                const userInfo = await fetch(
-                    "https://www.googleapis.com/oauth2/v3/userinfo",
-                    {
-                        headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-                    }
-                ).then((res) => res.json());
-
-                const response = await api.post("/auth/google", {
-                    token: tokenResponse.access_token,
-                    userInfo: userInfo,
-                });
-
-                if (response.data.token) {
-                    localStorage.setItem("token", response.data.token);
-                    localStorage.setItem("user", JSON.stringify(response.data.user));
+                const result = await loginWithGoogle(tokenResponse.access_token);
+                if (result.success && result.user) {
                     setSuccess("Login successful! Redirecting...");
-                    setTimeout(() => navigate("/dashboard"), 1000);
+                    setTimeout(() => navigate("/"), 1000);
+                } else {
+                    setError("Failed to login with Google");
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Erro ao fazer login com Google:", error);
-                setError("Failed to login with Google");
-            } finally {
-                setIsLoading(false);
+                setError(error.message || "Failed to login with Google");
             }
         },
         onError: (error) => {
             console.error("Login Failed:", error);
             setError("Failed to connect with Google");
-            setIsLoading(false);
         },
         scope: "email profile",
     });
@@ -207,6 +192,14 @@ export default function SignInForm() {
         if (countdown > 0) return;
         await sendWhatsAppCode();
     };
+
+    // Preencher telefone do localStorage se existir
+    useEffect(() => {
+        const savedPhone = localStorage.getItem("rememberPhone");
+        if (savedPhone && activeMethod === "whatsapp") {
+            setWhatsAppValue("phone", savedPhone);
+        }
+    }, [activeMethod, setWhatsAppValue]);
 
     return (
         <div className="flex flex-col flex-1">
@@ -353,7 +346,12 @@ export default function SignInForm() {
                                     </Link>
                                 </div>
                                 <div>
-                                    <Button className="w-full" size="sm" disabled={isLoading}>
+                                    <Button
+                                        className="w-full"
+                                        size="sm"
+                                        type="submit"
+                                        disabled={isLoading}
+                                    >
                                         {isLoading ? "Signing in..." : "Sign in"}
                                     </Button>
                                 </div>
@@ -367,7 +365,8 @@ export default function SignInForm() {
                             <div className="space-y-6">
                                 <div>
                                     <Label>
-                                        WhatsApp Phone Number <span className="text-error-500">*</span>
+                                        WhatsApp Phone Number{" "}
+                                        <span className="text-error-500">*</span>
                                     </Label>
                                     <div className="flex gap-2">
                                         <div className="flex-1">
@@ -376,7 +375,7 @@ export default function SignInForm() {
                                                 id="whatsappPhone"
                                                 placeholder="+55 (11) 98765-4321"
                                                 {...registerWhatsApp("phone", {
-                                                    onChange: () => setVerificationSent(false)
+                                                    onChange: () => setVerificationSent(false),
                                                 })}
                                                 error={!!errorsWhatsApp.phone}
                                             />
@@ -387,7 +386,11 @@ export default function SignInForm() {
                                             disabled={isSendingCode || countdown > 0}
                                             className="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                         >
-                                            {isSendingCode ? "Sending..." : countdown > 0 ? `${countdown}s` : "Send Code"}
+                                            {isSendingCode
+                                                ? "Sending..."
+                                                : countdown > 0
+                                                    ? `${countdown}s`
+                                                    : "Send Code"}
                                         </button>
                                     </div>
                                     {errorsWhatsApp.phone && (
@@ -403,7 +406,8 @@ export default function SignInForm() {
                                 {verificationSent && (
                                     <div>
                                         <Label>
-                                            Verification Code <span className="text-error-500">*</span>
+                                            Verification Code{" "}
+                                            <span className="text-error-500">*</span>
                                         </Label>
                                         <div className="flex gap-2">
                                             <div className="flex-1">
@@ -440,7 +444,9 @@ export default function SignInForm() {
                                                 disabled={countdown > 0}
                                                 className="text-sm text-brand-500 hover:text-brand-600 disabled:text-gray-400"
                                             >
-                                                {countdown > 0 ? `Resend in ${countdown}s` : "Resend Code"}
+                                                {countdown > 0
+                                                    ? `Resend in ${countdown}s`
+                                                    : "Resend Code"}
                                             </button>
                                         </div>
                                     </div>
@@ -450,6 +456,7 @@ export default function SignInForm() {
                                     <Button
                                         className="w-full"
                                         size="sm"
+                                        type="submit"
                                         disabled={!verificationSent || isVerifyingCode}
                                     >
                                         {isVerifyingCode ? "Verifying..." : "Login with WhatsApp"}
@@ -467,7 +474,7 @@ export default function SignInForm() {
                             </p>
 
                             <button
-                                onClick={() => loginWithGoogle()}
+                                onClick={() => loginWithGoogleHook()}
                                 disabled={isLoading}
                                 className="w-full inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                             >

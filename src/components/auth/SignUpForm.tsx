@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,21 +7,28 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import { useGoogleLogin } from "@react-oauth/google";
-import api from "../../services/api.ts";
 import { signUpSchema, SignUpFormData } from "../../schemas/auth";
 
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import {useAuth} from "../../context/AuthContext.tsx";
+
 export default function SignUpForm() {
-   const [showPassword, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-    const [isSendingCode, setIsSendingCode] = useState(false);
-    const [isVerifyingCode, setIsVerifyingCode] = useState(false);
     const [googleError, setGoogleError] = useState("");
     const [phoneError, setPhoneError] = useState("");
     const [verificationSent, setVerificationSent] = useState(false);
     const [isPhoneVerified, setIsPhoneVerified] = useState(false);
     const [countdown, setCountdown] = useState(0);
-    // const [verificationCode, setVerificationCode] = useState("");
     const navigate = useNavigate();
+
+    // Usando o contexto de autenticação
+    const {
+        register: registerUser,
+        sendVerificationCode,
+        verifyPhoneCode,
+        isLoading: authLoading,
+    } = useAuth();
 
     // Inicializa o react-hook-form
     const {
@@ -57,8 +64,8 @@ export default function SignUpForm() {
         }
     }, [countdown]);
 
-    // Função para enviar código de verificação
-    const sendVerificationCode = async () => {
+    // Função para enviar código de verificação usando AuthContext
+    const sendVerificationCodeHandler = async () => {
         const phoneValue = getValues("phone");
 
         if (!phoneValue || phoneValue.length < 10) {
@@ -66,17 +73,15 @@ export default function SignUpForm() {
             return;
         }
 
-        setIsSendingCode(true);
         setPhoneError("");
 
         try {
-            const response = await api.post("/auth/send-code", {
-                phone: phoneValue
-            });
+            const result = await sendVerificationCode(phoneValue);
 
-            if (response.data.success) {
+            if (result.success) {
                 setVerificationSent(true);
                 setCountdown(60); // 60 segundos para reenvio
+
                 // Focar no campo de código
                 setTimeout(() => {
                     const codeInput = document.getElementById("verificationCode");
@@ -87,14 +92,12 @@ export default function SignUpForm() {
             }
         } catch (error: any) {
             console.error("Erro ao enviar código:", error);
-            setPhoneError(error.response?.data?.message || "Failed to send verification code");
-        } finally {
-            setIsSendingCode(false);
+            setPhoneError(error.message || "Failed to send verification code");
         }
     };
 
-    // Função para verificar código
-    const verifyCode = async () => {
+    // Função para verificar código usando AuthContext
+    const verifyCodeHandler = async () => {
         const phoneValue = getValues("phone");
         const codeValue = getValues("verificationCode");
 
@@ -103,30 +106,23 @@ export default function SignUpForm() {
             return;
         }
 
-        setIsVerifyingCode(true);
-
         try {
-            const response = await api.post("/auth/verify-code-create", {
-                phone: phoneValue,
-                code: codeValue
-            });
+            const result = await verifyPhoneCode(phoneValue, codeValue);
 
-            if (response.data.success) {
+            if (result.success) {
                 setIsPhoneVerified(true);
                 setPhoneError("");
             }
         } catch (error: any) {
             console.error("Erro ao verificar código:", error);
-            setPhoneError(error.response?.data?.message || "Invalid verification code");
-        } finally {
-            setIsVerifyingCode(false);
+            setPhoneError(error.message || "Invalid verification code");
         }
     };
 
     // Função para reenviar código
     const resendCode = async () => {
         if (countdown > 0) return;
-        await sendVerificationCode();
+        await sendVerificationCodeHandler();
     };
 
     // Função para pegar dados do Google
@@ -180,7 +176,6 @@ export default function SignUpForm() {
                         phoneInput.focus();
                     }
                 }, 100);
-
             } catch (error) {
                 console.error("Erro ao obter dados do Google:", error);
                 setGoogleError("Não foi possível obter os dados do Google.");
@@ -196,39 +191,39 @@ export default function SignUpForm() {
         scope: "email profile",
     });
 
-    // Função para registro
+    // Função para registro usando AuthContext
     const onSubmit = async (data: SignUpFormData) => {
         try {
-            // Verificar se o telefone foi validado
-            const verificationToken = localStorage.getItem("phoneVerificationToken");
-
-            if (!verificationToken && !isPhoneVerified) {
+            if (!isPhoneVerified) {
                 setPhoneError("Please verify your phone number first");
                 return;
             }
 
-            const response = await api.post("/auth/register", {
+            const result = await registerUser({
+                email: data.email,
+                password: data.password,
                 firstName: data.firstName,
                 lastName: data.lastName,
-                email: data.email,
                 phone: data.phone,
-                password: data.password,
-                verificationToken: verificationToken
             });
 
-            if (response.status === 201 || response.status === 200) {
-                localStorage.setItem("token", response.data.token);
-                localStorage.setItem("email", response.data.user.email);
-                localStorage.setItem("userId", response.data.user.id);
-                // Limpar token temporário de verificação
-                localStorage.removeItem("phoneVerificationToken");
-                navigate("/signin");
+            if (result.success) {
+                navigate("/"); // Redireciona para a página inicial
             }
         } catch (error: any) {
-            console.error("Erro no registro:", error.response?.data?.message || error.message);
-            setPhoneError(error.response?.data?.message || "Registration failed");
+            console.error("Erro no registro:", error.message);
+            setPhoneError(error.message || "Registration failed");
         }
     };
+
+    // Se estiver carregando a autenticação
+    if (authLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <LoadingSpinner size="lg" />
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col flex-1 w-full overflow-y-auto lg:w-1/2 no-scrollbar">
@@ -259,9 +254,8 @@ export default function SignUpForm() {
                     )}
 
                     <div>
-                        {/*<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">*/}
                         <div className="flex justify-center">
-                        <button
+                            <button
                                 onClick={() => fillFormWithGoogleData()}
                                 disabled={isGoogleLoading}
                                 className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -398,6 +392,7 @@ export default function SignUpForm() {
                                         </p>
                                     )}
                                 </div>
+
                                 {/* Phone Number with WhatsApp Verification */}
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
@@ -406,8 +401,8 @@ export default function SignUpForm() {
                                         </Label>
                                         {isPhoneVerified && (
                                             <span className="text-xs text-success-500 bg-success-50 px-2 py-1 rounded">
-                                    ✓ Verified
-                                </span>
+                        ✓ Verified
+                      </span>
                                         )}
                                     </div>
 
@@ -430,11 +425,11 @@ export default function SignUpForm() {
                                         {!isPhoneVerified && (
                                             <button
                                                 type="button"
-                                                onClick={sendVerificationCode}
-                                                disabled={!phone || phone.length < 10 || isSendingCode || countdown > 0}
+                                                onClick={sendVerificationCodeHandler}
+                                                disabled={!phone || phone.length < 10 || countdown > 0}
                                                 className="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                             >
-                                                {isSendingCode ? "Sending..." : countdown > 0 ? `${countdown}s` : "Send Code"}
+                                                {countdown > 0 ? `${countdown}s` : "Send Code"}
                                             </button>
                                         )}
                                     </div>
@@ -468,11 +463,10 @@ export default function SignUpForm() {
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={verifyCode}
-                                                disabled={isVerifyingCode}
+                                                onClick={verifyCodeHandler}
                                                 className="px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-lg hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                                             >
-                                                {isVerifyingCode ? "Verifying..." : "Verify"}
+                                                Verify
                                             </button>
                                         </div>
 
@@ -497,7 +491,6 @@ export default function SignUpForm() {
                                         {phoneError}
                                     </div>
                                 )}
-
 
                                 {/* Password */}
                                 <div>
@@ -560,10 +553,17 @@ export default function SignUpForm() {
                                 <div>
                                     <button
                                         type="submit"
-                                        disabled={isSubmitting}
+                                        disabled={isSubmitting || authLoading}
                                         className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {isSubmitting ? "Creating account..." : "Create Account"}
+                                        {isSubmitting || authLoading ? (
+                                            <>
+                                                <LoadingSpinner size="sm" className="mr-2" />
+                                                Creating account...
+                                            </>
+                                        ) : (
+                                            "Create Account"
+                                        )}
                                     </button>
                                 </div>
                             </div>
