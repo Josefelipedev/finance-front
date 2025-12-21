@@ -1,6 +1,6 @@
-
 // src/hooks/useGoals.ts
 import { useApi } from './useApi';
+import { useState, useCallback } from 'react';
 
 export interface Goal {
     id: number;
@@ -28,40 +28,21 @@ export interface CreateGoalDto {
 
 export interface UpdateGoalDto extends Partial<CreateGoalDto> {}
 
-export const goalsService = {
-    async getAllGoals() {
-        const api = useApi('finance');
-        return await api.get<Goal[]>('/goals');
-    },
-
-    async getGoalById(id: number) {
-        const api = useApi('finance');
-        return await api.get<Goal>(`/goals/${id}`);
-    },
-
-    async createGoal(data: CreateGoalDto) {
-        const api = useApi('finance');
-        return await api.post('/goals', data);
-    },
-
-    async updateGoal(id: number, data: UpdateGoalDto) {
-        const api = useApi('finance');
-        return await api.put(`/goals/${id}`, data);
-    },
-
-    async deleteGoal(id: number) {
-        const api = useApi('finance');
-        return await api.del(`/goals/${id}`);
-    },
-};
-
-// Hook personalizado para metas
 export function useGoals() {
+    const [goals, setGoals] = useState<Goal[]>([]);
     const api = useApi<Goal[]>('finance');
 
-    const getAllGoals = async () => {
-        return await api.get('/goals');
-    };
+    const getAllGoals = useCallback(async () => {
+        try {
+            const response = await api.get('/goals');
+            if (response) {
+                setGoals(response);
+            }
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    }, []);
 
     const getGoalById = async (id: number) => {
         const goalApi = useApi<Goal>('finance');
@@ -69,35 +50,83 @@ export function useGoals() {
     };
 
     const createGoal = async (data: CreateGoalDto) => {
-        return await api.post('/goals', data);
+        try {
+            const response = await api.post('/goals', data);
+            // Atualizar lista local
+            if (response) {
+                setGoals(prev => [...prev, response]);
+            }
+            return response;
+        } catch (error) {
+            throw error;
+        }
     };
 
     const updateGoal = async (id: number, data: UpdateGoalDto) => {
-        return await api.put(`/goals/${id}`, data);
+        try {
+            const response = await api.put(`/goals/${id}`, data);
+            // Atualizar lista local
+            if (response) {
+                setGoals(prev => prev.map(goal =>
+                    goal.id === id ? response : goal
+                ));
+            }
+            return response;
+        } catch (error) {
+            throw error;
+        }
     };
 
     const deleteGoal = async (id: number) => {
-        return await api.del(`/goals/${id}`);
+        try {
+            await api.del(`/goals/${id}`);
+            // Remover da lista local
+            setGoals(prev => prev.filter(goal => goal.id !== id));
+            return true;
+        } catch (error) {
+            throw error;
+        }
     };
 
     // Calcula o progresso da meta em porcentagem
-    const calculateGoalProgress = (goal: Goal): number => {
+    const calculateGoalProgress = useCallback((goal: Goal): number => {
         if (goal.targetValue === 0) return 0;
-        return Math.min(100, (goal.currentValue / goal.targetValue) * 100);
-    };
+        const progress = (goal.currentValue / goal.targetValue) * 100;
+        return Math.min(100, Math.max(0, progress)); // Limita entre 0 e 100
+    }, []);
 
     // Verifica se a meta está atrasada
-    const isGoalOverdue = (goal: Goal): boolean => {
-        if (!goal.endDate || goal.status === 'completed') return false;
+    const isGoalOverdue = useCallback((goal: Goal): boolean => {
+        if (!goal.endDate || goal.status !== 'active') return false;
         const endDate = new Date(goal.endDate);
         const today = new Date();
+        today.setHours(0, 0, 0, 0); // Remove hora para comparar apenas datas
         return endDate < today;
-    };
+    }, []);
 
     // Filtra metas por status
-    const filterGoalsByStatus = (goals: Goal[], status: Goal['status']) => {
+    const filterGoalsByStatus = useCallback((status: Goal['status']) => {
         return goals.filter(goal => goal.status === status);
-    };
+    }, [goals]);
+
+    // Calcula estatísticas gerais
+    const getGoalsStats = useCallback(() => {
+        const totalGoals = goals.length;
+        const completedGoals = goals.filter(g => g.status === 'completed').length;
+        const activeGoals = goals.filter(g => g.status === 'active').length;
+        const totalTarget = goals.reduce((sum, goal) => sum + goal.targetValue, 0);
+        const totalCurrent = goals.reduce((sum, goal) => sum + goal.currentValue, 0);
+        const overallProgress = totalTarget > 0 ? (totalCurrent / totalTarget) * 100 : 0;
+
+        return {
+            totalGoals,
+            completedGoals,
+            activeGoals,
+            totalTarget,
+            totalCurrent,
+            overallProgress,
+        };
+    }, [goals]);
 
     return {
         // Métodos CRUD
@@ -111,9 +140,11 @@ export function useGoals() {
         calculateGoalProgress,
         isGoalOverdue,
         filterGoalsByStatus,
+        getGoalsStats,
 
         // Estado
-        data: api.data,
+        data: goals,
+        setGoals,
         error: api.error,
         isLoading: api.isLoading,
         isSuccess: api.isSuccess,

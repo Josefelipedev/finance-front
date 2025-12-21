@@ -56,40 +56,6 @@ export interface CreateOrUpdateItemDto {
     shoppingListId: number;
 }
 
-export const shoppingService = {
-    async createList(data: CreateListDto) {
-        const api = useApi('finance');
-        return await api.post('/shopping/list', data);
-    },
-
-    async addItem(data: AddItemDto) {
-        const api = useApi('finance');
-        return await api.post('/shopping/item', data);
-    },
-
-    async getAllLists() {
-        const api = useApi('finance');
-        return await api.get<ShoppingList[]>('/shopping');
-    },
-
-    async updateItemStatus(data: UpdateItemStatusDto) {
-        const api = useApi('finance');
-        return await api.patch(`/shopping/item/${data.itemId}`, {
-            purchased: data.purchased,
-        });
-    },
-
-    async createOrUpdateItem(data: CreateOrUpdateItemDto) {
-        const api = useApi('finance');
-        return await api.post('/shopping/shopping-item', data);
-    },
-
-    async getPriceHistory(itemId: number) {
-        const api = useApi('finance');
-        return await api.get<PriceHistory[]>(`/shopping/shopping-item/${itemId}/history`);
-    },
-};
-
 // Hook personalizado para listas de compras
 export function useShopping() {
     const api = useApi<ShoppingList[]>('finance');

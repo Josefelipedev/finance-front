@@ -38,23 +38,6 @@ export interface CreateRecurringTransactionDto {
     occurrences?: number;
 }
 
-export const recurringFinanceService = {
-    async createRecurringTransaction(data: CreateRecurringTransactionDto) {
-        const api = useApi('finance');
-        return await api.post('/recurring-finance', data);
-    },
-
-    async getAllRecurringTransactions() {
-        const api = useApi('finance');
-        return await api.get<RecurringTransaction[]>('/recurring-finance');
-    },
-
-    async getRecurringTransactionById(id: number) {
-        const api = useApi('finance');
-        return await api.get<RecurringTransaction>(`/recurring-finance/by-id/${id}`);
-    },
-};
-
 // Hook personalizado para transações recorrentes
 export function useRecurringFinance() {
     const api = useApi<RecurringTransaction[]>('finance');

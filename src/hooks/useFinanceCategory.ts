@@ -21,28 +21,6 @@ export interface CreateCategoryDto {
     iconName?: string;
 }
 
-export const financeCategoryService = {
-    async createCategory(data: CreateCategoryDto) {
-        const api = useApi('finance');
-        return await api.post('/finance-category', data);
-    },
-
-    async getAllCategories() {
-        const api = useApi('finance');
-        return await api.get<FinanceCategory[]>('/finance-category');
-    },
-
-    async getCategoryById(id: number) {
-        const api = useApi('finance');
-        return await api.get<FinanceCategory>(`/finance-category/by-id/${id}`);
-    },
-
-    async getCategorySummary(categoryId: number) {
-        const api = useApi('finance');
-        return await api.get<CategorySummary>(`/finance-category/${categoryId}/summary`);
-    },
-};
-
 // Hook personalizado para categorias
 export function useFinanceCategory() {
     const api = useApi<FinanceCategory[]>('finance');
