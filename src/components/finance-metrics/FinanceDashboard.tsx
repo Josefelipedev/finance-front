@@ -18,7 +18,7 @@ const FinanceDashboard: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
     loadSummaryData();
-  }, [dateRange, activePeriod]);
+  }, [dateRange]);
 
   const setPeriod = (period: 'week' | 'month' | 'year' | 'custom') => {
     setActivePeriod(period);
@@ -48,30 +48,42 @@ const FinanceDashboard: React.FC = () => {
 
   const loadDashboardData = async () => {
     try {
-      const params = {
-        startDate: dateRange.startDate || undefined,
-        endDate: dateRange.endDate || undefined,
-      };
+      const params: any = {};
+      if (dateRange.startDate) params.startDate = dateRange.startDate;
+      if (dateRange.endDate) params.endDate = dateRange.endDate;
+
       const data = await getDashboardData(params);
       setDashboardData(data);
     } catch (err) {
       console.error('Erro ao carregar dashboard:', err);
+      // Inicialize com dados vazios para evitar undefined
+      setDashboardData({
+        totalBalance: 0,
+        totalExpense: 0,
+        stats: { revenueLastWeek: 0, foodLastWeek: 0 },
+        transactions: [],
+      });
     }
   };
 
   const loadSummaryData = async () => {
     try {
-      const params = {
-        startDate: dateRange.startDate || undefined,
-        endDate: dateRange.endDate || undefined,
-      };
+      const params: any = {};
+      if (dateRange.startDate) params.startDate = dateRange.startDate;
+      if (dateRange.endDate) params.endDate = dateRange.endDate;
+
       const data = await getFinanceSummary(params);
       setSummaryData(data);
     } catch (err) {
       console.error('Erro ao carregar resumo:', err);
+      // Inicialize com dados vazios
+      setSummaryData({
+        totalGanhos: 0,
+        totalDespesas: 0,
+        saldo: 0,
+      });
     }
   };
-
   const handleDateChange = (start: string, end: string) => {
     setDateRange({ startDate: start, endDate: end });
     setActivePeriod('custom');
@@ -114,9 +126,9 @@ const FinanceDashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 ">
       {/* Período de Filtro */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 items-center">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex flex-wrap gap-2">
             <button
@@ -149,37 +161,6 @@ const FinanceDashboard: React.FC = () => {
             >
               Último Ano
             </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={dateRange.startDate}
-                onChange={(e) => handleDateChange(e.target.value, dateRange.endDate)}
-                className="px-3 py-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm"
-              />
-              <span className="text-gray-500 dark:text-gray-400">até</span>
-              <input
-                type="date"
-                value={dateRange.endDate}
-                onChange={(e) => handleDateChange(dateRange.startDate, e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm"
-              />
-            </div>
-
-            {(dateRange.startDate || dateRange.endDate) && (
-              <button
-                onClick={() => {
-                  setDateRange({ startDate: '', endDate: '' });
-                  setActivePeriod('month');
-                }}
-                className="px-3 py-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300"
-                title="Limpar filtros"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -217,7 +198,7 @@ const FinanceDashboard: React.FC = () => {
             <i className="fas fa-chart-line text-gray-400 dark:text-gray-500 text-3xl"></i>
           </div>
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-            Nenhuma transação encontrada
+            Nenhuma transação encontrada 2
           </h3>
           <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
             {dateRange.startDate || dateRange.endDate
