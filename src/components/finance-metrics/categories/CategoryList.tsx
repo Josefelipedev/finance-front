@@ -1,6 +1,7 @@
 // src/components/finance-metrics/categories/CategoryList.tsx
 import React from 'react';
 import { FinanceCategory } from '../../../hooks/useFinanceCategory.ts';
+import { useDefaultIcons } from '../../../hooks/useDefaultIcons.ts';
 
 interface CategoryListProps {
   categories: FinanceCategory[];
@@ -29,53 +30,25 @@ const CategoryList: React.FC<CategoryListProps> = ({
     );
   }
 
-  // Agrupar por tipo
-  const incomeCategories = categories.filter((c) => c.type === 'income' || c.type === 'both');
-  const expenseCategories = categories.filter((c) => c.type === 'expense' || c.type === 'both');
-
   return (
     <div className="space-y-6">
-      {/* Categorias de Receita */}
-      {incomeCategories.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-            <i className="fas fa-arrow-up text-green-500"></i>
-            Categorias de Receita
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {incomeCategories.map((category) => (
-              <CategoryCard
-                key={category.id}
-                category={category}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onToggleStatus={onToggleStatus}
-              />
-            ))}
-          </div>
+      <div>
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+          <i className="fas fa-tags text-blue-500"></i>
+          Todas as Categorias
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {categories.map((category) => (
+            <CategoryCard
+              key={category.id}
+              category={category}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onToggleStatus={onToggleStatus}
+            />
+          ))}
         </div>
-      )}
-
-      {/* Categorias de Despesa */}
-      {expenseCategories.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-            <i className="fas fa-arrow-down text-red-500"></i>
-            Categorias de Despesa
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {expenseCategories.map((category) => (
-              <CategoryCard
-                key={category.id}
-                category={category}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onToggleStatus={onToggleStatus}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -86,6 +59,11 @@ const CategoryCard: React.FC<{
   onDelete: (id: number) => void;
   onToggleStatus: (id: number, currentStatus: boolean) => void;
 }> = ({ category, onEdit, onDelete, onToggleStatus }) => {
+  const { getIconForCategorySync } = useDefaultIcons();
+
+  // Se a categoria não tem ícone, busca um padrão baseado no nome
+  const iconName = category.iconName || getIconForCategorySync(category.name).icon;
+  const color = category.color || getIconForCategorySync(category.name).color;
   return (
     <div
       className={`bg-white dark:bg-slate-800 rounded-xl shadow border p-4 ${
@@ -98,26 +76,11 @@ const CategoryCard: React.FC<{
             className="w-10 h-10 rounded-lg flex items-center justify-center"
             style={{ backgroundColor: category.color + '20' }}
           >
-            <i className={`${category.iconName} text-lg`} style={{ color: category.color }}></i>
+            <i className={`${iconName} text-lg`} style={{ color: color }}></i>
           </div>
           <div>
             <h4 className="font-semibold text-slate-800 dark:text-white">{category.name}</h4>
             <div className="flex items-center gap-2 mt-1">
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full ${
-                  category.type === 'income'
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                    : category.type === 'expense'
-                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                      : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                }`}
-              >
-                {category.type === 'income'
-                  ? 'Receita'
-                  : category.type === 'expense'
-                    ? 'Despesa'
-                    : 'Ambos'}
-              </span>
               <span
                 className={`text-xs px-2 py-0.5 rounded-full ${
                   category.isActive

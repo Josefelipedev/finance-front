@@ -7,10 +7,12 @@ import AnalyticsView from '../../components/finance-metrics/AnalyticsView.tsx';
 import AddFinanceModal from '../../components/finance-metrics/AddFinanceModal.tsx';
 import DateRangePicker from '../../components/ui/date-range-picker';
 import CategoryManager from '../../components/finance-metrics/categories/CategoryManager.tsx';
+import RecurringManager from '../../components/finance-metrics/recurring/RecurringManager.tsx';
+import ShoppingManager from '../../components/finance-metrics/shopping/ShoppingManager.tsx';
 
 const FinancePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'transactions' | 'analytics' | 'categories'
+    'dashboard' | 'transactions' | 'analytics' | 'categories' | 'recurring' | 'shopping'
   >('dashboard');
 
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
@@ -79,6 +81,28 @@ const FinancePage: React.FC = () => {
             >
               <i className="fas fa-chart-line mr-2"></i>
               Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab('recurring')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors flex items-center ${
+                activeTab === 'recurring'
+                  ? 'border-sky-500 text-sky-600 dark:text-sky-400'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300'
+              }`}
+            >
+              <i className="fas fa-redo mr-2"></i>
+              Recorrentes
+            </button>
+            <button
+              onClick={() => setActiveTab('shopping')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors flex items-center ${
+                activeTab === 'shopping'
+                  ? 'border-sky-500 text-sky-600 dark:text-sky-400'
+                  : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-300'
+              }`}
+            >
+              <i className="fas fa-shopping-cart mr-2"></i>
+              Compras
             </button>
             <button
               onClick={() => setActiveTab('categories')}
@@ -150,6 +174,15 @@ const FinancePage: React.FC = () => {
             </div>
           </div>
         )}
+        {activeTab === 'shopping' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow">
+              <div className="p-6">
+                <ShoppingManager />
+              </div>
+            </div>
+          </div>
+        )}
 
         {activeTab === 'transactions' && (
           <div className="space-y-6">
@@ -165,6 +198,15 @@ const FinancePage: React.FC = () => {
                   </span>
                 </div>
                 <TransactionsList dateRange={dateRange} />
+              </div>
+            </div>
+          </div>
+        )}
+        {activeTab === 'recurring' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow">
+              <div className="p-6">
+                <RecurringManager />
               </div>
             </div>
           </div>
