@@ -125,7 +125,7 @@ export function useFinanceCategory() {
     setIsLoading(true);
     setError(null);
     try {
-      await api.delete(`/finance-category/${id}`);
+      await api.del(`/finance-category/${id}`);
       setCategories((prev) => prev.filter((cat) => cat.id !== id));
     } catch (err: any) {
       setError(err.message || 'Erro ao excluir categoria');

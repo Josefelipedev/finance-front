@@ -1,7 +1,19 @@
 // src/components/finance-metrics/FinanceMetrics.tsx
 import React from 'react';
-import Badge from '../ui/badge/Badge';
-
+import Badge, { BadgeColor } from '../ui/badge/Badge';
+interface MetricItem {
+  id: number;
+  title: string;
+  value: string;
+  change: string;
+  variation: number;
+  direction: string;
+  comparisonText: string;
+  icon: string;
+  color: string;
+  bgColor: string;
+  badgeColor: BadgeColor;
+}
 interface FinanceMetricsProps {
   totalBalance: number;
   totalIncome: number;
@@ -43,7 +55,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
     });
   };
 
-  const metrics = [
+  const metrics: MetricItem[] = [
     {
       id: 1,
       title: 'Saldo Total',
@@ -59,7 +71,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
           : 'text-red-600 dark:text-red-400',
       bgColor:
         safeTotalBalance >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20',
-      badgeColor: safeTotalBalance >= 0 ? 'success' : ('error' as const),
+      badgeColor: safeTotalBalance >= 0 ? 'success' : 'error',
     },
     {
       id: 2,
@@ -72,7 +84,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       icon: 'arrow-up',
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
-      badgeColor: incomeVariation >= 0 ? 'success' : ('error' as const),
+      badgeColor: incomeVariation >= 0 ? 'success' : 'error',
     },
     {
       id: 3,
@@ -85,7 +97,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       icon: 'arrow-down',
       color: 'text-red-600 dark:text-red-400',
       bgColor: 'bg-red-50 dark:bg-red-900/20',
-      badgeColor: expenseVariation <= 0 ? 'success' : ('error' as const),
+      badgeColor: expenseVariation <= 0 ? 'success' : 'error',
     },
     {
       id: 4,
@@ -104,7 +116,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
         safeNetBalance >= 0
           ? 'bg-blue-50 dark:bg-blue-900/20'
           : 'bg-yellow-50 dark:bg-yellow-900/20',
-      badgeColor: safeNetBalance >= 0 ? 'success' : ('warning' as const),
+      badgeColor: safeNetBalance >= 0 ? 'success' : 'warning',
     },
   ];
 
@@ -135,7 +147,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
                 <i className={`fas fa-${item.icon} ${item.color} text-lg`}></i>
               </div>
               {(item.id === 2 || item.id === 3 || item.id === 4) && (
-                <Badge color={item.badgeColor}>
+                <Badge color={item.badgeColor || 'light'}>
                   <span className="text-xs font-medium">
                     {item.change}
                     {item.variation.toFixed(1)}%

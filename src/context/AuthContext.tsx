@@ -20,7 +20,7 @@ interface AuthContextType {
   }) => Promise<{ success: boolean; user?: User }>;
   logout: () => void;
   sendVerificationCode: (phone: string) => Promise<{ success: boolean }>;
-  verifyPhoneCode: (phone: string, code: string) => Promise<{ success: boolean }>;
+  verifyPhoneCode: (phone: string, code: string) => Promise<{ success: boolean; user?: User }>;
   sendEmailVerificationCode: (email: string) => Promise<{ success: boolean }>;
   verifyEmailCode: (email: string, code: string) => Promise<{ success: boolean; user?: User }>;
   resetPassword: (
@@ -200,6 +200,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(userData);
         return { success: true, user: userData };
       }
+      return { success: false };
     } catch (error: any) {
       throw new Error(error.message || 'Invalid verification code');
     }

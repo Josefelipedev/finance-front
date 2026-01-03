@@ -82,7 +82,7 @@ export function useShopping() {
 
   const deleteList = async (listId: number) => {
     const deleteApi = useApi<void>('finance');
-    return await deleteApi.delete(`/shopping/list/${listId}`);
+    return await deleteApi.del(`/shopping/list/${listId}`);
   };
 
   const addItem = async (data: AddItemDto) => {
@@ -96,7 +96,7 @@ export function useShopping() {
 
   const deleteItem = async (itemId: number) => {
     const deleteApi = useApi<void>('finance');
-    return await deleteApi.delete(`/shopping/item/${itemId}`);
+    return await deleteApi.del(`/shopping/item/${itemId}`);
   };
 
   const getAllLists = async () => {

@@ -30,8 +30,8 @@ const FinanceGoals: React.FC = () => {
   const [deletingGoal, setDeletingGoal] = useState<Goal | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED' | 'CANCELED'>('ACTIVE');
-  const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
-  const [clickAnimation, setClickAnimation] = useState<string | null>(null);
+  const [expandedGoalId, setExpandedGoalId] = useState<number | null>(null);
+  const [clickAnimation, setClickAnimation] = useState<number | null>(null);
 
   // Carregar metas ao montar o componente
   useEffect(() => {
@@ -47,10 +47,8 @@ const FinanceGoals: React.FC = () => {
   };
 
   // Função para alternar expansão com animação
-  const toggleGoalExpansion = (goalId: string) => {
+  const toggleGoalExpansion = (goalId: number) => {
     setExpandedGoalId(expandedGoalId === goalId ? null : goalId);
-
-    // Adicionar animação de clique
     setClickAnimation(goalId);
     setTimeout(() => setClickAnimation(null), 300);
   };

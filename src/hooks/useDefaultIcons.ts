@@ -20,8 +20,8 @@ export const useDefaultIcons = () => {
       try {
         // Tenta carregar da API
         const response = await api.get('/finance-category/icons');
-        if (response.ok) {
-          const data = await response.json();
+        if (response) {
+          const data = response.data;
           setIcons(data);
         } else {
           // Fallback para ícones locais

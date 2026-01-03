@@ -17,11 +17,11 @@ const navItems: NavItem[] = [
     name: 'Finance Dashboard',
     path: '/',
   },
-  {
-    icon: <CalenderIcon />,
-    name: 'Calendar',
-    path: '/calendar',
-  },
+  // {
+  //   icon: <CalenderIcon />,
+  //   name: 'Calendar',
+  //   path: '/calendar',
+  // },
   {
     icon: <UserCircleIcon />,
     name: 'User Profile',

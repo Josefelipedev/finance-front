@@ -71,7 +71,7 @@ export function useRecurringFinance() {
   };
 
   const deleteRecurringTransaction = async (id: number) => {
-    return await api.delete(`/recurring-finance/${id}`);
+    return await api.del(`/recurring-finance/${id}`);
   };
 
   // Calcula o próximo vencimento

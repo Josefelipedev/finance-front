@@ -1,128 +1,122 @@
-import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "../../../ui/table";
-import { PencilIcon, TrashBinIcon } from "../../../../icons";
-import Checkbox from "../../../form/input/Checkbox";
-import Badge from "../../../ui/badge/Badge";
-import Pagination from "./Pagination";
-import Button from "../../../ui/button/Button";
+import { useState } from 'react';
+import { Table, TableBody, TableCell, TableHeader, TableRow } from '../../../ui/table';
+import { PencilIcon, TrashBinIcon } from '../../../../icons';
+import Checkbox from '../../../form/input/Checkbox';
+import Badge from '../../../ui/badge/Badge';
+import Pagination from './Pagination';
+import Button from '../../../ui/button/Button';
 
 const tableRowData = [
   {
     id: 1,
     user: {
-      name: "Lindsey Curtis",
-      email: "demoemail@gmail.com",
+      name: 'Lindsey Curtis',
+      email: 'demoemail@gmail.com',
     },
-    position: "Sales Assistant",
-    location: "Edinburgh",
-    status: "Hired",
-    salary: "$89,500",
+    position: 'Sales Assistant',
+    location: 'Edinburgh',
+    status: 'Hired',
+    salary: '$89,500',
   },
   {
     id: 2,
     user: {
-      name: "Kaiya George",
-      email: "demoemail@gmail.com",
+      name: 'Kaiya George',
+      email: 'demoemail@gmail.com',
     },
-    position: "Chief Executive Officer",
-    location: "London",
-    status: "In Progress",
-    salary: "$105,000",
+    position: 'Chief Executive Officer',
+    location: 'London',
+    status: 'In Progress',
+    salary: '$105,000',
   },
   {
     id: 3,
     user: {
-      name: "Zain Geidt",
-      email: "demoemail@gmail.com",
+      name: 'Zain Geidt',
+      email: 'demoemail@gmail.com',
     },
-    position: "Junior Technical Author",
-    location: "San Francisco",
-    status: "In Progress",
-    salary: "$120,000",
+    position: 'Junior Technical Author',
+    location: 'San Francisco',
+    status: 'In Progress',
+    salary: '$120,000',
   },
   {
     id: 4,
     user: {
-      name: "Abram Schleifer",
-      email: "demoemail@gmail.com",
+      name: 'Abram Schleifer',
+      email: 'demoemail@gmail.com',
     },
-    position: "Software Engineer",
-    location: "New York",
-    status: "Hired",
-    salary: "$95,000",
+    position: 'Software Engineer',
+    location: 'New York',
+    status: 'Hired',
+    salary: '$95,000',
   },
   {
     id: 5,
     user: {
-      name: "Carla George",
-      email: "demoemail@gmail.com",
+      name: 'Carla George',
+      email: 'demoemail@gmail.com',
     },
-    position: "Integration Specialist",
-    location: "Chicago",
-    status: "Pending",
-    salary: "$80,000",
+    position: 'Integration Specialist',
+    location: 'Chicago',
+    status: 'Pending',
+    salary: '$80,000',
   },
   {
     id: 6,
     user: {
-      name: "Emery Culhane",
-      email: "demoemail@gmail.com",
+      name: 'Emery Culhane',
+      email: 'demoemail@gmail.com',
     },
-    position: "Pre-Sales Support",
-    location: "Los Angeles",
-    status: "Hired",
-    salary: "$75,000",
+    position: 'Pre-Sales Support',
+    location: 'Los Angeles',
+    status: 'Hired',
+    salary: '$75,000',
   },
   {
     id: 7,
     user: {
-      name: "Livia Donin",
-      email: "demoemail@gmail.com",
+      name: 'Livia Donin',
+      email: 'demoemail@gmail.com',
     },
-    position: "Sales Assistant",
-    location: "Seattle",
-    status: "Hired",
-    salary: "$88,000",
+    position: 'Sales Assistant',
+    location: 'Seattle',
+    status: 'Hired',
+    salary: '$88,000',
   },
   {
     id: 8,
     user: {
-      name: "Lincoln Herwitz",
-      email: "demoemail@gmail.com",
+      name: 'Lincoln Herwitz',
+      email: 'demoemail@gmail.com',
     },
-    position: "Senior Javascript Developer",
-    location: "Austin",
+    position: 'Senior Javascript Developer',
+    location: 'Austin',
     age: 29,
-    status: "Hired",
-    salary: "$92,000",
+    status: 'Hired',
+    salary: '$92,000',
   },
   {
     id: 9,
     user: {
-      name: "Miracle Bator",
-      email: "demoemail@gmail.com",
+      name: 'Miracle Bator',
+      email: 'demoemail@gmail.com',
     },
-    position: "Software Engineer",
-    location: "Boston",
-    status: "In Progress",
-    salary: "$115,000",
+    position: 'Software Engineer',
+    location: 'Boston',
+    status: 'In Progress',
+    salary: '$115,000',
   },
   {
     id: 10,
     user: {
-      name: "Ekstrom Bothman",
-      email: "demoemail@gmail.com",
+      name: 'Ekstrom Bothman',
+      email: 'demoemail@gmail.com',
     },
-    position: "Sales Assistant",
-    location: "Denver",
-    status: "In Progress",
-    salary: "$70,000",
+    position: 'Sales Assistant',
+    location: 'Denver',
+    status: 'In Progress',
+    salary: '$70,000',
   },
 ];
 
@@ -152,9 +146,7 @@ export default function DataTableThree() {
   };
 
   // Rows per page handler
-  const handleRowsPerPageChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ): void => {
+  const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const newRowsPerPage = parseInt(e.target.value, 10); // Ensure base 10 parsing
     setRowsPerPage(newRowsPerPage);
     setCurrentPage(1); // Reset to first page when rows per page changes
@@ -171,22 +163,13 @@ export default function DataTableThree() {
               value={rowsPerPage}
               onChange={handleRowsPerPageChange}
             >
-              <option
-                value="10"
-                className="text-gray-500 dark:bg-gray-900 dark:text-gray-400"
-              >
+              <option value="10" className="text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                 10
               </option>
-              <option
-                value="8"
-                className="text-gray-500 dark:bg-gray-900 dark:text-gray-400"
-              >
+              <option value="8" className="text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                 8
               </option>
-              <option
-                value="5"
-                className="text-gray-500 dark:bg-gray-900 dark:text-gray-400"
-              >
+              <option value="5" className="text-gray-500 dark:bg-gray-900 dark:text-gray-400">
                 5
               </option>
             </select>
@@ -271,7 +254,7 @@ export default function DataTableThree() {
                 >
                   <div className="flex items-center justify-between cursor-pointer">
                     <div className="flex gap-3">
-                      <Checkbox checked={isChecked} onChange={setIsChecked} />
+                      <Checkbox checked={isChecked} onCheckedChange={setIsChecked} />
                       <span className="font-medium text-gray-700 text-theme-xs dark:text-gray-400">
                         User
                       </span>
@@ -504,7 +487,7 @@ export default function DataTableThree() {
                   <TableCell className="px-4 py-4 border border-gray-100 dark:border-white/[0.05] dark:text-white/90 whitespace-nowrap">
                     <div className="flex gap-3">
                       <div className="mt-1">
-                        <Checkbox checked={isChecked} onChange={setIsChecked} />
+                        <Checkbox checked={isChecked} onCheckedChange={setIsChecked} />
                       </div>
                       <div>
                         <p className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
@@ -529,11 +512,11 @@ export default function DataTableThree() {
                     <Badge
                       size="sm"
                       color={
-                        item.status === "Hired"
-                          ? "success"
-                          : item.status === "In Progress"
-                          ? "warning"
-                          : "error"
+                        item.status === 'Hired'
+                          ? 'success'
+                          : item.status === 'In Progress'
+                            ? 'warning'
+                            : 'error'
                       }
                     >
                       {item.status}

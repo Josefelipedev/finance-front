@@ -158,8 +158,8 @@ const GoalForm: React.FC<GoalFormProps> = ({
 
       {/* Usando DateRangePicker */}
       <DateRangePicker
-        startDate={formData.startDate}
-        endDate={formData.endDate}
+        startDate={formData?.startDate || ''}
+        endDate={formData?.endDate || ''}
         onStartDateChange={(date) => {
           setFormData((prev) => ({ ...prev, startDate: date }));
           if (errors.endDate) {

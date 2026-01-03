@@ -165,9 +165,9 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
         colors: '#6B7280',
       },
       markers: {
-        width: 12,
-        height: 12,
-        radius: 6,
+        size: 12,
+        offsetX: 0,
+        offsetY: 0,
       },
     },
     grid: {

@@ -14,6 +14,7 @@ export interface Goal {
   userId: number;
   createdAt?: string;
   updatedAt?: string;
+  category?: string;
 }
 
 export interface CreateGoalDto {

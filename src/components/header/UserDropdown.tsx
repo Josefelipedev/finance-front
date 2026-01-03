@@ -1,10 +1,16 @@
-import { useState } from "react";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { Link } from "react-router";
+import { useEffect, useState } from 'react';
+import { DropdownItem } from '../ui/dropdown/DropdownItem';
+import { Dropdown } from '../ui/dropdown/Dropdown';
+import { Link } from 'react-router';
+import { useUserProfile } from '../../hooks/useUserProfile.ts';
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const { profile, getProfile } = useUserProfile();
+
+  useEffect(() => {
+    getProfile();
+  }, []);
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -13,6 +19,15 @@ export default function UserDropdown() {
   function closeDropdown() {
     setIsOpen(false);
   }
+
+  const getUserDisplayName = () => {
+    if (!profile?.displayName) return 'Usuário';
+
+    // Se o nome tiver espaço, pega a primeira parte
+    const nameParts = profile.displayName.split(' ');
+    return nameParts[0];
+  };
+
   return (
     <div className="relative">
       <button
@@ -20,13 +35,25 @@ export default function UserDropdown() {
         className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
       >
         <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <img src="/images/user/owner.jpg" alt="User" />
+          {profile?.profilePicUrl ? (
+            <img
+              src={profile.profilePicUrl}
+              alt="User Avatar"
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <div className="flex items-center justify-center w-full h-full bg-gray-100 dark:bg-gray-800">
+              <span className="text-3xl font-semibold text-gray-500 dark:text-gray-400">
+                {getUserDisplayName().charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Musharof</span>
+        <span className="block mr-1 font-medium text-theme-sm">{profile?.displayName} </span>
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
+            isOpen ? 'rotate-180' : ''
           }`}
           width="18"
           height="20"
@@ -51,10 +78,10 @@ export default function UserDropdown() {
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Musharof Chowdhury
+            {profile?.displayName}
           </span>
           <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            randomuser@pimjo.com
+            {profile?.email}
           </span>
         </div>
 

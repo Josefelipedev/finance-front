@@ -26,7 +26,7 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
 
         // Agrupar por mês
         const groupedByMonth = transactions.reduce(
-          (acc, transaction) => {
+          (acc: any, transaction: any) => {
             const date = new Date(transaction.createdAt);
             const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
 
@@ -137,9 +137,9 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
         colors: '#6B7280',
       },
       markers: {
-        width: 12,
-        height: 12,
-        radius: 6,
+        size: 12,
+        offsetX: 0,
+        offsetY: 0,
       },
     },
     grid: {
