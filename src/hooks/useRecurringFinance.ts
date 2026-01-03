@@ -63,18 +63,15 @@ export function useRecurringFinance() {
   };
 
   const getRecurringTransactionById = async (id: number) => {
-    const transactionApi = useApi<RecurringTransaction>('finance');
-    return await transactionApi.get(`/recurring-finance/by-id/${id}`);
+    return await api.get(`/recurring-finance/by-id/${id}`);
   };
 
   const updateRecurringTransaction = async (id: number, data: UpdateRecurringTransactionDto) => {
-    const updateApi = useApi<RecurringTransaction>('finance');
-    return await updateApi.put(`/recurring-finance/${id}`, data);
+    return await api.put(`/recurring-finance/${id}`, data);
   };
 
   const deleteRecurringTransaction = async (id: number) => {
-    const deleteApi = useApi<void>('finance');
-    return await deleteApi.delete(`/recurring-finance/${id}`);
+    return await api.delete(`/recurring-finance/${id}`);
   };
 
   // Calcula o próximo vencimento

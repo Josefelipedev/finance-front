@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import FinanceMetrics from './FinanceMetrics';
 import { DashboardData, FinanceSummary, useFinance } from '../../hooks/useFinance.ts';
-import RecentActivity from './RecentActivity.tsx';
 import FinanceTable from './ui/FinanceTable.tsx';
 
-const FinanceDashboard: React.FC = () => {
+interface FinanceDashboardProps {
+  dateRange: { startDate: string; endDate: string };
+  setDateRange: (dateRange: { startDate: string; endDate: string }) => void;
+}
+const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateRange }) => {
   const { getDashboardData, getFinanceSummary, isLoading, error } = useFinance();
 
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [summaryData, setSummaryData] = useState<FinanceSummary | null>(null);
-  const [dateRange, setDateRange] = useState({
-    startDate: '',
-    endDate: '',
-  });
+
   const [activePeriod, setActivePeriod] = useState<'week' | 'month' | 'year' | 'custom'>('month');
 
   useEffect(() => {
@@ -24,7 +24,7 @@ const FinanceDashboard: React.FC = () => {
     setActivePeriod(period);
 
     const now = new Date();
-    let start = new Date();
+    const start = new Date();
 
     switch (period) {
       case 'week':
@@ -83,10 +83,6 @@ const FinanceDashboard: React.FC = () => {
         saldo: 0,
       });
     }
-  };
-  const handleDateChange = (start: string, end: string) => {
-    setDateRange({ startDate: start, endDate: end });
-    setActivePeriod('custom');
   };
 
   if (isLoading && !dashboardData && !summaryData) {
@@ -180,10 +176,6 @@ const FinanceDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {dashboardData && dashboardData.transactions.length > 0 && (
           <>
-            <div className="lg:col-span-2">
-              <RecentActivity transactions={dashboardData.transactions} />
-            </div>
-
             <div className="lg:col-span-2">
               <FinanceTable transactions={dashboardData.transactions} />
             </div>

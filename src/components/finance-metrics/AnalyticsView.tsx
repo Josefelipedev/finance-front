@@ -3,7 +3,9 @@ import MonthlyComparisonChart from './charts/MonthlyComparisonChart.tsx';
 import CategoryAnalyticsChart from './charts/CategoryAnalyticsChart.tsx';
 import TrendAnalyticsChart from './charts/TrendAnalyticsChart.tsx';
 
-const AnalyticsView: React.FC<{ dateRange: { start: string; end: string } }> = ({ dateRange }) => {
+const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string } }> = ({
+  dateRange,
+}) => {
   const [activeChart, setActiveChart] = useState<'monthly' | 'category' | 'trend'>('monthly');
 
   return (
@@ -54,7 +56,7 @@ const AnalyticsView: React.FC<{ dateRange: { start: string; end: string } }> = (
                 Receitas vs Despesas - Comparação Mensal
               </h3>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Período: {dateRange.start} à {dateRange.end}
+                Período: {dateRange.startDate} à {dateRange.endDate}
               </span>
             </div>
             <MonthlyComparisonChart dateRange={dateRange} />

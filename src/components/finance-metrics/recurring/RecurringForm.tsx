@@ -63,6 +63,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     }
 
     setErrors(newErrors);
+    console.log(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -75,6 +76,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
 
     try {
       if (transaction) {
+        console.log(transaction);
         await updateRecurringTransaction(transaction.id, formData);
       } else {
         await createRecurringTransaction(formData);

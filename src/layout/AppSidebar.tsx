@@ -1,16 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
-
-// Assume these icons are imported from an icon library
-import {
-  CalenderIcon,
-  ChevronDownIcon,
-  GridIcon,
-  HorizontaLDots,
-  PlugInIcon,
-  TableIcon,
-  UserCircleIcon,
-} from '../icons';
+import { CalenderIcon, ChevronDownIcon, GridIcon, HorizontaLDots, UserCircleIcon } from '../icons';
 import { useSidebar } from '../context/SidebarContext';
 import SidebarWidget from './SidebarWidget';
 
@@ -37,28 +27,6 @@ const navItems: NavItem[] = [
     name: 'User Profile',
     path: '/profile',
   },
-  {
-    name: 'Tables',
-    icon: <TableIcon />,
-    path: '/file-manager',
-  },
-];
-
-const othersItems: NavItem[] = [
-  {
-    icon: <PlugInIcon />,
-    name: 'Authentication',
-    subItems: [
-      { name: 'Sign In', path: '/signin', pro: false },
-      { name: 'Sign Up', path: '/signup', pro: false },
-      { name: 'Reset Password', path: '/reset-password', pro: true },
-      {
-        name: 'Two Step Verification',
-        path: '/two-step-verification',
-        pro: true,
-      },
-    ],
-  },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -66,25 +34,24 @@ const AppSidebar: React.FC = () => {
   const location = useLocation();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
-    type: 'main' | 'support' | 'others';
+    type: 'main';
     index: number;
   } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback((path: string) => location.pathname === path, [location.pathname]);
 
   useEffect(() => {
     let submenuMatched = false;
-    ['main', 'support', 'others'].forEach((menuType) => {
-      const items = menuType === 'main' ? navItems : menuType === 'support' ? othersItems : null;
+    ['main'].forEach((menuType) => {
+      const items = menuType === 'main' ? navItems : menuType === 'support' ? null : null;
       items?.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
             if (isActive(subItem.path)) {
               setOpenSubmenu({
-                type: menuType as 'main' | 'support' | 'others',
+                type: menuType as 'main',
                 index,
               });
               submenuMatched = true;
@@ -111,7 +78,7 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number, menuType: 'main' | 'support' | 'others') => {
+  const handleSubmenuToggle = (index: number, menuType: 'main') => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (prevOpenSubmenu && prevOpenSubmenu.type === menuType && prevOpenSubmenu.index === index) {
         return null;
@@ -120,7 +87,7 @@ const AppSidebar: React.FC = () => {
     });
   };
 
-  const renderMenuItems = (items: NavItem[], menuType: 'main' | 'support' | 'others') => (
+  const renderMenuItems = (items: NavItem[], menuType: 'main') => (
     <ul className="flex flex-col gap-4">
       {items.map((nav, index) => (
         <li key={nav.name}>
@@ -252,24 +219,21 @@ const AppSidebar: React.FC = () => {
       >
         <Link to="/">
           {isExpanded || isHovered || isMobileOpen ? (
-            <>
+            <div className="relative">
               <img
-                className="dark:hidden"
-                src="/images/logo/logo.svg"
+                className="dark:hidden w-[120px] h-auto sm:w-[150px] transition-opacity duration-200"
+                src="/images/logo/logo.png"
                 alt="Logo"
-                width={150}
-                height={40}
               />
+
               <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
+                className="hidden dark:block w-[120px] h-auto sm:w-[150px] transition-opacity duration-200"
+                src="/images/logo/logo-dark.png"
                 alt="Logo"
-                width={150}
-                height={40}
               />
-            </>
+            </div>
           ) : (
-            <img src="/images/logo/logo-icon.svg" alt="Logo" width={32} height={32} />
+            <img src="/images/logo/logo-icon.png" alt="Logo" width={32} height={32} />
           )}
         </Link>
       </div>
@@ -289,25 +253,6 @@ const AppSidebar: React.FC = () => {
                 )}
               </h2>
               {renderMenuItems(navItems, 'main')}
-            </div>
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered ? 'lg:justify-center' : 'justify-start'
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? 'Support' : <HorizontaLDots />}
-              </h2>
-            </div>
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered ? 'lg:justify-center' : 'justify-start'
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? 'Others' : <HorizontaLDots />}
-              </h2>
-              {renderMenuItems(othersItems, 'others')}
             </div>
           </div>
         </nav>

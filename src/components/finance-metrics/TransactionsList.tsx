@@ -3,16 +3,16 @@ import React, { useEffect } from 'react';
 import { useFinance } from '../../hooks/useFinance.ts';
 
 interface TransactionsListProps {
-  dateRange: { start: string; end: string };
+  dateRange: { startDate: string; endDate: string };
 }
 
 const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
-  const { getAllFinances, isLoading, data } = useFinance();
+  const { getAllFinances, isLoading, records: data } = useFinance();
 
   useEffect(() => {
     getAllFinances({
-      startDate: dateRange.start,
-      endDate: dateRange.end,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
     });
   }, []);
 
@@ -35,7 +35,7 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
           Nenhuma transação encontrada 1
         </h3>
         <p className="text-gray-600 dark:text-gray-400">
-          {dateRange.start || dateRange.end
+          {dateRange.startDate || dateRange.endDate
             ? 'Não há transações no período selecionado.'
             : 'Comece adicionando sua primeira transação financeira.'}
         </p>

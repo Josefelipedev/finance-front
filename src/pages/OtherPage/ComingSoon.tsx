@@ -1,7 +1,7 @@
-import GridShape from "../../components/common/GridShape";
-import { Link } from "react-router";
-import CountdownTimer from "../../components/common/CountdownTimer";
-import PageMeta from "../../components/common/PageMeta";
+import GridShape from '../../components/common/GridShape';
+import { Link } from 'react-router';
+import CountdownTimer from '../../components/common/CountdownTimer';
+import PageMeta from '../../components/common/PageMeta';
 
 export default function ComingSoon() {
   // Set the target date to 7 days from now
@@ -19,16 +19,8 @@ export default function ComingSoon() {
         <div>
           <div className="mx-auto w-full max-w-[460px] text-center">
             <Link to="/" className="inline-block mb-6">
-              <img
-                className="dark:hidden"
-                src="./images/logo/logo.svg"
-                alt="Logo"
-              />
-              <img
-                className="hidden dark:block"
-                src="./images/logo/logo-dark.svg"
-                alt="Logo"
-              />
+              <img className="dark:hidden" src="./images/logo/logo.png" alt="Logo" />
+              <img className="hidden dark:block" src="./images/logo/logo-dark.png" alt="Logo" />
             </Link>
 
             <h1 className="mb-3 font-bold text-gray-800 text-title-md dark:text-white/90 xl:text-title-xl">
@@ -36,8 +28,8 @@ export default function ComingSoon() {
             </h1>
 
             <p className="text-base text-gray-500 mb-9 dark:text-gray-400">
-              Our website is currently under construction, enter your email id
-              to get latest updates and notifications about the website.
+              Our website is currently under construction, enter your email id to get latest updates
+              and notifications about the website.
             </p>
 
             {/* <!-- ===== Countdown Timer Start ===== --> */}
