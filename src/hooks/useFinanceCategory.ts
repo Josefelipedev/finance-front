@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { useApi } from './useApi';
+import api from '../services/api';
+
+// ===================== TYPES =====================
 
 export interface FinanceCategory {
   id: number;
@@ -40,19 +42,28 @@ interface GetAllCategoriesOptions {
   isActive?: boolean;
 }
 
+// ===================== HOOK =====================
+
 export function useFinanceCategory() {
   const [categories, setCategories] = useState<FinanceCategory[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const api = useApi<FinanceCategory[]>('finance');
+
+  // ===================== CREATE =====================
 
   const createCategory = async (data: CreateCategoryDto) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const result = await api.post('/finance-category', data);
-      setCategories((prev) => [...prev, result]);
-      return result;
+      const category = await api.post<FinanceCategory>('/finance-category', data);
+
+      if (category) {
+        setCategories((prev) => [...prev, category]);
+        return category;
+      }
+
+      throw new Error('Categoria inválida');
     } catch (err: any) {
       setError(err.message || 'Erro ao criar categoria');
       throw err;
@@ -61,17 +72,26 @@ export function useFinanceCategory() {
     }
   };
 
+  // ===================== READ =====================
+
   const getAllCategories = async (options?: GetAllCategoriesOptions) => {
     setIsLoading(true);
     setError(null);
+
     try {
       let url = '/finance-category';
       if (options?.isActive !== undefined) {
         url += `?active=${options.isActive}`;
       }
-      const data = await api.get(url);
-      setCategories(data);
-      return data;
+
+      const data = await api.get<FinanceCategory[]>(url);
+
+      if (Array.isArray(data)) {
+        setCategories(data);
+        return data;
+      }
+
+      throw new Error('Lista de categorias inválida');
     } catch (err: any) {
       setError(err.message || 'Erro ao buscar categorias');
       throw err;
@@ -83,8 +103,15 @@ export function useFinanceCategory() {
   const getCategoryById = async (id: number) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      return await api.get(`/finance-category/${id}`);
+      const category = await api.get<FinanceCategory>(`/finance-category/${id}`);
+
+      if (category) {
+        return category;
+      }
+
+      throw new Error('Categoria não encontrada');
     } catch (err: any) {
       setError(err.message || 'Erro ao buscar categoria');
       throw err;
@@ -96,8 +123,15 @@ export function useFinanceCategory() {
   const getCategorySummary = async (categoryId: number) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      return await api.get(`/finance-category/${categoryId}/summary`);
+      const summary = await api.get<CategorySummary>(`/finance-category/${categoryId}/summary`);
+
+      if (summary) {
+        return summary;
+      }
+
+      throw new Error('Resumo da categoria inválido');
     } catch (err: any) {
       setError(err.message || 'Erro ao buscar resumo da categoria');
       throw err;
@@ -106,13 +140,21 @@ export function useFinanceCategory() {
     }
   };
 
+  // ===================== UPDATE =====================
+
   const updateCategory = async (id: number, data: UpdateCategoryDto) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const result = await api.put(`/finance-category/${id}`, data);
-      setCategories((prev) => prev.map((cat) => (cat.id === id ? { ...cat, ...result } : cat)));
-      return result;
+      const updated = await api.put<FinanceCategory>(`/finance-category/${id}`, data);
+
+      if (updated) {
+        setCategories((prev) => prev.map((cat) => (cat.id === id ? updated : cat)));
+        return updated;
+      }
+
+      throw new Error('Falha ao atualizar categoria');
     } catch (err: any) {
       setError(err.message || 'Erro ao atualizar categoria');
       throw err;
@@ -121,11 +163,14 @@ export function useFinanceCategory() {
     }
   };
 
+  // ===================== DELETE =====================
+
   const deleteCategory = async (id: number) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      await api.del(`/finance-category/${id}`);
+      await api.delete<boolean>(`/finance-category/${id}`);
       setCategories((prev) => prev.filter((cat) => cat.id !== id));
     } catch (err: any) {
       setError(err.message || 'Erro ao excluir categoria');
@@ -135,13 +180,21 @@ export function useFinanceCategory() {
     }
   };
 
+  // ===================== TOGGLE STATUS =====================
+
   const toggleCategoryStatus = async (id: number) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const result = await api.post(`/finance-category/${id}/toggle-status`);
-      setCategories((prev) => prev.map((cat) => (cat.id === id ? { ...cat, ...result } : cat)));
-      return result;
+      const updated = await api.post<FinanceCategory>(`/finance-category/${id}/toggle-status`);
+
+      if (updated) {
+        setCategories((prev) => prev.map((cat) => (cat.id === id ? updated : cat)));
+        return updated;
+      }
+
+      throw new Error('Falha ao alternar status da categoria');
     } catch (err: any) {
       setError(err.message || 'Erro ao alternar status da categoria');
       throw err;
@@ -149,6 +202,8 @@ export function useFinanceCategory() {
       setIsLoading(false);
     }
   };
+
+  // ===================== PUBLIC API =====================
 
   return {
     // Dados

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import api from '../services/api';
 
+// ===================== DTOs =====================
+
 export interface CreateFinanceDto {
   amount: number;
   type: 'income' | 'expense';
@@ -57,21 +59,31 @@ export interface QueryParams {
   endDate?: string;
 }
 
+// ===================== HOOK =====================
+
 export const useFinance = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [summaryData, setSummaryData] = useState<FinanceSummary | null>(null);
 
+  // ===================== CREATE =====================
+
   const addFinanceRecord = async (data: CreateFinanceDto) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const response = await api.post('/finance', data);
-      // Atualiza a lista de registros
-      setRecords((prev) => [response.data, ...prev]);
-      return response.data;
+      const record = await api.post<FinanceRecord>('/finance', data);
+
+      if (record) {
+        setRecords((prev) => [record, ...prev]);
+        return record;
+      }
+
+      throw new Error('Registro financeiro inválido');
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -80,18 +92,26 @@ export const useFinance = () => {
     }
   };
 
+  // ===================== READ =====================
+
   const getAllFinances = async (params?: QueryParams) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const response = await api.get('/finance', {
+      const data = await api.get<FinanceRecord[]>('/finance', {
         params: {
           startDate: params?.startDate,
           endDate: params?.endDate,
         },
       });
-      setRecords(response.data);
-      return response.data;
+
+      if (Array.isArray(data)) {
+        setRecords(data);
+        return data;
+      }
+
+      throw new Error('Lista de finanças inválida');
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -103,15 +123,21 @@ export const useFinance = () => {
   const getFinanceSummary = async (params?: QueryParams) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const response = await api.get('/finance/summary', {
+      const summary = await api.get<FinanceSummary>('/finance/summary', {
         params: {
           startDate: params?.startDate,
           endDate: params?.endDate,
         },
       });
-      setSummaryData(response.data);
-      return response.data;
+
+      if (summary) {
+        setSummaryData(summary);
+        return summary;
+      }
+
+      throw new Error('Resumo financeiro inválido');
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -123,15 +149,21 @@ export const useFinance = () => {
   const getDashboardData = async (params?: QueryParams) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const response = await api.get('/finance/dashboard', {
+      const dashboard = await api.get<DashboardData>('/finance/dashboard', {
         params: {
           startDate: params?.startDate,
           endDate: params?.endDate,
         },
       });
-      setDashboardData(response.data);
-      return response.data;
+
+      if (dashboard) {
+        setDashboardData(dashboard);
+        return dashboard;
+      }
+
+      throw new Error('Dashboard inválido');
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -139,15 +171,22 @@ export const useFinance = () => {
       setIsLoading(false);
     }
   };
+
+  // ===================== UPDATE =====================
 
   const updateFinanceRecord = async (id: number, data: Partial<CreateFinanceDto>) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const response = await api.put(`/finance/${id}`, data);
-      // Atualiza o registro na lista
-      setRecords((prev) => prev.map((record) => (record.id === id ? response.data : record)));
-      return response.data;
+      const updated = await api.put<FinanceRecord>(`/finance/${id}`, data);
+
+      if (updated) {
+        setRecords((prev) => prev.map((record) => (record.id === id ? updated : record)));
+        return updated;
+      }
+
+      throw new Error('Falha ao atualizar registro');
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -156,18 +195,24 @@ export const useFinance = () => {
     }
   };
 
+  // ===================== DELETE =====================
+
   const deleteFinanceRecord = async (id: number) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      await api.delete(`/finance/${id}`);
-      // Remove o registro da lista
-      setRecords((prev) => prev.filter((record) => record.id !== id));
-      if (dashboardData) {
-        setDashboardData({
-          ...dashboardData,
-          transactions: dashboardData.transactions.filter((tx) => tx.id !== id.toString()),
-        });
+      const deleted = await api.delete<boolean>(`/finance/${id}`);
+
+      if (deleted !== false) {
+        setRecords((prev) => prev.filter((record) => record.id !== id));
+
+        if (dashboardData) {
+          setDashboardData({
+            ...dashboardData,
+            transactions: dashboardData.transactions.filter((tx) => tx.id !== id.toString()),
+          });
+        }
       }
     } catch (err) {
       setError(err as Error);
@@ -177,6 +222,8 @@ export const useFinance = () => {
     }
   };
 
+  // ===================== REFRESH =====================
+
   const refreshAllData = async (params?: QueryParams) => {
     try {
       await Promise.all([
@@ -185,13 +232,15 @@ export const useFinance = () => {
         getFinanceSummary(params),
       ]);
     } catch (err) {
-      console.error('Erro ao atualizar dados:', err);
+      console.error('Erro ao atualizar dados financeiros:', err);
       throw err;
     }
   };
 
+  // ===================== PUBLIC API =====================
+
   return {
-    // Métodos CRUD principais
+    // CRUD principal
     addFinanceRecord,
     getAllFinances,
     getFinanceSummary,
@@ -200,7 +249,7 @@ export const useFinance = () => {
     deleteFinanceRecord,
     refreshAllData,
 
-    // Aliases para compatibilidade
+    // Aliases
     addRecord: addFinanceRecord,
     getRecords: getAllFinances,
     updateRecord: updateFinanceRecord,
@@ -213,7 +262,7 @@ export const useFinance = () => {
     isLoading,
     error,
 
-    // Funções de reset
+    // Helpers
     resetError: () => setError(null),
     resetData: () => {
       setRecords([]);

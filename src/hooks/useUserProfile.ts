@@ -1,6 +1,7 @@
-// src/hooks/useUserProfile.ts
-import { useApi } from './useApi';
 import { useState, useCallback } from 'react';
+import api from '../services/api';
+
+// ===================== TYPES =====================
 
 export interface UserProfile {
   id: number;
@@ -27,57 +28,100 @@ export interface UpdateUserProfileDto {
   phone?: string;
   displayName?: string;
   whatsapp?: string;
-  // Adicione outros campos conforme necessário
 }
+
+// ===================== HOOK =====================
 
 export function useUserProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const api = useApi<UserProfile>('finance'); // basePath é 'user'
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  // ===================== GET PROFILE =====================
 
   const getProfile = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
     try {
-      const response = await api.get('/user/profile');
-      console.log(response);
+      const response = await api.get<UserProfile>('/user/profile');
+
       if (response) {
         setProfile(response);
+        return response;
       }
-      return response;
-    } catch (error) {
-      throw error;
+
+      throw new Error('Perfil inválido');
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
+
+  // ===================== UPDATE PROFILE =====================
 
   const updateProfile = useCallback(async (data: UpdateUserProfileDto) => {
+    setIsLoading(true);
+    setError(null);
+
     try {
-      const response = await api.patch('/update', data);
+      const response = await api.put<UserProfile>('/user/update', data);
+
       if (response) {
         setProfile(response);
+        return response;
       }
-      return response;
-    } catch (error) {
-      throw error;
+
+      throw new Error('Falha ao atualizar perfil');
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  // Função para associar como casal (se necessário)
+  // ===================== ASSOCIATE COUPLE =====================
+
   const associateAsCouple = useCallback(async (spousePhone: string) => {
+    setIsLoading(true);
+    setError(null);
+
     try {
-      const response = await api.post('/associate-couple', { spousePhone });
-      return response;
-    } catch (error) {
-      throw error;
+      const response = await api.post<boolean>('/user/associate-couple', {
+        spousePhone,
+      });
+
+      if (response !== false) {
+        return response;
+      }
+
+      throw new Error('Falha ao associar casal');
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
+
+  // ===================== PUBLIC API =====================
 
   return {
     profile,
+
     getProfile,
     updateProfile,
     associateAsCouple,
-    error: api.error,
-    isLoading: api.isLoading,
-    isSuccess: api.isSuccess,
-    isError: api.isError,
-    reset: api.reset,
+
+    // Estado
+    isLoading,
+    error,
+
+    // Helpers
+    resetError: () => setError(null),
+    resetProfile: () => setProfile(null),
   };
 }

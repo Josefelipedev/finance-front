@@ -1,5 +1,8 @@
 // src/hooks/useRecurringFinance.ts
-import { useApi } from './useApi';
+import { useState } from 'react';
+import api from '../services/api';
+
+// ===================== TYPES =====================
 
 export interface RecurringTransaction {
   id: number;
@@ -50,31 +53,117 @@ export interface UpdateRecurringTransactionDto {
   occurrences?: number;
 }
 
-// Hook personalizado para transações recorrentes
-export function useRecurringFinance() {
-  const api = useApi<RecurringTransaction[]>('finance');
+// ===================== HOOK =====================
 
-  const createRecurringTransaction = async (data: CreateRecurringTransactionDto) => {
-    return await api.post('/recurring-finance', data);
+export function useRecurringFinance() {
+  const [data, setData] = useState<RecurringTransaction[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  // ===================== CRUD =====================
+
+  const createRecurringTransaction = async (payload: CreateRecurringTransactionDto) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const transaction = await api.post<RecurringTransaction>('/recurring-finance', payload);
+
+      if (!transaction) {
+        throw new Error('Transação recorrente inválida');
+      }
+
+      setData((prev) => [...prev, transaction]);
+      return transaction;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getAllRecurringTransactions = async () => {
-    return await api.get('/recurring-finance');
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const transactions = await api.get<RecurringTransaction[]>('/recurring-finance');
+
+      if (!Array.isArray(transactions)) {
+        throw new Error('Lista de transações inválida');
+      }
+
+      setData(transactions);
+      return transactions;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getRecurringTransactionById = async (id: number) => {
-    return await api.get(`/recurring-finance/by-id/${id}`);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const transaction = await api.get<RecurringTransaction>(`/recurring-finance/by-id/${id}`);
+
+      if (!transaction) {
+        throw new Error('Transação recorrente não encontrada');
+      }
+
+      return transaction;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateRecurringTransaction = async (id: number, data: UpdateRecurringTransactionDto) => {
-    return await api.put(`/recurring-finance/${id}`, data);
+  const updateRecurringTransaction = async (id: number, payload: UpdateRecurringTransactionDto) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const updated = await api.put<RecurringTransaction>(`/recurring-finance/${id}`, payload);
+
+      if (!updated) {
+        throw new Error('Falha ao atualizar transação recorrente');
+      }
+
+      setData((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+
+      return updated;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const deleteRecurringTransaction = async (id: number) => {
-    return await api.del(`/recurring-finance/${id}`);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await api.delete<boolean>(`/recurring-finance/${id}`);
+
+      setData((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Calcula o próximo vencimento
+  // ===================== UTILITIES =====================
+
   const calculateNextDueDate = (transaction: RecurringTransaction): Date => {
     const now = new Date();
     const nextDate = new Date(now);
@@ -83,6 +172,7 @@ export function useRecurringFinance() {
       case 'daily':
         nextDate.setDate(now.getDate() + 1);
         break;
+
       case 'weekly':
         if (transaction.weekDay !== undefined) {
           const daysUntilNext = (transaction.weekDay - now.getDay() + 7) % 7 || 7;
@@ -91,6 +181,7 @@ export function useRecurringFinance() {
           nextDate.setDate(now.getDate() + 7);
         }
         break;
+
       case 'monthly':
         if (transaction.dueDay !== undefined) {
           nextDate.setMonth(now.getMonth() + 1);
@@ -104,6 +195,7 @@ export function useRecurringFinance() {
           nextDate.setMonth(now.getMonth() + 1);
         }
         break;
+
       case 'yearly':
         nextDate.setFullYear(now.getFullYear() + 1);
         break;
@@ -112,12 +204,10 @@ export function useRecurringFinance() {
     return nextDate;
   };
 
-  // Verifica se a transação está ativa
   const isTransactionActive = (transaction: RecurringTransaction): boolean => {
     if (transaction.endDate) {
       const endDate = new Date(transaction.endDate);
-      const today = new Date();
-      if (endDate < today) return false;
+      if (endDate < new Date()) return false;
     }
 
     if (transaction.occurrences && transaction.executedCount >= transaction.occurrences) {
@@ -127,30 +217,31 @@ export function useRecurringFinance() {
     return true;
   };
 
-  // Calcula o valor total até o momento
   const calculateTotalAmount = (transaction: RecurringTransaction): number => {
     return transaction.amount * transaction.executedCount;
   };
 
+  // ===================== PUBLIC API =====================
+
   return {
-    // Métodos CRUD
+    // Dados
+    data,
+
+    // CRUD
     createRecurringTransaction,
     getAllRecurringTransactions,
     getRecurringTransactionById,
     updateRecurringTransaction,
     deleteRecurringTransaction,
 
-    // Métodos utilitários
+    // Utilities
     calculateNextDueDate,
     isTransactionActive,
     calculateTotalAmount,
 
     // Estado
-    data: api.data,
-    error: api.error,
-    isLoading: api.isLoading,
-    isSuccess: api.isSuccess,
-    isError: api.isError,
-    reset: api.reset,
+    isLoading,
+    error,
+    resetError: () => setError(null),
   };
 }

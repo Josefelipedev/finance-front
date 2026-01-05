@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useFinanceCategory, FinanceCategory } from '../../../hooks/useFinanceCategory';
 import CategoryForm from './CategoryForm.tsx';
 import CategoryList from './CategoryList.tsx';
-import { useDefaultIcons } from '../../../hooks/useDefaultIcons.ts';
 
 const CategoryManager: React.FC = () => {
   const { categories, getAllCategories, deleteCategory, toggleCategoryStatus, isLoading, error } =

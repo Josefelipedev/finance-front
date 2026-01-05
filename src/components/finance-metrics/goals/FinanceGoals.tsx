@@ -16,8 +16,6 @@ const FinanceGoals: React.FC = () => {
     filterGoalsByStatus,
     data: goals,
     isLoading,
-    isError,
-    reset,
   } = useGoals();
 
   // Modais

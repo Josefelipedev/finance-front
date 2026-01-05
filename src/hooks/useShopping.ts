@@ -1,5 +1,7 @@
-// src/hooks/useShopping.ts
-import { useApi } from './useApi';
+import { useState } from 'react';
+import api from '../services/api';
+
+// ===================== TYPES =====================
 
 export interface ShoppingList {
   id: number;
@@ -53,11 +55,6 @@ export interface UpdateItemDto {
   purchased?: boolean;
 }
 
-export interface UpdateItemStatusDto {
-  itemId: number;
-  purchased: boolean;
-}
-
 export interface CreateOrUpdateItemDto {
   itemId?: number;
   name: string;
@@ -67,142 +64,307 @@ export interface CreateOrUpdateItemDto {
   shoppingListId: number;
 }
 
-// Hook personalizado para listas de compras
-export function useShopping() {
-  const api = useApi<ShoppingList[]>('finance');
+// ===================== HOOK =====================
 
-  const createList = async (data: CreateListDto) => {
-    return await api.post('/shopping/list', data);
+export function useShopping() {
+  const [data, setData] = useState<ShoppingList[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  // ===================== LISTS =====================
+
+  const createList = async (payload: CreateListDto) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const list = await api.post<ShoppingList>('/shopping/list', payload);
+
+      if (!list) {
+        throw new Error('Lista inválida');
+      }
+
+      setData((prev) => [...prev, list]);
+      return list;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const updateList = async (listId: number, data: UpdateListDto) => {
-    const updateApi = useApi<ShoppingList>('finance');
-    return await updateApi.put(`/shopping/list/${listId}`, data);
+  const updateList = async (listId: number, payload: UpdateListDto) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const list = await api.put<ShoppingList>(`/shopping/list/${listId}`, payload);
+
+      if (!list) {
+        throw new Error('Falha ao atualizar lista');
+      }
+
+      setData((prev) => prev.map((l) => (l.id === list.id ? list : l)));
+      return list;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const deleteList = async (listId: number) => {
-    const deleteApi = useApi<void>('finance');
-    return await deleteApi.del(`/shopping/list/${listId}`);
-  };
+    setIsLoading(true);
+    setError(null);
 
-  const addItem = async (data: AddItemDto) => {
-    return await api.post('/shopping/item', data);
-  };
-
-  const updateItem = async (itemId: number, data: UpdateItemDto) => {
-    const updateApi = useApi<ShoppingItem>('finance');
-    return await updateApi.put(`/shopping/item/${itemId}`, data);
-  };
-
-  const deleteItem = async (itemId: number) => {
-    const deleteApi = useApi<void>('finance');
-    return await deleteApi.del(`/shopping/item/${itemId}`);
+    try {
+      await api.delete<boolean>(`/shopping/list/${listId}`);
+      setData((prev) => prev.filter((l) => l.id !== listId));
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getAllLists = async () => {
-    return await api.get('/shopping');
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const lists = await api.get<ShoppingList[]>('/shopping');
+
+      if (!Array.isArray(lists)) {
+        throw new Error('Resposta inválida de listas');
+      }
+
+      setData(lists);
+      return lists;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getListById = async (listId: number) => {
-    const listApi = useApi<ShoppingList>('finance');
-    return await listApi.get(`/shopping/list/${listId}`);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const list = await api.get<ShoppingList>(`/shopping/list/${listId}`);
+
+      if (!list) {
+        throw new Error('Lista não encontrada');
+      }
+
+      return list;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ===================== ITEMS =====================
+
+  const addItem = async (payload: AddItemDto) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const item = await api.post<ShoppingItem>('/shopping/item', payload);
+
+      if (!item) {
+        throw new Error('Item inválido');
+      }
+
+      setData((prev) =>
+        prev.map((list) =>
+          list.id === item.shoppingListId ? { ...list, items: [...list.items, item] } : list
+        )
+      );
+
+      return item;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateItem = async (itemId: number, payload: UpdateItemDto) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const item = await api.put<ShoppingItem>(`/shopping/item/${itemId}`, payload);
+
+      if (!item) {
+        throw new Error('Falha ao atualizar item');
+      }
+
+      setData((prev) =>
+        prev.map((list) => ({
+          ...list,
+          items: list.items.map((i) => (i.id === item.id ? item : i)),
+        }))
+      );
+
+      return item;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteItem = async (itemId: number) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await api.delete<boolean>(`/shopping/item/${itemId}`);
+
+      setData((prev) =>
+        prev.map((list) => ({
+          ...list,
+          items: list.items.filter((i) => i.id !== itemId),
+        }))
+      );
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const updateItemStatus = async (itemId: number, purchased: boolean) => {
-    return await api.patch(`/shopping/item/${itemId}`, { purchased });
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const item = await api.put<ShoppingItem>(`/shopping/item/${itemId}`, { purchased });
+
+      if (!item) {
+        throw new Error('Falha ao atualizar status');
+      }
+
+      setData((prev) =>
+        prev.map((list) => ({
+          ...list,
+          items: list.items.map((i) => (i.id === item.id ? item : i)),
+        }))
+      );
+
+      return item;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const createOrUpdateItem = async (data: CreateOrUpdateItemDto) => {
-    return await api.post('/shopping/shopping-item', data);
+  const createOrUpdateItem = async (payload: CreateOrUpdateItemDto) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const item = await api.post<ShoppingItem>('/shopping/shopping-item', payload);
+
+      if (!item) {
+        throw new Error('Item inválido');
+      }
+
+      return item;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getPriceHistory = async (itemId: number) => {
-    const historyApi = useApi<PriceHistory[]>('finance');
-    return await historyApi.get(`/shopping/shopping-item/${itemId}/history`);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const history = await api.get<PriceHistory[]>(`/shopping/shopping-item/${itemId}/history`);
+
+      if (!Array.isArray(history)) {
+        throw new Error('Histórico inválido');
+      }
+
+      return history;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Calcula o total da lista de compras
-  const calculateListTotal = (list: ShoppingList): number => {
-    return list.items.reduce((total, item) => {
-      return total + item.price * item.quantity;
-    }, 0);
-  };
+  // ===================== UTILITIES =====================
 
-  // Calcula o total de itens comprados
-  const calculatePurchasedTotal = (list: ShoppingList): number => {
-    return list.items
-      .filter((item) => item.purchased)
-      .reduce((total, item) => {
-        return total + item.price * item.quantity;
-      }, 0);
-  };
+  const calculateListTotal = (list: ShoppingList): number =>
+    list.items.reduce((total, item) => total + item.price * item.quantity, 0);
 
-  // Calcula o total de itens pendentes
-  const calculatePendingTotal = (list: ShoppingList): number => {
-    return list.items
-      .filter((item) => !item.purchased)
-      .reduce((total, item) => {
-        return total + item.price * item.quantity;
-      }, 0);
-  };
+  const calculatePurchasedTotal = (list: ShoppingList): number =>
+    list.items.filter((i) => i.purchased).reduce((t, i) => t + i.price * i.quantity, 0);
 
-  // Calcula o progresso da lista
-  const calculateListProgress = (list: ShoppingList): number => {
-    const totalItems = list.items.length;
-    if (totalItems === 0) return 0;
-    const purchasedItems = list.items.filter((item) => item.purchased).length;
-    return (purchasedItems / totalItems) * 100;
-  };
+  const calculatePendingTotal = (list: ShoppingList): number =>
+    list.items.filter((i) => !i.purchased).reduce((t, i) => t + i.price * i.quantity, 0);
 
-  // Calcula a economia (comparando com histórico de preços)
-  const calculateSavings = (currentPrice: number, averagePrice: number): number => {
-    if (averagePrice === 0) return 0;
-    const savings = averagePrice - currentPrice;
-    const percentage = (savings / averagePrice) * 100;
-    return Math.round(percentage * 100) / 100;
-  };
+  const calculateListProgress = (list: ShoppingList): number =>
+    list.items.length === 0
+      ? 0
+      : (list.items.filter((i) => i.purchased).length / list.items.length) * 100;
 
-  // Filtra itens por status
-  const filterItemsByStatus = (list: ShoppingList, purchased: boolean) => {
-    return list.items.filter((item) => item.purchased === purchased);
-  };
+  const calculateSavings = (current: number, avg: number): number =>
+    avg === 0 ? 0 : Math.round(((avg - current) / avg) * 10000) / 100;
 
-  // Encontra o menor preço no histórico
-  const findLowestPrice = (priceHistory: PriceHistory[]): number => {
-    if (priceHistory.length === 0) return 0;
-    return Math.min(...priceHistory.map((history) => history.price));
-  };
+  const filterItemsByStatus = (list: ShoppingList, purchased: boolean) =>
+    list.items.filter((i) => i.purchased === purchased);
 
-  // Encontra o maior preço no histórico
-  const findHighestPrice = (priceHistory: PriceHistory[]): number => {
-    if (priceHistory.length === 0) return 0;
-    return Math.max(...priceHistory.map((history) => history.price));
-  };
+  const findLowestPrice = (history: PriceHistory[]) =>
+    history.length ? Math.min(...history.map((h) => h.price)) : 0;
 
-  // Calcula a média de preços
-  const calculateAveragePrice = (priceHistory: PriceHistory[]): number => {
-    if (priceHistory.length === 0) return 0;
-    const sum = priceHistory.reduce((total, history) => total + history.price, 0);
-    return sum / priceHistory.length;
-  };
+  const findHighestPrice = (history: PriceHistory[]) =>
+    history.length ? Math.max(...history.map((h) => h.price)) : 0;
 
-  // Formata moeda
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
+  const calculateAveragePrice = (history: PriceHistory[]) =>
+    history.length ? history.reduce((s, h) => s + h.price, 0) / history.length : 0;
+
+  const formatCurrency = (amount: number): string =>
+    new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(amount);
-  };
+
+  // ===================== PUBLIC API =====================
 
   return {
-    // Métodos CRUD Listas
+    // Dados
+    data,
+
+    // CRUD Listas
     createList,
     updateList,
     deleteList,
     getAllLists,
     getListById,
 
-    // Métodos CRUD Itens
+    // CRUD Itens
     addItem,
     updateItem,
     deleteItem,
@@ -210,7 +372,7 @@ export function useShopping() {
     createOrUpdateItem,
     getPriceHistory,
 
-    // Métodos utilitários
+    // Utilidades
     calculateListTotal,
     calculatePurchasedTotal,
     calculatePendingTotal,
@@ -223,11 +385,8 @@ export function useShopping() {
     formatCurrency,
 
     // Estado
-    data: api.data,
-    error: api.error,
-    isLoading: api.isLoading,
-    isSuccess: api.isSuccess,
-    isError: api.isError,
-    reset: api.reset,
+    isLoading,
+    error,
+    resetError: () => setError(null),
   };
 }

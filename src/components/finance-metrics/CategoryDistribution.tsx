@@ -54,7 +54,7 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
         endDate: dateRange.endDate,
       });
       //Agrupamento por categoria
-      const categories = records.reduce((acc: any, record: Record) => {
+      const categories = records.reduce((acc: any, record) => {
         // Determina o nome da categoria
         let categoryName = 'Sem Categoria';
         let categoryColor = '#6B7280'; // Cor padrão para "Sem Categoria"
