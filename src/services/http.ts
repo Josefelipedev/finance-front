@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { ApiResponse } from '../types/api';
 
 export class HttpClient {
@@ -7,7 +7,23 @@ export class HttpClient {
   constructor(config: AxiosRequestConfig) {
     this.instance = axios.create(config);
 
-    // ================= SUCCESS =================
+    // ================= REQUEST =================
+    this.instance.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('token');
+
+        if (token) {
+          config.headers?.set('Authorization', `Bearer ${token}`);
+        }
+
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // ================= RESPONSE =================
     this.instance.interceptors.response.use(
       (response) => {
         const apiResponse = response.data as ApiResponse<any>;
@@ -16,18 +32,16 @@ export class HttpClient {
           return Promise.reject(new Error(apiResponse.message));
         }
 
-        // ✅ retorna apenas o payload
+        // Retorna apenas o payload
         return apiResponse.data;
       },
-
-      // ================= ERROR =================
-      (error) => {
+      (error: AxiosError<any>) => {
         if (!error.response) {
           return Promise.reject(new Error('Erro de conexão. Verifique sua internet.'));
         }
 
         const status = error.response.status;
-        const message = error.response.data?.message || 'Erro inesperado';
+        const message = (error.response.data as any)?.message || 'Erro inesperado';
 
         // 🔐 NÃO AUTORIZADO ou PROIBIDO
         if (status === 401 || status === 403) {

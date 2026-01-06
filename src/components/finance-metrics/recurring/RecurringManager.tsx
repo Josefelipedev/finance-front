@@ -45,21 +45,23 @@ const RecurringManager: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-sky-500" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
-        <div className="flex items-center gap-3">
-          <i className="fas fa-exclamation-circle text-red-500 text-xl"></i>
+      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 sm:p-6">
+        <div className="flex gap-3">
+          <i className="fas fa-exclamation-circle text-red-500 text-xl mt-0.5"></i>
           <div>
-            <h3 className="font-semibold text-red-800 dark:text-red-300">
+            <h3 className="font-semibold text-red-800 dark:text-red-300 text-sm sm:text-base">
               Erro ao carregar transações recorrentes
             </h3>
-            <p className="text-red-600 dark:text-red-400 text-sm mt-1">{error.message}</p>
+            <p className="text-red-600 dark:text-red-400 text-xs sm:text-sm mt-1">
+              {error.message}
+            </p>
           </div>
         </div>
       </div>
@@ -67,31 +69,41 @@ const RecurringManager: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 px-2 sm:px-0">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">
             Transações Recorrentes
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
             Gerencie suas transações que se repetem periodicamente
           </p>
         </div>
+
         <button
           onClick={() => setIsFormOpen(true)}
-          className="px-4 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center gap-2"
+          className="
+            w-full sm:w-auto
+            px-4 py-3 sm:py-2.5
+            bg-sky-500 text-white rounded-lg
+            hover:bg-sky-600 transition-colors
+            shadow-sm flex items-center justify-center gap-2
+          "
         >
           <i className="fas fa-plus"></i>
           Nova Transação
         </button>
       </div>
 
+      {/* List */}
       <RecurringList
         transactions={transactions || []}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
 
+      {/* Form Modal / Drawer */}
       {isFormOpen && (
         <RecurringForm
           transaction={editingTransaction}

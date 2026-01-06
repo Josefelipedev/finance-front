@@ -67,6 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // ================= TOKEN STORAGE =================
   useEffect(() => {
+    console.log('[ AuthProvider ] token changed:', token);
     if (token) {
       localStorage.setItem('token', token);
     } else {
@@ -112,6 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (response && response.token && response.user) {
+        console.log(response);
         setToken(response.token);
         setUser(response.user);
         return { success: true, user: response.user };
@@ -151,6 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         phone,
         code,
       });
+      console.log('[ loginWithPhone ] response:', response);
 
       if (response && response.token && response.user) {
         setToken(response.token);
