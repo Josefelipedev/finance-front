@@ -204,15 +204,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const verifyPhoneCode = async (phone: string, code: string) => {
-    const response = await authApi.post<AuthPayload>('/auth/verify-code-create', { phone, code });
+    const response = await authApi.post<{ token?: string; user?: User } | undefined>(
+      '/auth/verify-code-create',
+      { phone, code }
+    );
 
-    if (response && response.token && response.user) {
+    if (response?.token && response.user) {
       setToken(response.token);
       setUser(response.user);
       return { success: true, user: response.user };
     }
 
-    return { success: false };
+    return { success: true };
   };
 
   const sendEmailVerificationCode = async (email: string) => {
