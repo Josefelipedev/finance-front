@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router';
 
 import SignIn from './pages/AuthPages/SignIn';
 import SignUp from './pages/AuthPages/SignUp';
+import AuthLanding from './pages/AuthPages/AuthLanding';
 import NotFound from './pages/OtherPage/NotFound';
 import UserProfiles from './pages/UserProfiles';
 import ResetPassword from './pages/AuthPages/ResetPassword';
@@ -22,6 +23,7 @@ export default function App() {
         <Routes>
           {/* Rotas Públicas (sem autenticação necessária) */}
           <Route element={<PublicRoute />}>
+            <Route path="/welcome" element={<AuthLanding />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/reset-password" element={<ResetPassword />} />
