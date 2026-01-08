@@ -199,9 +199,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const sendVerificationCode = async (phone: string) => {
-    const response = await authApi.post<boolean>('/auth/send-verification-code', { phone });
-
-    return { success: !!response };
+    await authApi.post('/auth/send-verification-code', { phone });
+    return { success: true };
   };
 
   const verifyPhoneCode = async (phone: string, code: string) => {
@@ -217,9 +216,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const sendEmailVerificationCode = async (email: string) => {
-    const response = await authApi.post<boolean>('/auth/send-email-verification-code', { email });
-
-    return { success: !!response };
+    await authApi.post('/auth/send-email-verification-code', { email });
+    return { success: true };
   };
 
   const verifyEmailCode = async (email: string, code: string) => {
@@ -235,19 +233,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const sendPasswordResetCode = async (email: string) => {
-    const response = await authApi.post<boolean>('/auth/send-password-reset-code', { email });
-
-    return { success: !!response };
+    await authApi.post('/auth/send-password-reset-code', { email });
+    return { success: true };
   };
 
   const resetPassword = async (email: string, code: string, newPassword: string) => {
-    const response = await authApi.post<boolean>('/auth/reset-password', {
+    await authApi.post('/auth/reset-password', {
       email,
       code,
       newPassword,
     });
 
-    return { success: !!response };
+    return { success: true };
   };
 
   const updateUser = (userData: Partial<User>) => {
