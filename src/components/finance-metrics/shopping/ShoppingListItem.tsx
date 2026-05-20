@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ShoppingItem } from '../../../hooks/useShopping';
 
 interface ShoppingListItemProps {
@@ -7,6 +7,7 @@ interface ShoppingListItemProps {
   onEdit: (item: ShoppingItem) => void;
   onDelete: (itemId: number) => void;
   onViewHistory: (itemId: number) => void;
+  onShowStorePrices?: (itemName: string) => void;
 }
 
 const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
@@ -15,13 +16,12 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
   onEdit,
   onDelete,
   onViewHistory,
+  onShowStorePrices,
 }) => {
-  const [isExpanded] = useState(false);
-
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('pt-BR', {
+    new Intl.NumberFormat('pt-PT', {
       style: 'currency',
-      currency: 'BRL',
+      currency: 'EUR',
     }).format(amount);
 
   const getUnitLabel = (unit: string) => {
@@ -76,13 +76,35 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
               {item.quantity} {getUnitLabel(item.unit)} ·{' '}
-              {formatCurrency(item.price * item.quantity)}
+              {formatCurrency(item.price)}
             </p>
+            {item.scrapedPrice != null && item.scrapedPrice > 0 && (
+              <div className="flex items-center gap-1 mt-1">
+                <span className="inline-flex items-center gap-1 text-xs bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full border border-green-200 dark:border-green-800">
+                  {item.supermarket === 'continente' ? '🏪' :
+                   item.supermarket === 'auchan' ? '🟠' :
+                   item.supermarket === 'pingodoce' ? '🟡' :
+                   item.supermarket === 'mercadona' ? '🟢' : '🏷️'}
+                  {' '}{item.supermarket && item.supermarket.charAt(0).toUpperCase() + item.supermarket.slice(1)}{' '}
+                  {formatCurrency(item.scrapedPrice)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
         {/* DIREITA — AÇÕES */}
         <div className="flex items-center gap-2 shrink-0">
+          {onShowStorePrices && (
+            <button
+              onClick={() => onShowStorePrices(item.name)}
+              className="p-1.5 rounded text-green-500 hover:bg-green-500/10"
+              title="Comparar preços nos supermercados"
+            >
+              <i className="fas fa-tags" />
+            </button>
+          )}
+
           <button
             onClick={() => onViewHistory(item.id)}
             className="p-1.5 rounded text-blue-500 hover:bg-blue-500/10"
@@ -109,14 +131,6 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
         </div>
       </div>
 
-      {/* Detalhes (se quiser usar depois) */}
-      {isExpanded && (
-        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 text-xs">
-          <p>
-            Preço unitário: <strong>{formatCurrency(item.price)}</strong>
-          </p>
-        </div>
-      )}
     </div>
   );
 };

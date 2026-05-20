@@ -1,5 +1,5 @@
-// src/components/finance-metrics/shopping/ShoppingListForm.tsx
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { ShoppingList, useShopping } from '../../../hooks/useShopping';
 
 interface ShoppingListFormProps {
@@ -39,8 +39,9 @@ const ShoppingListForm: React.FC<ShoppingListFormProps> = ({ list, onSuccess, on
       }
       onSuccess();
     } catch (err) {
-      console.error('Erro ao salvar lista:', err);
-      setFormError('Erro ao salvar lista. Tente novamente.');
+      const msg = (err as Error).message || 'Erro ao salvar lista. Tente novamente.';
+      setFormError(msg);
+      toast.error(msg);
     }
   };
 

@@ -13,7 +13,8 @@ import { ScrollToTop } from './components/common/ScrollToTop';
 import ProtectedRoute from './components/protected-route';
 import AuthChecker from './components/auth-checker';
 import PublicRoute from './components/public-route';
-import FinancePage from './pages/FInance/FinancePage.tsx';
+import FinancePage from './pages/Finance/FinancePage.tsx';
+import MealPlannerPage from './pages/MealPlanner/MealPlannerPage.tsx';
 
 export default function App() {
   return (
@@ -34,6 +35,8 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route index path="/" element={<FinancePage />} />
+
+              <Route path="/meal-planner" element={<MealPlannerPage />} />
 
               {/* Others Page */}
               <Route path="/profile" element={<UserProfiles />} />

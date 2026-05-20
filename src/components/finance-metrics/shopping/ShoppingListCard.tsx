@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingList } from '../../../hooks/useShopping';
+import { ShoppingList, ShoppingItem } from '../../../hooks/useShopping';
 import ShoppingListItem from './ShoppingListItem';
 
 interface ShoppingListCardProps {
@@ -7,10 +7,13 @@ interface ShoppingListCardProps {
   onEditList: (list: ShoppingList) => void;
   onDeleteList: (listId: number) => void;
   onToggleItemStatus: (itemId: number, purchased: boolean) => void;
-  onEditItem: (item: any) => void;
+  onEditItem: (item: ShoppingItem) => void;
   onDeleteItem: (itemId: number) => void;
   onViewItemHistory: (itemId: number) => void;
   onAddItem: (listId: number) => void;
+  onEnrichPrices?: (listId: number) => void;
+  isEnriching?: boolean;
+  onShowStorePrices?: (itemName: string) => void;
 }
 
 const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
@@ -22,15 +25,20 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   onDeleteItem,
   onViewItemHistory,
   onAddItem,
+  onEnrichPrices,
+  isEnriching = false,
+  onShowStorePrices,
 }) => {
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('pt-BR', {
+    new Intl.NumberFormat('pt-PT', {
       style: 'currency',
-      currency: 'BRL',
+      currency: 'EUR',
     }).format(amount);
 
   const calculateTotal = () =>
-    list.items.reduce((total, item) => total + item.price * item.quantity, 0);
+    list.items.reduce((total, item) => total + (item.scrapedPrice ?? item.price), 0);
+
+  const hasScrapedPrices = list.items.some((i) => i.scrapedPrice != null && i.scrapedPrice > 0);
 
   const calculateProgress = () => {
     if (list.items.length === 0) return 0;
@@ -66,6 +74,21 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
               Adicionar Item
             </button>
 
+            {onEnrichPrices && (
+              <button
+                onClick={() => onEnrichPrices(list.id)}
+                disabled={isEnriching}
+                className="w-full sm:w-auto px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                title="Buscar melhores preços nos supermercados"
+              >
+                {isEnriching ? (
+                  <><i className="fas fa-spinner fa-spin" /> A actualizar...</>
+                ) : (
+                  <><i className="fas fa-tags" /> Actualizar preços</>
+                )}
+              </button>
+            )}
+
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => onEditList(list)}
@@ -90,7 +113,11 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
           <StatCard label="Total de Itens" value={list.items.length} />
           <StatCard label="Comprados" value={purchasedItems.length} color="green" />
           <StatCard label="Pendentes" value={pendingItems.length} color="yellow" />
-          <StatCard label="Valor Total" value={formatCurrency(calculateTotal())} color="blue" />
+          <StatCard
+            label={hasScrapedPrices ? '💶 Total (scraper)' : 'Valor Total'}
+            value={formatCurrency(calculateTotal())}
+            color="blue"
+          />
         </div>
 
         {/* Progress */}
@@ -131,6 +158,7 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
                     onEdit={onEditItem}
                     onDelete={onDeleteItem}
                     onViewHistory={onViewItemHistory}
+                    onShowStorePrices={onShowStorePrices}
                   />
                 ))}
               </Section>
@@ -146,6 +174,7 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
                     onEdit={onEditItem}
                     onDelete={onDeleteItem}
                     onViewHistory={onViewItemHistory}
+                    onShowStorePrices={onShowStorePrices}
                   />
                 ))}
               </Section>
@@ -166,7 +195,7 @@ const StatCard = ({
   value: React.ReactNode;
   color?: 'green' | 'yellow' | 'blue';
 }) => {
-  const colors: any = {
+  const colors: Record<string, string> = {
     green: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
     yellow: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400',
     blue: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',

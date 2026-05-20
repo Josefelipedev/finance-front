@@ -1,11 +1,13 @@
-// src/components/finance-metrics/shopping/ShoppingManager.tsx
 import React, { useState, useEffect } from 'react';
-import { useShopping, ShoppingList } from '../../../hooks/useShopping';
+import { toast } from 'sonner';
+import { useShopping, ShoppingList, ShoppingItem, AiGenerateResult } from '../../../hooks/useShopping';
 import ShoppingListForm from './ShoppingListForm';
 import ShoppingItemForm from './ShoppingItemForm';
-
 import PriceHistoryModal from './PriceHistoryModal';
 import ShoppingListCard from './ShoppingListCard.tsx';
+import AIShoppingModal from './AIShoppingModal';
+import AIResultModal from './AIResultModal';
+import StorePricesModal from './StorePricesModal';
 
 const ShoppingManager: React.FC = () => {
   const {
@@ -13,6 +15,8 @@ const ShoppingManager: React.FC = () => {
     deleteList,
     deleteItem,
     updateItemStatus,
+    enrichPrices,
+    getPricesByStore,
     data: lists,
     isLoading,
     error,
@@ -21,10 +25,16 @@ const ShoppingManager: React.FC = () => {
   const [isListFormOpen, setIsListFormOpen] = useState(false);
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [aiResult, setAiResult] = useState<AiGenerateResult | null>(null);
   const [editingList, setEditingList] = useState<ShoppingList | null>(null);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null);
   const [selectedListId, setSelectedListId] = useState<number | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+  const [enrichingListId, setEnrichingListId] = useState<number | null>(null);
+  const [storePricesItem, setStorePricesItem] = useState<string | null>(null);
+  const [storePrices, setStorePrices] = useState<{ supermarket: string; name: string; price: number; brand?: string }[]>([]);
+  const [loadingStorePrices, setLoadingStorePrices] = useState(false);
 
   useEffect(() => {
     loadLists();
@@ -50,7 +60,7 @@ const ShoppingManager: React.FC = () => {
     setIsItemFormOpen(true);
   };
 
-  const handleEditItem = (item: any) => {
+  const handleEditItem = (item: ShoppingItem) => {
     setEditingItem(item);
     setIsItemFormOpen(true);
   };
@@ -67,6 +77,38 @@ const ShoppingManager: React.FC = () => {
     setEditingItem(null);
     setSelectedListId(null);
     loadLists();
+  };
+
+  const handleAISuccess = (result: AiGenerateResult) => {
+    setIsAIModalOpen(false);
+    setAiResult(result);
+    loadLists();
+  };
+
+  const handleEnrichPrices = async (listId: number) => {
+    setEnrichingListId(listId);
+    try {
+      const result = await enrichPrices(listId);
+      if (result) {
+        toast.success(`Preços actualizados: ${result.enriched} itens${result.failed.length ? ` (${result.failed.length} sem resultado)` : ''}`);
+      }
+    } catch {
+      toast.error('Erro ao actualizar preços. Verifique se o serviço está disponível.');
+    } finally {
+      setEnrichingListId(null);
+    }
+  };
+
+  const handleShowStorePrices = async (itemName: string) => {
+    setStorePricesItem(itemName);
+    setStorePrices([]);
+    setLoadingStorePrices(true);
+    try {
+      const prices = await getPricesByStore(itemName);
+      setStorePrices(prices ?? []);
+    } finally {
+      setLoadingStorePrices(false);
+    }
   };
 
   if (isLoading) {
@@ -92,18 +134,14 @@ const ShoppingManager: React.FC = () => {
       </div>
     );
   }
-  // No ShoppingManager.tsx, atualize essas funções:
-
   const handleDeleteList = async (listId: number) => {
-    if (
-      window.confirm('Tem certeza que deseja excluir esta lista? Todos os itens serão removidos.')
-    ) {
+    if (window.confirm('Tem certeza que deseja excluir esta lista? Todos os itens serão removidos.')) {
       try {
-        await deleteList(listId); // CHAMA API REAL
+        await deleteList(listId);
+        toast.success('Lista excluída com sucesso');
         await loadLists();
-      } catch (error) {
-        console.error('Erro ao deletar lista:', error);
-        alert('Erro ao deletar lista. Tente novamente.');
+      } catch (err) {
+        toast.error((err as Error).message || 'Erro ao deletar lista. Tente novamente.');
       }
     }
   };
@@ -111,41 +149,49 @@ const ShoppingManager: React.FC = () => {
   const handleDeleteItem = async (itemId: number) => {
     if (window.confirm('Tem certeza que deseja excluir este item?')) {
       try {
-        await deleteItem(itemId); // CHAMA API REAL
+        await deleteItem(itemId);
+        toast.success('Item excluído com sucesso');
         await loadLists();
-      } catch (error) {
-        console.error('Erro ao deletar item:', error);
-        alert('Erro ao deletar item. Tente novamente.');
+      } catch (err) {
+        toast.error((err as Error).message || 'Erro ao deletar item. Tente novamente.');
       }
     }
   };
 
   const handleToggleItemStatus = async (itemId: number, purchased: boolean) => {
     try {
-      await updateItemStatus(itemId, purchased); // CHAMA API REAL
+      await updateItemStatus(itemId, purchased);
       await loadLists();
-    } catch (error) {
-      console.error('Erro ao atualizar status do item:', error);
-      alert('Erro ao atualizar status. Tente novamente.');
+    } catch (err) {
+      toast.error((err as Error).message || 'Erro ao atualizar status. Tente novamente.');
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Listas de Compras</h2>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
             Organize suas compras e acompanhe os preços
           </p>
         </div>
-        <button
-          onClick={handleCreateList}
-          className="px-4 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center gap-2"
-        >
-          <i className="fas fa-plus"></i>
-          Nova Lista
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setIsAIModalOpen(true)}
+            className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-sky-500 text-white rounded-lg hover:from-purple-600 hover:to-sky-600 transition-all shadow-sm flex items-center gap-2"
+          >
+            <i className="fas fa-robot"></i>
+            Gerar com IA
+          </button>
+          <button
+            onClick={handleCreateList}
+            className="px-4 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center gap-2"
+          >
+            <i className="fas fa-plus"></i>
+            Nova Lista
+          </button>
+        </div>
       </div>
 
       {lists && lists.length === 0 ? (
@@ -155,15 +201,24 @@ const ShoppingManager: React.FC = () => {
             Nenhuma lista de compras encontrada
           </h3>
           <p className="text-slate-500 dark:text-slate-400 mb-6">
-            Crie sua primeira lista para começar a organizar suas compras
+            Crie sua primeira lista manualmente ou deixe a IA montar uma lista econômica para você
           </p>
-          <button
-            onClick={handleCreateList}
-            className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center gap-2 mx-auto"
-          >
-            <i className="fas fa-plus"></i>
-            Criar Primeira Lista
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => setIsAIModalOpen(true)}
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-sky-500 text-white rounded-lg hover:from-purple-600 hover:to-sky-600 transition-all shadow-sm flex items-center gap-2 justify-center"
+            >
+              <i className="fas fa-robot"></i>
+              Gerar com IA
+            </button>
+            <button
+              onClick={handleCreateList}
+              className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center gap-2 justify-center"
+            >
+              <i className="fas fa-plus"></i>
+              Criar Manualmente
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-6">
@@ -178,6 +233,9 @@ const ShoppingManager: React.FC = () => {
               onDeleteItem={handleDeleteItem}
               onViewItemHistory={handleViewItemHistory}
               onAddItem={handleAddItem}
+              onEnrichPrices={handleEnrichPrices}
+              isEnriching={enrichingListId === list.id}
+              onShowStorePrices={handleShowStorePrices}
             />
           ))}
         </div>
@@ -214,6 +272,29 @@ const ShoppingManager: React.FC = () => {
             setIsHistoryModalOpen(false);
             setSelectedItemId(null);
           }}
+        />
+      )}
+
+      {isAIModalOpen && (
+        <AIShoppingModal
+          onSuccess={handleAISuccess}
+          onCancel={() => setIsAIModalOpen(false)}
+        />
+      )}
+
+      {aiResult && (
+        <AIResultModal
+          result={aiResult}
+          onClose={() => setAiResult(null)}
+        />
+      )}
+
+      {storePricesItem && (
+        <StorePricesModal
+          itemName={storePricesItem}
+          prices={storePrices}
+          isLoading={loadingStorePrices}
+          onClose={() => { setStorePricesItem(null); setStorePrices([]); }}
         />
       )}
     </div>

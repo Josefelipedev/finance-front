@@ -43,11 +43,14 @@ export class HttpClient {
         const status = error.response.status;
         const message = (error.response.data as any)?.message || 'Erro inesperado';
 
-        // 🔐 NÃO AUTORIZADO ou PROIBIDO
         if (status === 401 || status === 403) {
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
           window.location.href = '/signin';
+        }
+
+        if (status === 429) {
+          return Promise.reject(new Error('Muitas tentativas. Aguarde alguns minutos e tente novamente.'));
         }
 
         return Promise.reject(new Error(message));
@@ -65,6 +68,10 @@ export class HttpClient {
 
   put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     return this.instance.put(url, data, config) as unknown as Promise<T>;
+  }
+
+  patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.instance.patch(url, data, config) as unknown as Promise<T>;
   }
 
   delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {

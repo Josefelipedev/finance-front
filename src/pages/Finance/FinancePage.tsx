@@ -47,8 +47,8 @@ const FinancePage: React.FC = () => {
                 <DateRangePicker
                   startDate={dateRange.startDate}
                   endDate={dateRange.endDate}
-                  onStartDateChange={(date) => setDateRange((prev) => ({ ...prev, start: date }))}
-                  onEndDateChange={(date) => setDateRange((prev) => ({ ...prev, end: date }))}
+                  onStartDateChange={(date) => setDateRange((prev) => ({ ...prev, startDate: date }))}
+                  onEndDateChange={(date) => setDateRange((prev) => ({ ...prev, endDate: date }))}
                   startLabel=""
                   endLabel=""
                   className="w-full"

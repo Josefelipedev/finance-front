@@ -1,6 +1,6 @@
-// src/components/finance-metrics/shopping/PriceHistoryModal.tsx
 import React, { useState, useEffect } from 'react';
-import { useShopping } from '../../../hooks/useShopping';
+import { toast } from 'sonner';
+import { useShopping, PriceHistory } from '../../../hooks/useShopping';
 
 interface PriceHistoryModalProps {
   itemId: number;
@@ -15,7 +15,7 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ itemId, onClose }
     calculateAveragePrice,
     formatCurrency,
   } = useShopping();
-  const [priceHistory, setPriceHistory] = useState<any[]>([]);
+  const [priceHistory, setPriceHistory] = useState<PriceHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -27,8 +27,8 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ itemId, onClose }
     try {
       const history = await getPriceHistory(itemId);
       setPriceHistory(history);
-    } catch (error) {
-      console.error('Erro ao carregar histórico:', error);
+    } catch (err) {
+      toast.error((err as Error).message || 'Erro ao carregar histórico de preços.');
     } finally {
       setIsLoading(false);
     }

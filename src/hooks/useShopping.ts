@@ -22,6 +22,9 @@ export interface ShoppingItem {
   shoppingListId: number;
   createdAt?: string;
   updatedAt?: string;
+  supermarket?: string;
+  scrapedPrice?: number;
+  scrapedAt?: string;
 }
 
 export interface PriceHistory {
@@ -62,6 +65,21 @@ export interface CreateOrUpdateItemDto {
   unit: string;
   price: number;
   shoppingListId: number;
+}
+
+export interface AiGenerateDto {
+  budget?: number;
+  preferences?: string;
+  listName?: string;
+  currencyCode?: string;
+  currencySymbol?: string;
+}
+
+export interface AiGenerateResult {
+  list: ShoppingList;
+  totalEstimate: number;
+  savingsSummary: string;
+  tips: string;
 }
 
 // ===================== HOOK =====================
@@ -294,6 +312,57 @@ export function useShopping() {
     }
   };
 
+  const enrichPrices = async (listId: number) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await api.post<{ list: ShoppingList; enriched: number; failed: string[] }>(
+        `/shopping/enrich-prices/${listId}`,
+        {},
+      );
+      if (result?.list) {
+        setData((prev) => prev.map((l) => (l.id === result.list.id ? result.list : l)));
+      }
+      return result;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getPricesByStore = async (itemName: string) => {
+    try {
+      return await api.get<{ supermarket: string; name: string; price: number; brand?: string }[]>(
+        `/shopping/prices/${encodeURIComponent(itemName)}`,
+      );
+    } catch {
+      return [];
+    }
+  };
+
+  const generateWithAI = async (payload: AiGenerateDto): Promise<AiGenerateResult> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await api.post<AiGenerateResult>('/shopping/ai-generate', payload);
+
+      if (!result || !result.list) {
+        throw new Error('Resposta inválida da IA');
+      }
+
+      setData((prev) => [result.list, ...prev]);
+      return result;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getPriceHistory = async (itemId: number) => {
     setIsLoading(true);
     setError(null);
@@ -317,13 +386,13 @@ export function useShopping() {
   // ===================== UTILITIES =====================
 
   const calculateListTotal = (list: ShoppingList): number =>
-    list.items.reduce((total, item) => total + item.price * item.quantity, 0);
+    list.items.reduce((total, item) => total + (item.scrapedPrice ?? item.price), 0);
 
   const calculatePurchasedTotal = (list: ShoppingList): number =>
-    list.items.filter((i) => i.purchased).reduce((t, i) => t + i.price * i.quantity, 0);
+    list.items.filter((i) => i.purchased).reduce((t, i) => t + (i.scrapedPrice ?? i.price), 0);
 
   const calculatePendingTotal = (list: ShoppingList): number =>
-    list.items.filter((i) => !i.purchased).reduce((t, i) => t + i.price * i.quantity, 0);
+    list.items.filter((i) => !i.purchased).reduce((t, i) => t + (i.scrapedPrice ?? i.price), 0);
 
   const calculateListProgress = (list: ShoppingList): number =>
     list.items.length === 0
@@ -346,9 +415,9 @@ export function useShopping() {
     history.length ? history.reduce((s, h) => s + h.price, 0) / history.length : 0;
 
   const formatCurrency = (amount: number): string =>
-    new Intl.NumberFormat('pt-BR', {
+    new Intl.NumberFormat('pt-PT', {
       style: 'currency',
-      currency: 'BRL',
+      currency: 'EUR',
     }).format(amount);
 
   // ===================== PUBLIC API =====================
@@ -371,6 +440,9 @@ export function useShopping() {
     updateItemStatus,
     createOrUpdateItem,
     getPriceHistory,
+    generateWithAI,
+    enrichPrices,
+    getPricesByStore,
 
     // Utilidades
     calculateListTotal,

@@ -1,5 +1,5 @@
-// src/components/finance-metrics/shopping/ShoppingItemForm.tsx
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useShopping, ShoppingItem } from '../../../hooks/useShopping';
 
 interface ShoppingItemFormProps {
@@ -15,7 +15,7 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const { createOrUpdateItem, updateItem, addItem, isLoading } = useShopping();
+  const { createOrUpdateItem, updateItem, isLoading } = useShopping();
   const [formData, setFormData] = useState({
     name: '',
     quantity: 1,
@@ -81,24 +81,16 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
           price: formData.price,
           shoppingListId: listId,
         });
-
-        // Alternativamente, pode usar addItem:
-        // await addItem({
-        //   listId,
-        //   name: formData.name,
-        //   quantity: formData.quantity,
-        //   unit: formData.unit,
-        //   price: formData.price,
-        // });
       }
       onSuccess();
     } catch (err) {
-      console.error('Erro ao salvar item:', err);
-      setFormError('Erro ao salvar item. Tente novamente.');
+      const msg = (err as Error).message || 'Erro ao salvar item. Tente novamente.';
+      setFormError(msg);
+      toast.error(msg);
     }
   };
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: keyof typeof formData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -172,11 +164,11 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
             {/* Preço */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Preço (R$)
+                Preço Total
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
-                  R$
+                  €
                 </span>
                 <input
                   type="number"
@@ -188,21 +180,8 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
                   placeholder="0,00"
                 />
               </div>
+              <p className="text-xs text-slate-400 mt-1">Preço total para a quantidade indicada</p>
             </div>
-
-            {/* Valor Total */}
-            {formData.price > 0 && formData.quantity > 0 && (
-              <div className="bg-sky-50 dark:bg-sky-900/20 rounded-lg p-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Valor Total:
-                  </span>
-                  <span className="text-lg font-bold text-sky-600 dark:text-sky-400">
-                    R$ {(formData.price * formData.quantity).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            )}
 
             {formError && <div className="text-red-500 text-sm">{formError}</div>}
 
