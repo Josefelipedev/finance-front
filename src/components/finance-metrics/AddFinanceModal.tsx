@@ -1,16 +1,27 @@
 // src/components/finance-metrics/AddFinanceModal.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal } from '../ui/modal';
-import { CreateFinanceDto, useFinance } from '../../hooks/useFinance.ts';
+import { CreateFinanceDto, FinanceRecord, useFinance } from '../../hooks/useFinance.ts';
 import { useFinanceCategory } from '../../hooks/useFinanceCategory.ts';
 import { Controller, useForm } from 'react-hook-form';
-import IconPicker from './ui/icon-picker/icon-picker.tsx'; // Importe o hook
+import IconPicker from './ui/icon-picker/icon-picker.tsx';
+
+export interface FinancePrefill {
+  amount?: number;
+  description?: string;
+  categoryName?: string;
+  type?: 'income' | 'expense';
+}
 
 interface AddFinanceModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  editRecord?: FinanceRecord;
+  /** Pré-preenche o formulário (ex.: resultado do scan de recibo) quando não está editando */
+  prefill?: FinancePrefill;
 }
+
 const defaultValues: CreateFinanceDto = {
   amount: 0,
   type: 'expense',
@@ -20,47 +31,125 @@ const defaultValues: CreateFinanceDto = {
   referenceDate: new Date().toISOString().split('T')[0],
 };
 
-const AddFinanceModal: React.FC<AddFinanceModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { addFinanceRecord, isLoading, error } = useFinance();
+const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  editRecord,
+  prefill,
+}) => {
+  const { addFinanceRecord, updateFinanceRecord, isLoading, error } = useFinance();
   const { categories, getAllCategories } = useFinanceCategory();
-  useEffect(() => {
-    if (isOpen) {
-      getAllCategories({ isActive: true });
-    }
-  }, [isOpen]);
+
+  const [amountDisplay, setAmountDisplay] = useState('');
+  const [amountFocused, setAmountFocused] = useState(false);
+
+  const isEditMode = Boolean(editRecord);
 
   const {
     control,
     handleSubmit,
     reset,
-    // setValue,
-    // watch,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateFinanceDto>({
     defaultValues,
     mode: 'onChange',
   });
 
+  const amountValue = watch('amount');
+
+  useEffect(() => {
+    if (isOpen) {
+      getAllCategories({ isActive: true });
+
+      if (editRecord) {
+        const prefill: CreateFinanceDto = {
+          amount: editRecord.amount,
+          type: editRecord.type,
+          description: editRecord.description || '',
+          categoryId: editRecord.categoryId ?? undefined,
+          iconName: editRecord.iconName || 'pricetag',
+          referenceDate: editRecord.referenceDate
+            ? editRecord.referenceDate.split('T')[0]
+            : new Date().toISOString().split('T')[0],
+        };
+        reset(prefill);
+        setAmountDisplay(formatBRL(editRecord.amount));
+      } else if (prefill) {
+        const merged: CreateFinanceDto = {
+          ...defaultValues,
+          amount: prefill.amount ?? 0,
+          description: prefill.description ?? '',
+          type: prefill.type ?? 'expense',
+        };
+        reset(merged);
+        setAmountDisplay(prefill.amount ? formatBRL(prefill.amount) : '');
+      } else {
+        reset(defaultValues);
+        setAmountDisplay('');
+      }
+    }
+  }, [isOpen, editRecord, prefill]);
+
+  // Casa a categoria sugerida (por nome) assim que as categorias carregam
+  useEffect(() => {
+    if (!isOpen || editRecord || !prefill?.categoryName || categories.length === 0) return;
+    const match = categories.find(
+      (c) => c.name.toLowerCase() === prefill.categoryName!.toLowerCase()
+    );
+    if (match) {
+      setValue('categoryId', match.id);
+    }
+  }, [isOpen, editRecord, prefill, categories, setValue]);
+
+  // Sync display when not focused and value changes externally (e.g. reset)
+  useEffect(() => {
+    if (!amountFocused && amountValue) {
+      setAmountDisplay(formatBRL(amountValue));
+    }
+  }, [amountValue, amountFocused]);
+
+  const formatBRL = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+      value
+    );
+
+  const parseAmount = (raw: string): number => {
+    // Accept "1.500,50" (BRL) or "1500.50" (plain) or "1500,50"
+    const cleaned = raw.trim();
+    // BRL format: dots as thousands, comma as decimal
+    if (/^\d{1,3}(\.\d{3})*,\d{2}$/.test(cleaned)) {
+      return parseFloat(cleaned.replace(/\./g, '').replace(',', '.'));
+    }
+    // Plain with comma as decimal
+    return parseFloat(cleaned.replace(',', '.')) || 0;
+  };
+
   const onSubmit = async (data: CreateFinanceDto) => {
     try {
-      await addFinanceRecord(data);
+      if (isEditMode && editRecord) {
+        await updateFinanceRecord(editRecord.id, data);
+      } else {
+        await addFinanceRecord(data);
+      }
       onSuccess?.();
       reset(defaultValues);
-
-      if (isOpen && onClose) {
-        onClose();
-      }
+      setAmountDisplay('');
+      if (isOpen && onClose) onClose();
     } catch (err) {
-      console.error('Erro ao adicionar transação:', err);
+      console.error('Erro ao salvar transação:', err);
     }
   };
+
   if (!isOpen) return null;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-md">
       <div className="p-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
-          Adicionar Transação
+          {isEditMode ? 'Editar Transação' : 'Adicionar Transação'}
         </h2>
 
         {error && (
@@ -104,11 +193,29 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({ isOpen, onClose, onSu
                 render={({ field }) => (
                   <div>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      type="text"
+                      inputMode="decimal"
+                      value={amountDisplay}
+                      onChange={(e) => {
+                        // Allow only digits, dots, commas
+                        const raw = e.target.value.replace(/[^\d,.]/g, '');
+                        setAmountDisplay(raw);
+                        field.onChange(parseAmount(raw));
+                      }}
+                      onFocus={() => {
+                        setAmountFocused(true);
+                        // Show plain number for easy editing
+                        if (field.value) {
+                          setAmountDisplay(String(field.value).replace('.', ','));
+                        }
+                      }}
+                      onBlur={() => {
+                        setAmountFocused(false);
+                        if (field.value) {
+                          setAmountDisplay(formatBRL(field.value));
+                        }
+                        field.onBlur();
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="0,00"
                     />
@@ -152,6 +259,10 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({ isOpen, onClose, onSu
                 render={({ field }) => (
                   <select
                     {...field}
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Selecione uma categoria</option>
@@ -209,8 +320,10 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({ isOpen, onClose, onSu
               {isLoading ? (
                 <span className="flex items-center justify-center">
                   <i className="fas fa-spinner fa-spin mr-2"></i>
-                  Adicionando...
+                  {isEditMode ? 'Salvando...' : 'Adicionando...'}
                 </span>
+              ) : isEditMode ? (
+                'Salvar Alterações'
               ) : (
                 'Adicionar Transação'
               )}

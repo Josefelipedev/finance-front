@@ -17,6 +17,7 @@ export interface UserProfile {
   isGroup?: boolean;
   isMarried?: boolean;
   spouseId?: number;
+  spouse?: { id: number; name: string; phone?: string } | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -44,7 +45,7 @@ export function useUserProfile() {
     setError(null);
 
     try {
-      const response = await api.get<UserProfile>('/user/profile');
+      const response = await api.get<UserProfile>('/contacts/profile');
 
       if (response) {
         setProfile(response);
@@ -67,7 +68,7 @@ export function useUserProfile() {
     setError(null);
 
     try {
-      const response = await api.put<UserProfile>('/user/update', data);
+      const response = await api.patch<UserProfile>('/contacts/update', data);
 
       if (response) {
         setProfile(response);
@@ -90,22 +91,40 @@ export function useUserProfile() {
     setError(null);
 
     try {
-      const response = await api.post<boolean>('/user/associate-couple', {
+      // Backend: @Controller('contacts') + @Post('couple') → retorna mensagem (string)
+      const response = await api.post<string>('/contacts/couple', {
         spousePhone,
       });
 
-      if (response !== false) {
-        return response;
-      }
+      // Recarrega o perfil para refletir isMarried/spouseId atualizados
+      await getProfile();
 
-      throw new Error('Falha ao associar casal');
+      return response;
     } catch (err) {
       setError(err as Error);
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [getProfile]);
+
+  // ===================== DISSOCIATE COUPLE =====================
+
+  const dissociateCouple = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await api.delete<string>('/contacts/couple');
+      await getProfile();
+      return response;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [getProfile]);
 
   // ===================== PUBLIC API =====================
 
@@ -115,6 +134,7 @@ export function useUserProfile() {
     getProfile,
     updateProfile,
     associateAsCouple,
+    dissociateCouple,
 
     // Estado
     isLoading,

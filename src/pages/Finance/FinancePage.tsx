@@ -1,19 +1,40 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import FinanceDashboard from '../../components/finance-metrics/FinanceDashboard.tsx';
 import CategoryDistribution from '../../components/finance-metrics/CategoryDistribution.tsx';
 import FinanceGoals from '../../components/finance-metrics/goals/FinanceGoals.tsx';
 import TransactionsList from '../../components/finance-metrics/TransactionsList.tsx';
 import AnalyticsView from '../../components/finance-metrics/AnalyticsView.tsx';
-import AddFinanceModal from '../../components/finance-metrics/AddFinanceModal.tsx';
+import AddFinanceModal, { FinancePrefill } from '../../components/finance-metrics/AddFinanceModal.tsx';
+import ReceiptScanModal from '../../components/finance-metrics/receipt/ReceiptScanModal.tsx';
 import DateRangePicker from '../../components/ui/date-range-picker';
 import CategoryManager from '../../components/finance-metrics/categories/CategoryManager.tsx';
 import RecurringManager from '../../components/finance-metrics/recurring/RecurringManager.tsx';
 import ShoppingManager from '../../components/finance-metrics/shopping/ShoppingManager.tsx';
-import { toast } from 'sonner';
+import PantryManager from '../../components/finance-metrics/pantry/PantryManager.tsx';
+import GrocerySearchManager from '../../components/finance-metrics/grocery/GrocerySearchManager.tsx';
+import BudgetManager from '../../components/finance-metrics/budget/BudgetManager.tsx';
+import MonthlyReport from '../../components/finance-metrics/MonthlyReport.tsx';
+import NotificationsCenter from '../../components/finance-metrics/NotificationsCenter.tsx';
+import TransactionsCalendar from '../../components/finance-metrics/TransactionsCalendar.tsx';
+import GlobalSearch from '../../components/finance-metrics/GlobalSearch.tsx';
+import { useFinance } from '../../hooks/useFinance.ts';
 
 const FinancePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'transactions' | 'analytics' | 'categories' | 'recurring' | 'shopping'
+    | 'dashboard'
+    | 'transactions'
+    | 'analytics'
+    | 'categories'
+    | 'recurring'
+    | 'shopping'
+    | 'pantry'
+    | 'grocery'
+    | 'budget'
+    | 'report'
+    | 'notifications'
+    | 'calendar'
+    | 'search'
   >('dashboard');
 
   const [dateRange, setDateRange] = useState<{ startDate: string; endDate: string }>({
@@ -22,9 +43,59 @@ const FinancePage: React.FC = () => {
   });
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [prefill, setPrefill] = useState<FinancePrefill | undefined>(undefined);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const { getAllFinances } = useFinance();
 
   const handleSuccess = () => {
     toast.success('Transação adicionada com sucesso!');
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const records = await getAllFinances({
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      });
+
+      if (!records || records.length === 0) {
+        toast.info('Nenhuma transação no período para exportar.');
+        return;
+      }
+
+      const header = ['Data', 'Descrição', 'Tipo', 'Categoria', 'Valor (R$)'].join(';');
+      const rows = records.map((t) =>
+        [
+          new Date(t.referenceDate || t.createdAt).toLocaleDateString('pt-BR'),
+          `"${(t.description || '').replace(/"/g, '""')}"`,
+          t.type === 'income' ? 'Receita' : 'Despesa',
+          `"${(t.category?.name || 'Sem categoria').replace(/"/g, '""')}"`,
+          t.amount.toFixed(2).replace('.', ','),
+        ].join(';')
+      );
+
+      // BOM para o Excel reconhecer UTF-8
+      const csv = '﻿' + [header, ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const start = dateRange.startDate.split('T')[0];
+      const end = dateRange.endDate.split('T')[0];
+      link.href = url;
+      link.download = `finploit-${start}_${end}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success(`${records.length} transações exportadas com sucesso!`);
+    } catch {
+      toast.error('Erro ao exportar relatório.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -55,9 +126,19 @@ const FinancePage: React.FC = () => {
                 />
               </div>
 
-              <button className="px-3 sm:px-4 py-2 sm:py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap">
-                <i className="fas fa-file-export text-sm"></i>
-                <span className="hidden xs:inline">Exportar Relatório</span>
+              <button
+                onClick={handleExport}
+                disabled={isExporting}
+                className="px-3 sm:px-4 py-2 sm:py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap disabled:opacity-60"
+              >
+                {isExporting ? (
+                  <i className="fas fa-spinner fa-spin text-sm"></i>
+                ) : (
+                  <i className="fas fa-file-export text-sm"></i>
+                )}
+                <span className="hidden xs:inline">
+                  {isExporting ? 'Exportando...' : 'Exportar Relatório'}
+                </span>
               </button>
             </div>
           </div>
@@ -67,16 +148,22 @@ const FinancePage: React.FC = () => {
       <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-3 sm:px-4">
           <div className="relative">
-            {/* Container com scroll horizontal */}
             <div className="overflow-x-auto py-2 scrollbar-custom">
               <div className="flex space-x-1 sm:space-x-2 md:space-x-6 min-w-max pb-1">
                 {[
                   { id: 'dashboard', label: 'Dashboard', icon: 'chart-line' },
                   { id: 'recurring', label: 'Recorrentes', icon: 'redo' },
+                  { id: 'budget', label: 'Orçamento', icon: 'wallet' },
                   { id: 'shopping', label: 'Compras', icon: 'shopping-cart' },
+                  { id: 'pantry', label: 'Despensa', icon: 'box-open' },
+                  { id: 'grocery', label: 'Preços', icon: 'search-dollar' },
                   { id: 'categories', label: 'Categorias', icon: 'tags' },
                   { id: 'transactions', label: 'Transações', icon: 'exchange-alt' },
                   { id: 'analytics', label: 'Análises', icon: 'chart-pie' },
+                  { id: 'report', label: 'Relatório', icon: 'file-alt' },
+                  { id: 'notifications', label: 'Notificações', icon: 'bell' },
+                  { id: 'calendar', label: 'Calendário', icon: 'calendar-alt' },
+                  { id: 'search', label: 'Buscar', icon: 'search' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -94,7 +181,6 @@ const FinancePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Sombra no lado direito para indicar scroll (opcional) */}
             <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-slate-800 to-transparent pointer-events-none"></div>
           </div>
         </div>
@@ -129,13 +215,25 @@ const FinancePage: React.FC = () => {
                   Rápido
                 </span>
               </div>
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="w-full px-4 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors flex items-center justify-center gap-2 shadow-sm text-sm sm:text-base"
-              >
-                <i className="fas fa-plus"></i>
-                Nova Transação
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => {
+                    setPrefill(undefined);
+                    setIsAddModalOpen(true);
+                  }}
+                  className="flex-1 px-4 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors flex items-center justify-center gap-2 shadow-sm text-sm sm:text-base"
+                >
+                  <i className="fas fa-plus"></i>
+                  Nova Transação
+                </button>
+                <button
+                  onClick={() => setIsReceiptOpen(true)}
+                  className="flex-1 px-4 py-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2 shadow-sm text-sm sm:text-base"
+                >
+                  <i className="fas fa-camera"></i>
+                  Escanear Recibo
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -145,6 +243,76 @@ const FinancePage: React.FC = () => {
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden">
               <div className="p-4 sm:p-6">
                 <ShoppingManager />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'pantry' && (
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden">
+              <div className="p-4 sm:p-6">
+                <PantryManager />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'search' && (
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden">
+              <div className="p-4 sm:p-6">
+                <GlobalSearch />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'calendar' && (
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden">
+              <div className="p-4 sm:p-6">
+                <TransactionsCalendar />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden">
+              <div className="p-4 sm:p-6">
+                <NotificationsCenter />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'report' && (
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden">
+              <div className="p-4 sm:p-6">
+                <MonthlyReport />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'budget' && (
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden">
+              <div className="p-4 sm:p-6">
+                <BudgetManager />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'grocery' && (
+          <div className="space-y-4 sm:space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow overflow-hidden">
+              <div className="p-4 sm:p-6">
+                <GrocerySearchManager />
               </div>
             </div>
           </div>
@@ -219,12 +387,15 @@ const FinancePage: React.FC = () => {
                   Insights Financeiros
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                  Receba recomendações personalizadas para melhorar suas finanças
+                  Visualize análises e tendências detalhadas das suas finanças
                 </p>
               </div>
-              <button className="px-3 sm:px-4 py-2 sm:py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center justify-center gap-2 text-sm sm:text-base w-full md:w-auto">
-                <i className="fas fa-lightbulb text-sm"></i>
-                <span>Ver Insights</span>
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className="px-3 sm:px-4 py-2 sm:py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center justify-center gap-2 text-sm sm:text-base w-full md:w-auto"
+              >
+                <i className="fas fa-chart-pie text-sm"></i>
+                <span>Ver Análises</span>
               </button>
             </div>
           </div>
@@ -234,9 +405,25 @@ const FinancePage: React.FC = () => {
       <AddFinanceModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+        prefill={prefill}
         onSuccess={() => {
           handleSuccess();
           setIsAddModalOpen(false);
+          setPrefill(undefined);
+        }}
+      />
+
+      <ReceiptScanModal
+        isOpen={isReceiptOpen}
+        onClose={() => setIsReceiptOpen(false)}
+        onScanned={(result) => {
+          setPrefill({
+            amount: result.amount ?? undefined,
+            description: result.description,
+            categoryName: result.category,
+            type: 'expense',
+          });
+          setIsAddModalOpen(true);
         }}
       />
     </div>

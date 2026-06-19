@@ -190,7 +190,7 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
             <i className="fas fa-chart-line text-gray-400 dark:text-gray-500 text-3xl"></i>
           </div>
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-            Nenhuma transação encontrada 2
+            Nenhuma transação encontrada
           </h3>
           <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
             {dateRange.startDate || dateRange.endDate

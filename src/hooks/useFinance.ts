@@ -62,164 +62,151 @@ export interface QueryParams {
 // ===================== HOOK =====================
 
 export const useFinance = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingCount, setLoadingCount] = useState(0);
   const [error, setError] = useState<Error | null>(null);
 
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [summaryData, setSummaryData] = useState<FinanceSummary | null>(null);
 
+  const isLoading = loadingCount > 0;
+
+  const withLoading = async <T>(fn: () => Promise<T>): Promise<T> => {
+    setLoadingCount((c) => c + 1);
+    try {
+      return await fn();
+    } finally {
+      setLoadingCount((c) => Math.max(0, c - 1));
+    }
+  };
+
   // ===================== CREATE =====================
 
   const addFinanceRecord = async (data: CreateFinanceDto) => {
-    setIsLoading(true);
     setError(null);
-
-    try {
-      const record = await api.post<FinanceRecord>('/finance', data);
-
-      if (record) {
-        setRecords((prev) => [record, ...prev]);
-        return record;
+    return withLoading(async () => {
+      try {
+        const record = await api.post<FinanceRecord>('/finance', data);
+        if (record) {
+          setRecords((prev) => [record, ...prev]);
+          return record;
+        }
+        throw new Error('Registro financeiro inválido');
+      } catch (err) {
+        setError(err as Error);
+        throw err;
       }
-
-      throw new Error('Registro financeiro inválido');
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // ===================== READ =====================
 
   const getAllFinances = async (params?: QueryParams) => {
-    setIsLoading(true);
     setError(null);
-
-    try {
-      const data = await api.get<FinanceRecord[]>('/finance', {
-        params: {
-          startDate: params?.startDate,
-          endDate: params?.endDate,
-        },
-      });
-
-      if (Array.isArray(data)) {
-        setRecords(data);
-        return data;
+    return withLoading(async () => {
+      try {
+        const data = await api.get<FinanceRecord[]>('/finance', {
+          params: {
+            startDate: params?.startDate,
+            endDate: params?.endDate,
+          },
+        });
+        if (Array.isArray(data)) {
+          setRecords(data);
+          return data;
+        }
+        throw new Error('Lista de finanças inválida');
+      } catch (err) {
+        setError(err as Error);
+        throw err;
       }
-
-      throw new Error('Lista de finanças inválida');
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   const getFinanceSummary = async (params?: QueryParams) => {
-    setIsLoading(true);
     setError(null);
-
-    try {
-      const summary = await api.get<FinanceSummary>('/finance/summary', {
-        params: {
-          startDate: params?.startDate,
-          endDate: params?.endDate,
-        },
-      });
-
-      if (summary) {
-        setSummaryData(summary);
-        return summary;
+    return withLoading(async () => {
+      try {
+        const summary = await api.get<FinanceSummary>('/finance/summary', {
+          params: {
+            startDate: params?.startDate,
+            endDate: params?.endDate,
+          },
+        });
+        if (summary) {
+          setSummaryData(summary);
+          return summary;
+        }
+        throw new Error('Resumo financeiro inválido');
+      } catch (err) {
+        setError(err as Error);
+        throw err;
       }
-
-      throw new Error('Resumo financeiro inválido');
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   const getDashboardData = async (params?: QueryParams) => {
-    setIsLoading(true);
     setError(null);
-
-    try {
-      const dashboard = await api.get<DashboardData>('/finance/dashboard', {
-        params: {
-          startDate: params?.startDate,
-          endDate: params?.endDate,
-        },
-      });
-
-      if (dashboard) {
-        setDashboardData(dashboard);
-        return dashboard;
+    return withLoading(async () => {
+      try {
+        const dashboard = await api.get<DashboardData>('/finance/dashboard', {
+          params: {
+            startDate: params?.startDate,
+            endDate: params?.endDate,
+          },
+        });
+        if (dashboard) {
+          setDashboardData(dashboard);
+          return dashboard;
+        }
+        throw new Error('Dashboard inválido');
+      } catch (err) {
+        setError(err as Error);
+        throw err;
       }
-
-      throw new Error('Dashboard inválido');
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // ===================== UPDATE =====================
 
   const updateFinanceRecord = async (id: number, data: Partial<CreateFinanceDto>) => {
-    setIsLoading(true);
     setError(null);
-
-    try {
-      const updated = await api.put<FinanceRecord>(`/finance/${id}`, data);
-
-      if (updated) {
-        setRecords((prev) => prev.map((record) => (record.id === id ? updated : record)));
-        return updated;
+    return withLoading(async () => {
+      try {
+        const updated = await api.put<FinanceRecord>(`/finance/${id}`, data);
+        if (updated) {
+          setRecords((prev) => prev.map((record) => (record.id === id ? updated : record)));
+          return updated;
+        }
+        throw new Error('Falha ao atualizar registro');
+      } catch (err) {
+        setError(err as Error);
+        throw err;
       }
-
-      throw new Error('Falha ao atualizar registro');
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // ===================== DELETE =====================
 
   const deleteFinanceRecord = async (id: number) => {
-    setIsLoading(true);
     setError(null);
-
-    try {
-      const deleted = await api.delete<boolean>(`/finance/${id}`);
-
-      if (deleted !== false) {
-        setRecords((prev) => prev.filter((record) => record.id !== id));
-
-        if (dashboardData) {
-          setDashboardData({
-            ...dashboardData,
-            transactions: dashboardData.transactions.filter((tx) => tx.id !== id.toString()),
-          });
+    return withLoading(async () => {
+      try {
+        const deleted = await api.delete<boolean>(`/finance/${id}`);
+        if (deleted !== false) {
+          setRecords((prev) => prev.filter((record) => record.id !== id));
+          if (dashboardData) {
+            setDashboardData({
+              ...dashboardData,
+              transactions: dashboardData.transactions.filter((tx) => tx.id !== id.toString()),
+            });
+          }
         }
+      } catch (err) {
+        setError(err as Error);
+        throw err;
       }
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // ===================== REFRESH =====================

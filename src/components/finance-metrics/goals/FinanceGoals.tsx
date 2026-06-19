@@ -1,5 +1,6 @@
 // src/components/finance-metrics/FinanceGoals.tsx
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useGoals, Goal } from '../../../hooks/useGoals.ts';
 import { useModal } from '../../../hooks/useModal.ts';
 import GoalForm from './GoalForm.tsx';
@@ -22,10 +23,13 @@ const FinanceGoals: React.FC = () => {
   const createModal = useModal();
   const editModal = useModal();
   const deleteModal = useModal();
+  const depositModal = useModal();
 
   // Estados
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [deletingGoal, setDeletingGoal] = useState<Goal | null>(null);
+  const [depositingGoal, setDepositingGoal] = useState<Goal | null>(null);
+  const [depositAmount, setDepositAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED' | 'CANCELED'>('ACTIVE');
   const [expandedGoalId, setExpandedGoalId] = useState<number | null>(null);
@@ -49,6 +53,43 @@ const FinanceGoals: React.FC = () => {
     setExpandedGoalId(expandedGoalId === goalId ? null : goalId);
     setClickAnimation(goalId);
     setTimeout(() => setClickAnimation(null), 300);
+  };
+
+  // Função para abrir modal de depósito
+  const handleDepositClick = (goal: Goal, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDepositingGoal(goal);
+    setDepositAmount('');
+    depositModal.openModal();
+  };
+
+  // Função para confirmar depósito
+  const handleConfirmDeposit = async () => {
+    if (!depositingGoal) return;
+    const amount = parseFloat(depositAmount.replace(',', '.'));
+    if (isNaN(amount) || amount <= 0) return;
+
+    setIsSubmitting(true);
+    try {
+      const newValue = depositingGoal.currentValue + amount;
+      await updateGoal(depositingGoal.id, {
+        currentValue: newValue,
+        status: newValue >= depositingGoal.targetValue ? 'COMPLETED' : depositingGoal.status,
+      });
+      toast.success(
+        newValue >= depositingGoal.targetValue
+          ? 'Meta concluída! Parabéns! 🎉'
+          : `R$ ${amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} depositados com sucesso!`
+      );
+      depositModal.closeModal();
+      setDepositingGoal(null);
+      fetchGoals();
+    } catch (error) {
+      console.error('Erro ao depositar:', error);
+      toast.error('Erro ao registrar depósito.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Função para abrir modal de edição
@@ -280,6 +321,13 @@ const FinanceGoals: React.FC = () => {
                     {goal.status === 'ACTIVE' && (
                       <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
                         <button
+                          onClick={(e) => handleDepositClick(goal, e)}
+                          className="text-violet-600 hover:text-violet-700 dark:text-violet-400 text-sm p-2 rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors"
+                          title="Depositar / Registrar progresso"
+                        >
+                          <i className="fas fa-plus-circle"></i>
+                        </button>
+                        <button
                           onClick={(e) => handleMarkAsCompleted(goal, e)}
                           className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 text-sm p-2 rounded-full hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
                           title="Marcar como concluída"
@@ -475,6 +523,95 @@ const FinanceGoals: React.FC = () => {
               onCancel={editModal.closeModal}
               isLoading={isSubmitting}
             />
+          )}
+        </div>
+      </Modal>
+
+      {/* Modal de Depósito */}
+      <Modal
+        isOpen={depositModal.isOpen}
+        onClose={depositModal.closeModal}
+        className="max-lg:w-full max-w-md"
+      >
+        <div className="p-6">
+          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-1">
+            Registrar Depósito
+          </h2>
+          {depositingGoal && (
+            <div className="space-y-4">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Meta: <strong>{depositingGoal.name}</strong> — Faltam{' '}
+                <strong>
+                  R${' '}
+                  {(depositingGoal.targetValue - depositingGoal.currentValue).toLocaleString(
+                    'pt-BR',
+                    { minimumFractionDigits: 2 }
+                  )}
+                </strong>
+              </p>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Valor a depositar (R$)
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value.replace(/[^\d,.]/g, ''))}
+                  placeholder="0,00"
+                  autoFocus
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white text-lg"
+                />
+              </div>
+
+              {depositAmount && (
+                <div className="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg p-3">
+                  <p className="text-sm text-violet-700 dark:text-violet-300">
+                    Novo progresso:{' '}
+                    <strong>
+                      R${' '}
+                      {(
+                        depositingGoal.currentValue +
+                        (parseFloat(depositAmount.replace(',', '.')) || 0)
+                      ).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </strong>{' '}
+                    de R${' '}
+                    {depositingGoal.targetValue.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                    })}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-3 pt-2">
+                <button
+                  onClick={depositModal.closeModal}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleConfirmDeposit}
+                  disabled={
+                    isSubmitting ||
+                    !depositAmount ||
+                    (parseFloat(depositAmount.replace(',', '.')) || 0) <= 0
+                  }
+                  className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <i className="fas fa-spinner fa-spin"></i>
+                      Salvando...
+                    </span>
+                  ) : (
+                    'Confirmar Depósito'
+                  )}
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </Modal>
