@@ -105,15 +105,19 @@ export const useFinance = () => {
     setError(null);
     return withLoading(async () => {
       try {
-        const data = await api.get<FinanceRecord[]>('/finance', {
+        const res = await api.get<
+          FinanceRecord[] | { data: FinanceRecord[]; meta?: unknown }
+        >('/finance', {
           params: {
             startDate: params?.startDate,
             endDate: params?.endDate,
           },
         });
-        if (Array.isArray(data)) {
-          setRecords(data);
-          return data;
+        // O endpoint é paginado e retorna { data, meta }; aceita também array cru.
+        const list = Array.isArray(res) ? res : res?.data;
+        if (Array.isArray(list)) {
+          setRecords(list);
+          return list;
         }
         throw new Error('Lista de finanças inválida');
       } catch (err) {
@@ -173,7 +177,7 @@ export const useFinance = () => {
     setError(null);
     return withLoading(async () => {
       try {
-        const updated = await api.put<FinanceRecord>(`/finance/${id}`, data);
+        const updated = await api.patch<FinanceRecord>(`/finance/${id}`, data);
         if (updated) {
           setRecords((prev) => prev.map((record) => (record.id === id ? updated : record)));
           return updated;
@@ -192,15 +196,14 @@ export const useFinance = () => {
     setError(null);
     return withLoading(async () => {
       try {
-        const deleted = await api.delete<boolean>(`/finance/${id}`);
-        if (deleted !== false) {
-          setRecords((prev) => prev.filter((record) => record.id !== id));
-          if (dashboardData) {
-            setDashboardData({
-              ...dashboardData,
-              transactions: dashboardData.transactions.filter((tx) => tx.id !== id.toString()),
-            });
-          }
+        // A API lança erro em caso de falha (cai no catch); se resolveu, removeu.
+        await api.delete(`/finance/${id}`);
+        setRecords((prev) => prev.filter((record) => record.id !== id));
+        if (dashboardData) {
+          setDashboardData({
+            ...dashboardData,
+            transactions: dashboardData.transactions.filter((tx) => tx.id !== id.toString()),
+          });
         }
       } catch (err) {
         setError(err as Error);

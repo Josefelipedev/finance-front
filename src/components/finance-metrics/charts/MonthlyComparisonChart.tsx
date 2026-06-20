@@ -15,9 +15,11 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
     income: number[];
     expense: number[];
   }>({ months: [], income: [], expense: [] });
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadChartData = async () => {
+      setError(null);
       try {
         const transactions = await getAllFinances({
           startDate: dateRange.startDate,
@@ -57,8 +59,12 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
         const expense = sortedMonths.map((month) => groupedByMonth[month].expense);
 
         setChartData({ months, income, expense });
-      } catch (error) {
-        console.error('Erro ao carregar dados do gráfico:', error);
+      } catch (err) {
+        console.error('Erro ao carregar dados do gráfico:', err);
+        setError(
+          err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.',
+        );
+        setChartData({ months: [], income: [], expense: [] });
       }
     };
 
@@ -192,6 +198,16 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Carregando dados...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-80 flex flex-col items-center justify-center text-red-500 dark:text-red-400">
+        <i className="fas fa-exclamation-triangle text-4xl mb-3"></i>
+        <p className="text-lg font-medium">Erro ao carregar o gráfico</p>
+        <p className="text-sm mt-1 text-center px-4">{error}</p>
       </div>
     );
   }

@@ -43,10 +43,19 @@ export class HttpClient {
         const status = error.response.status;
         const message = (error.response.data as any)?.message || 'Erro inesperado';
 
-        if (status === 401 || status === 403) {
+        const url = error.config?.url || '';
+        const isAuthRoute = url.includes('/auth/');
+
+        // 401 = sessão inválida/expirada → desloga (exceto nas rotas de auth, onde
+        // 401 significa "credenciais inválidas" e deve chegar ao catch do form).
+        // 403 = sem permissão → NÃO desloga, apenas propaga o erro.
+        if (status === 401 && !isAuthRoute) {
+          const hadToken = !!localStorage.getItem('token');
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
-          window.location.href = '/signin';
+          if (hadToken && !window.location.pathname.startsWith('/signin')) {
+            window.location.href = '/signin';
+          }
         }
 
         if (status === 429) {

@@ -18,9 +18,11 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
       icon: string;
     }>
   >([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadCategoryData = async () => {
+      setError(null);
       try {
         const transactions = await getAllFinances({
           startDate: dateRange.startDate,
@@ -64,8 +66,12 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
           .slice(0, 8); // Limitar às 8 principais categorias
 
         setCategoryData(dataArray);
-      } catch (error) {
-        console.error('Erro ao carregar dados de categoria:', error);
+      } catch (err) {
+        console.error('Erro ao carregar dados de categoria:', err);
+        setError(
+          err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.',
+        );
+        setCategoryData([]);
       }
     };
 
@@ -176,6 +182,16 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Carregando categorias...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-80 flex flex-col items-center justify-center text-red-500 dark:text-red-400">
+        <i className="fas fa-exclamation-triangle text-4xl mb-3"></i>
+        <p className="text-lg font-medium">Erro ao carregar o gráfico</p>
+        <p className="text-sm mt-1 text-center px-4">{error}</p>
       </div>
     );
   }

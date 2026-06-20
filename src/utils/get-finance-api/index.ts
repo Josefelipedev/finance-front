@@ -4,7 +4,7 @@ interface GetFinanceApiProps {
 }
 
 export function getFinanceApi({ isSocket, imageUrl }: GetFinanceApiProps) {
-  let baseUrl = import.meta.env.VITE_BASE_URL_API || "http://localhost:5009";
+  const baseUrl = import.meta.env.VITE_BASE_URL_API || "http://localhost:5009";
 
   if (imageUrl) return baseUrl;
 
