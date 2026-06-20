@@ -55,14 +55,10 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
       const data = await getDashboardData(params);
       setDashboardData(data);
     } catch (err) {
+      // Não preenche com zeros: mantém null para o estado de erro aparecer
+      // (senão o usuário vê "R$ 0,00" quando a API está fora).
       console.error('Erro ao carregar dashboard:', err);
-      // Inicialize com dados vazios para evitar undefined
-      setDashboardData({
-        totalBalance: 0,
-        totalExpense: 0,
-        stats: { revenueLastWeek: 0, foodLastWeek: 0 },
-        transactions: [],
-      });
+      setDashboardData(null);
     }
   };
 
@@ -75,13 +71,9 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
       const data = await getFinanceSummary(params);
       setSummaryData(data);
     } catch (err) {
+      // Mantém null para o estado de erro aparecer em vez de mostrar zeros falsos.
       console.error('Erro ao carregar resumo:', err);
-      // Inicialize com dados vazios
-      setSummaryData({
-        totalGanhos: 0,
-        totalDespesas: 0,
-        saldo: 0,
-      });
+      setSummaryData(null);
     }
   };
 

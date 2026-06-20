@@ -46,13 +46,25 @@ interface CategoryData {
 const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }) => {
   const { getRecords, isLoading } = useFinance();
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
-      const records = await getRecords({
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-      });
+      setError(null);
+      let records;
+      try {
+        records = await getRecords({
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+        });
+      } catch (err) {
+        console.error('Erro ao carregar distribuição por categoria:', err);
+        setError(
+          err instanceof Error ? err.message : 'Não foi possível carregar os dados.',
+        );
+        setCategoryData([]);
+        return;
+      }
       //Agrupamento por categoria
       const categories = records.reduce((acc: any, record) => {
         // Determina o nome da categoria
@@ -163,6 +175,11 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
       {isLoading ? (
         <div className="h-64 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : error ? (
+        <div className="h-64 flex flex-col items-center justify-center text-red-500 dark:text-red-400">
+          <i className="fas fa-exclamation-triangle text-4xl mb-2"></i>
+          <p className="text-center px-4">{error}</p>
         </div>
       ) : categoryData.length > 0 ? (
         <div className="h-64">

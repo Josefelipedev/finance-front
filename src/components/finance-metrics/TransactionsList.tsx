@@ -11,7 +11,7 @@ interface TransactionsListProps {
 }
 
 const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
-  const { getAllFinances, deleteFinanceRecord, isLoading, records: data } = useFinance();
+  const { getAllFinances, deleteFinanceRecord, isLoading, error, records: data } = useFinance();
   const { user } = useAuth();
   const myUserId = user?.id;
 
@@ -19,11 +19,17 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
   const [deletingRecord, setDeletingRecord] = useState<FinanceRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
+  const loadTransactions = () => {
+    // O erro é capturado no estado `error` do hook; o catch evita unhandled rejection.
     getAllFinances({
       startDate: dateRange.startDate,
       endDate: dateRange.endDate,
-    });
+    }).catch(() => {});
+  };
+
+  useEffect(() => {
+    loadTransactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange]);
 
   const handleDeleteConfirm = async () => {
@@ -46,6 +52,28 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
         <p className="mt-2 text-gray-600 dark:text-gray-400">Carregando transações...</p>
+      </div>
+    );
+  }
+
+  if (error && (!data || data.length === 0)) {
+    return (
+      <div className="text-center py-8">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+          <i className="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-2xl"></i>
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+          Erro ao carregar transações
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          {error.message || 'Não foi possível carregar as transações.'}
+        </p>
+        <button
+          onClick={loadTransactions}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Tentar novamente
+        </button>
       </div>
     );
   }

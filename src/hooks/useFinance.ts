@@ -196,15 +196,14 @@ export const useFinance = () => {
     setError(null);
     return withLoading(async () => {
       try {
-        const deleted = await api.delete<boolean>(`/finance/${id}`);
-        if (deleted !== false) {
-          setRecords((prev) => prev.filter((record) => record.id !== id));
-          if (dashboardData) {
-            setDashboardData({
-              ...dashboardData,
-              transactions: dashboardData.transactions.filter((tx) => tx.id !== id.toString()),
-            });
-          }
+        // A API lança erro em caso de falha (cai no catch); se resolveu, removeu.
+        await api.delete(`/finance/${id}`);
+        setRecords((prev) => prev.filter((record) => record.id !== id));
+        if (dashboardData) {
+          setDashboardData({
+            ...dashboardData,
+            transactions: dashboardData.transactions.filter((tx) => tx.id !== id.toString()),
+          });
         }
       } catch (err) {
         setError(err as Error);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useFinanceCategory, FinanceCategory } from '../../../hooks/useFinanceCategory';
 import CategoryForm from './CategoryForm.tsx';
 import CategoryList from './CategoryList.tsx';
@@ -23,6 +24,7 @@ const CategoryManager: React.FC = () => {
       await loadCategories();
     } catch (error) {
       console.error('Erro ao alternar status:', error);
+      toast.error('Não foi possível alterar o status da categoria.');
     }
   };
 
@@ -40,8 +42,10 @@ const CategoryManager: React.FC = () => {
       try {
         await deleteCategory(id);
         await loadCategories();
+        toast.success('Categoria excluída com sucesso!');
       } catch (error) {
         console.error('Erro ao excluir categoria:', error);
+        toast.error('Não foi possível excluir a categoria.');
       }
     }
   };
