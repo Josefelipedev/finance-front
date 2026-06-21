@@ -257,6 +257,205 @@ function MealCard({ label, meal, emoji }: { label: string; meal: MealDetail; emo
 
 // ── Schedule Config ───────────────────────────────────────────────────────────
 
+// ── Dietary Profile ───────────────────────────────────────────────────────────
+
+interface ProfileData {
+  height: number | null;
+  weight: number | null;
+  activityLevel: string | null;
+  dietaryPreferences: string[];
+}
+
+const ACTIVITY_OPTIONS = [
+  { value: 'sedentary', label: 'Sedentário (pouco ou nenhum exercício)' },
+  { value: 'light', label: 'Levemente ativo (1-3x/semana)' },
+  { value: 'moderate', label: 'Moderadamente ativo (3-5x/semana)' },
+  { value: 'active', label: 'Ativo (6-7x/semana)' },
+  { value: 'very_active', label: 'Muito ativo (atleta / trabalho físico)' },
+];
+
+const DIET_SUGGESTIONS = [
+  'Vegetariano',
+  'Vegano',
+  'Sem lactose',
+  'Sem glúten',
+  'Low carb',
+  'Rico em proteína',
+  'Sem frutos do mar',
+  'Diabético',
+];
+
+function ProfilePanel({
+  initial,
+  onSave,
+  saving,
+}: {
+  initial: ProfileData | null;
+  onSave: (data: ProfileData) => void;
+  saving: boolean;
+}) {
+  const [height, setHeight] = useState('');
+  const [weight, setWeight] = useState('');
+  const [activityLevel, setActivityLevel] = useState('moderate');
+  const [prefs, setPrefs] = useState<string[]>([]);
+  const [prefInput, setPrefInput] = useState('');
+
+  useEffect(() => {
+    setHeight(initial?.height != null ? String(initial.height) : '');
+    setWeight(initial?.weight != null ? String(initial.weight) : '');
+    setActivityLevel(initial?.activityLevel ?? 'moderate');
+    setPrefs(initial?.dietaryPreferences ?? []);
+  }, [initial]);
+
+  const addPref = (p: string) => {
+    const t = p.trim();
+    if (t && !prefs.some((x) => x.toLowerCase() === t.toLowerCase())) {
+      setPrefs([...prefs, t]);
+    }
+    setPrefInput('');
+  };
+  const removePref = (p: string) => setPrefs(prefs.filter((x) => x !== p));
+
+  const bmi =
+    height && weight
+      ? (parseFloat(weight) / Math.pow(parseFloat(height) / 100, 2)).toFixed(1)
+      : null;
+
+  const submit = () =>
+    onSave({
+      height: height ? parseFloat(height) : null,
+      weight: weight ? parseFloat(weight) : null,
+      activityLevel,
+      dietaryPreferences: prefs,
+    });
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
+        Perfil Dietético
+      </h3>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
+        A IA usa estes dados para ajustar calorias e restrições do seu cardápio. Tudo é opcional.
+      </p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Altura (cm)</label>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+            placeholder="175"
+            className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Peso (kg)</label>
+          <input
+            type="number"
+            inputMode="decimal"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            placeholder="70"
+            className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">IMC</label>
+          <div className="text-sm rounded-md border border-transparent px-3 py-2 text-gray-600 dark:text-gray-300">
+            {bmi ?? '—'}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-1 mb-5">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nível de atividade</label>
+        <select
+          value={activityLevel}
+          onChange={(e) => setActivityLevel(e.target.value)}
+          className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          {ACTIVITY_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex flex-col gap-2 mb-6">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Preferências e restrições alimentares
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {prefs.map((p) => (
+            <span
+              key={p}
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+            >
+              {p}
+              <button
+                type="button"
+                onClick={() => removePref(p)}
+                className="hover:text-blue-900 dark:hover:text-blue-100"
+                aria-label={`Remover ${p}`}
+              >
+                ✕
+              </button>
+            </span>
+          ))}
+          {prefs.length === 0 && (
+            <span className="text-xs text-gray-400">Nenhuma preferência adicionada.</span>
+          )}
+        </div>
+        <div className="flex gap-2 mt-1">
+          <input
+            type="text"
+            value={prefInput}
+            onChange={(e) => setPrefInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addPref(prefInput);
+              }
+            }}
+            placeholder="Adicionar (ex.: sem amendoim) e Enter"
+            className="flex-1 text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="button"
+            onClick={() => addPref(prefInput)}
+            className="px-3 py-2 text-sm rounded-md border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+          >
+            Adicionar
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-1.5 mt-1">
+          {DIET_SUGGESTIONS.filter(
+            (s) => !prefs.some((p) => p.toLowerCase() === s.toLowerCase()),
+          ).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => addPref(s)}
+              className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition"
+            >
+              + {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={submit}
+        disabled={saving}
+        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
+      >
+        {saving ? 'Salvando...' : 'Salvar Perfil'}
+      </button>
+    </div>
+  );
+}
+
 function ScheduleConfig({
   schedule,
   onChange,
@@ -546,7 +745,7 @@ function ShoppingListView({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-type Tab = 'schedule' | 'plan' | 'shopping' | 'history';
+type Tab = 'schedule' | 'plan' | 'shopping' | 'history' | 'profile';
 
 export default function MealPlannerPage() {
   const [activeTab, setActiveTab] = useState<Tab>('plan');
@@ -562,6 +761,9 @@ export default function MealPlannerPage() {
   const [generating, setGenerating] = useState(false);
   const [notifying, setNotifying] = useState(false);
   const [budget, setBudget] = useState('');
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
@@ -592,6 +794,31 @@ export default function MealPlannerPage() {
       setPlan(null);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadProfile() {
+    setLoadingProfile(true);
+    try {
+      const data = await api.get<ProfileData>('/meal-planner/profile');
+      setProfile(data);
+    } catch {
+      flash('error', 'Erro ao carregar o perfil dietético.');
+    } finally {
+      setLoadingProfile(false);
+    }
+  }
+
+  async function saveProfile(data: ProfileData) {
+    setSavingProfile(true);
+    try {
+      const updated = await api.patch<ProfileData>('/meal-planner/profile', data);
+      setProfile(updated);
+      flash('success', 'Perfil salvo! O próximo planejamento vai considerá-lo.');
+    } catch {
+      flash('error', 'Erro ao salvar o perfil.');
+    } finally {
+      setSavingProfile(false);
     }
   }
 
@@ -700,6 +927,7 @@ export default function MealPlannerPage() {
     { key: 'plan', label: 'Cardápio', emoji: '🍽️' },
     { key: 'shopping', label: 'Compras', emoji: '🛒' },
     { key: 'schedule', label: 'Agenda', emoji: '📅' },
+    { key: 'profile', label: 'Perfil', emoji: '👤' },
     { key: 'history', label: 'Histórico', emoji: '📋' },
   ];
 
@@ -754,7 +982,11 @@ export default function MealPlannerPage() {
         {tabs.map((t) => (
           <button
             key={t.key}
-            onClick={() => { setActiveTab(t.key); if (t.key === 'history') loadHistory(); }}
+            onClick={() => {
+              setActiveTab(t.key);
+              if (t.key === 'history') loadHistory();
+              if (t.key === 'profile' && profile === null) loadProfile();
+            }}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition ${
               activeTab === t.key
                 ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
@@ -769,6 +1001,14 @@ export default function MealPlannerPage() {
       {/* Content */}
       {activeTab === 'schedule' && (
         <ScheduleConfig schedule={schedule} onChange={setSchedule} onSave={saveSchedule} saving={saving} />
+      )}
+
+      {activeTab === 'profile' && (
+        loadingProfile && profile === null ? (
+          <div className="flex items-center justify-center py-20 text-gray-400">Carregando perfil...</div>
+        ) : (
+          <ProfilePanel initial={profile} onSave={saveProfile} saving={savingProfile} />
+        )
       )}
 
       {activeTab === 'plan' && (
