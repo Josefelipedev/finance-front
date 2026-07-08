@@ -113,9 +113,9 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
   // Cores para o gráfico - usa as cores das categorias ou padrão
   const getChartColors = () => {
     if (categoryData.length > 0 && categoryData.some((item) => item.color)) {
-      return categoryData.map((item) => item.color || '#3B82F6');
+      return categoryData.map((item) => item.color || '#A3E635');
     }
-    return ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+    return ['#A3E635', '#4ADE80', '#38BDF8', '#FBBF24', '#F87171', '#A78BFA'];
   };
 
   const options: ApexOptions = {

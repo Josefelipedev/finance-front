@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap")
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Space+Grotesk:wght@300..700&display=swap")
 layer(base);
 
 @import "tailwindcss";
@@ -8,7 +8,8 @@ layer(base);
 
 @theme {
   --font-*: initial;
-  --font-outfit: Outfit, sans-serif;
+  --font-outfit: "Inter", sans-serif;
+  --font-display: "Space Grotesk", "Inter", sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -42,18 +43,45 @@ layer(base);
   --color-white: #ffffff;
   --color-black: #101828;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  /* Acento primário — lima (fintech dark premium) */
+  --color-brand-25: #fdfff0;
+  --color-brand-50: #f9fee7;
+  --color-brand-100: #f0fcc8;
+  --color-brand-200: #e2f99a;
+  --color-brand-300: #cdf461;
+  --color-brand-400: #a3e635;
+  --color-brand-500: #65a30d;
+  --color-brand-600: #4d7c0f;
+  --color-brand-700: #3f6212;
+  --color-brand-800: #365314;
+  --color-brand-900: #2a410f;
+  --color-brand-950: #1a2e05;
+
+  /* Remap: componentes de domínio usam sky-* como acento — vira verde */
+  --color-sky-50: #f0fdf4;
+  --color-sky-100: #dcfce7;
+  --color-sky-200: #bbf7d0;
+  --color-sky-300: #86efac;
+  --color-sky-400: #4ade80;
+  --color-sky-500: #16a34a;
+  --color-sky-600: #15803d;
+  --color-sky-700: #166534;
+  --color-sky-800: #14532d;
+  --color-sky-900: #103e23;
+  --color-sky-950: #052e16;
+
+  /* Remap: slate-* é a escala de superfícies do domínio — vira grafite profundo */
+  --color-slate-50: #f6f7f9;
+  --color-slate-100: #edeff3;
+  --color-slate-200: #dfe3ea;
+  --color-slate-300: #c8d0dc;
+  --color-slate-400: #8b95a7;
+  --color-slate-500: #626d80;
+  --color-slate-600: #414b5e;
+  --color-slate-700: #232b3a;
+  --color-slate-800: #141926;
+  --color-slate-900: #0b0e14;
+  --color-slate-950: #06080d;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -69,18 +97,18 @@ layer(base);
   --color-blue-light-950: #062c41;
 
   --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f2f4f7;
-  --color-gray-200: #e4e7ec;
-  --color-gray-300: #d0d5dd;
+  --color-gray-50: #f7f8fa;
+  --color-gray-100: #f0f2f5;
+  --color-gray-200: #e2e6ec;
+  --color-gray-300: #cdd3dd;
   --color-gray-400: #98a2b3;
   --color-gray-500: #667085;
   --color-gray-600: #475467;
   --color-gray-700: #344054;
-  --color-gray-800: #1d2939;
-  --color-gray-900: #101828;
-  --color-gray-950: #0c111d;
-  --color-gray-dark: #1a2231;
+  --color-gray-800: #1c2433;
+  --color-gray-900: #10151f;
+  --color-gray-950: #0a0d13;
+  --color-gray-dark: #141a28;
 
   --color-orange-25: #fffaf5;
   --color-orange-50: #fff6ed;
@@ -148,7 +176,8 @@ layer(base);
   --shadow-theme-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08),
     0px 8px 8px -4px rgba(16, 24, 40, 0.03);
   --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(132, 204, 22, 0.15);
+  --shadow-glow: 0 0 32px 0 rgba(163, 230, 53, 0.12);
   --shadow-slider-navigation: 0px 1px 2px 0px rgba(16, 24, 40, 0.1),
     0px 1px 3px 0px rgba(16, 24, 40, 0.1);
   --shadow-tooltip: 0px 4px 6px -2px rgba(16, 24, 40, 0.05),
@@ -187,7 +216,7 @@ layer(base);
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal font-outfit z-1 bg-gray-50 text-gray-800 dark:bg-gray-950 dark:text-gray-200;
   }
 }
 
@@ -525,13 +554,13 @@ span.flatpickr-weekday,
 .flatpickr-day.selected.nextMonthDay,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
-  background: #465fff;
-  @apply !border-brand-500 !bg-brand-500 hover:!border-brand-500 hover:!bg-brand-500;
+  background: #65a30d;
+  @apply !border-brand-600 !bg-brand-600 hover:!border-brand-600 hover:!bg-brand-600;
 }
 .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
-  box-shadow: -10px 0 0 #465fff;
+  box-shadow: -10px 0 0 #65a30d;
 }
 
 .flatpickr-months .flatpickr-prev-month svg,
@@ -809,13 +838,13 @@ span.flatpickr-weekday,
 
 /* Para modo dark */
 .dark .scrollbar-custom {
-  scrollbar-color: #475569 transparent;
+  scrollbar-color: #2a3345 transparent;
 }
 
 .dark .scrollbar-custom::-webkit-scrollbar-thumb {
-  background-color: #475569;
+  background-color: #2a3345;
 }
 
 .dark .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background-color: #64748b;
+  background-color: #3a465e;
 }
