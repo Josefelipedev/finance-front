@@ -28,6 +28,7 @@ const ReportPage = lazy(() => import('./pages/app/ReportPage'));
 const NotificationsPage = lazy(() => import('./pages/app/NotificationsPage'));
 const CalendarPage = lazy(() => import('./pages/app/CalendarPage'));
 const SearchPage = lazy(() => import('./pages/app/SearchPage'));
+const CouplePage = lazy(() => import('./pages/app/CouplePage'));
 const MealPlannerPage = lazy(() => import('./pages/MealPlanner/MealPlannerPage'));
 const UserProfiles = lazy(() => import('./pages/UserProfiles'));
 
@@ -62,6 +63,7 @@ export default function App() {
               <Route path="/notificacoes" element={<NotificationsPage />} />
               <Route path="/calendario" element={<CalendarPage />} />
               <Route path="/buscar" element={<SearchPage />} />
+              <Route path="/casal" element={<CouplePage />} />
               <Route path="/meal-planner" element={<MealPlannerPage />} />
               <Route path="/profile" element={<UserProfiles />} />
             </Route>
