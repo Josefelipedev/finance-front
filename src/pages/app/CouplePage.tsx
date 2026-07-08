@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import { useCoupleInvites } from '../../hooks/useCoupleInvites';
 import { FinanceSummary, useFinance } from '../../hooks/useFinance';
 import { currencyOption, formatMoney } from '../../utils/currency';
 
@@ -73,7 +74,9 @@ function initials(name?: string | null) {
 }
 
 export default function CouplePage() {
-  const { profile, getProfile, associateAsCouple, dissociateCouple, isLoading } = useUserProfile();
+  const { profile, getProfile, dissociateCouple, isLoading } = useUserProfile();
+  const { invites, loadInvites, createInvite, acceptInvite, rejectInvite, cancelInvite } =
+    useCoupleInvites();
   const { getFinanceSummary } = useFinance();
 
   const [spousePhone, setSpousePhone] = useState('');
@@ -86,7 +89,11 @@ export default function CouplePage() {
 
   useEffect(() => {
     getProfile().catch(() => {});
-  }, [getProfile]);
+    loadInvites().catch(() => {});
+  }, [getProfile, loadInvites]);
+
+  const receivedInvite = invites.received[0];
+  const sentInvite = invites.sent[0];
 
   const loadSummary = useCallback(async () => {
     const now = new Date();
@@ -122,13 +129,44 @@ export default function CouplePage() {
     }
     setIsSubmitting(true);
     try {
-      const message = await associateAsCouple(phone);
-      toast.success(typeof message === 'string' ? message : 'Casal vinculado com sucesso!');
+      const result = await createInvite(phone);
+      toast.success(result?.message || 'Convite enviado!');
       setSpousePhone('');
+      await loadInvites();
     } catch (err) {
-      toast.error((err as Error).message || 'Não foi possível vincular o casal.');
+      toast.error((err as Error).message || 'Não foi possível enviar o convite.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleAccept = async (id: number) => {
+    try {
+      const message = await acceptInvite(id);
+      toast.success(typeof message === 'string' ? message : 'Convite aceito!');
+      await Promise.all([getProfile(), loadInvites()]);
+    } catch (err) {
+      toast.error((err as Error).message || 'Não foi possível aceitar o convite.');
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    try {
+      await rejectInvite(id);
+      toast.success('Convite recusado.');
+      await loadInvites();
+    } catch (err) {
+      toast.error((err as Error).message || 'Não foi possível recusar o convite.');
+    }
+  };
+
+  const handleCancel = async (id: number) => {
+    try {
+      await cancelInvite(id);
+      toast.success('Convite cancelado.');
+      await loadInvites();
+    } catch (err) {
+      toast.error((err as Error).message || 'Não foi possível cancelar o convite.');
     }
   };
 
@@ -309,6 +347,70 @@ export default function CouplePage() {
             </div>
           </Surface>
         </>
+      ) : receivedInvite ? (
+        /* Convite recebido — pede consentimento */
+        <Surface className="p-6 sm:p-8">
+          <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-400 font-display text-lg font-bold text-gray-950 shadow-glow">
+                {initials(receivedInvite.inviter.displayName || receivedInvite.inviter.name)}
+              </span>
+              <div>
+                <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">
+                  {receivedInvite.inviter.name} te convidou para compartilhar as finanças
+                </h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  Ao aceitar, transações, orçamento, metas, listas e despensa passam a ser dos
+                  dois. Convite válido até{' '}
+                  {new Date(receivedInvite.expiresAt).toLocaleDateString('pt-BR')}.
+                </p>
+              </div>
+            </div>
+            <div className="flex w-full gap-2 sm:w-auto">
+              <button
+                onClick={() => handleAccept(receivedInvite.id)}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand-400 px-5 py-3 font-semibold text-gray-950 shadow-glow transition-colors hover:bg-brand-300 sm:flex-none"
+              >
+                <i className="fas fa-check"></i>
+                Aceitar
+              </button>
+              <button
+                onClick={() => handleReject(receivedInvite.id)}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 font-medium text-slate-600 transition-colors hover:bg-slate-50 sm:flex-none dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/5"
+              >
+                Recusar
+              </button>
+            </div>
+          </div>
+        </Surface>
+      ) : sentInvite ? (
+        /* Convite enviado — aguardando resposta */
+        <Surface className="p-6 sm:p-8">
+          <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl text-slate-500 dark:bg-white/5 dark:text-slate-400">
+                <i className="fas fa-hourglass-half"></i>
+              </span>
+              <div>
+                <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">
+                  Aguardando resposta de {sentInvite.invitee.name}
+                </h2>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                  O convite foi enviado{sentInvite.invitee.phone ? ` para ${sentInvite.invitee.phone}` : ''} e
+                  vale até {new Date(sentInvite.expiresAt).toLocaleDateString('pt-BR')}. Seu par
+                  aceita na tela Casal do app dele(a).
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => handleCancel(sentInvite.id)}
+              className="flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
+            >
+              <i className="fas fa-xmark"></i>
+              Cancelar convite
+            </button>
+          </div>
+        </Surface>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-5">
           {/* Hero + formulário */}
@@ -350,12 +452,12 @@ export default function CouplePage() {
                 {isSubmitting ? (
                   <>
                     <i className="fas fa-spinner fa-spin"></i>
-                    Vinculando...
+                    Enviando...
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-link"></i>
-                    Vincular casal
+                    <i className="fas fa-paper-plane"></i>
+                    Enviar convite
                   </>
                 )}
               </button>

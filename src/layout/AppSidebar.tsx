@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { useSidebar } from '../context/SidebarContext';
+import api from '../services/api';
 
 type NavItem = { name: string; path: string; icon: string };
 type NavSection = { label: string; items: NavItem[] };
@@ -41,6 +43,15 @@ const sections: NavSection[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered, toggleMobileSidebar } = useSidebar();
   const location = useLocation();
+  const [hasCoupleInvite, setHasCoupleInvite] = useState(false);
+
+  // Sinaliza convite de casal pendente com um ponto no item "Casal"
+  useEffect(() => {
+    api
+      .get<{ received: unknown[] }>('/contacts/couple/invites')
+      .then((data) => setHasCoupleInvite((data?.received?.length ?? 0) > 0))
+      .catch(() => {});
+  }, [location.pathname]);
 
   const showLabels = isExpanded || isHovered || isMobileOpen;
   const isActive = (path: string) => location.pathname === path;
@@ -103,6 +114,9 @@ const AppSidebar: React.FC = () => {
                         }`}
                       ></i>
                       {showLabels && <span>{item.name}</span>}
+                      {item.path === '/casal' && hasCoupleInvite && (
+                        <span className="ml-auto h-2 w-2 animate-pulse rounded-full bg-brand-400"></span>
+                      )}
                     </Link>
                   </li>
                 );
