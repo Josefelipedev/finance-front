@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { FinanceSummary, useFinance } from '../../hooks/useFinance';
+import { currencyOption, formatMoney } from '../../utils/currency';
 
 const sharedAreas = [
   {
@@ -69,10 +70,6 @@ function initials(name?: string | null) {
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase() ?? '')
     .join('');
-}
-
-function formatBRL(value: number) {
-  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 export default function CouplePage() {
@@ -209,29 +206,51 @@ export default function CouplePage() {
           {/* Resumo conjunto do mês */}
           {summary && (
             <div>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                Este mês, juntos
-              </h2>
+              <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  Este mês, juntos
+                </h2>
+                {summary.rateDate && (
+                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                    em {currencyOption(summary.displayCurrency).flag} {summary.displayCurrency} · câmbio BCE de{' '}
+                    {new Date(summary.rateDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <Surface className="p-5">
                   <p className="text-sm text-slate-500 dark:text-slate-400">Ganhos</p>
                   <p className="mt-1 font-display text-xl font-semibold tabular-nums text-green-600 dark:text-green-400">
-                    R$ {formatBRL(summary.totalGanhos)}
+                    {formatMoney(summary.totalGanhos, summary.displayCurrency)}
                   </p>
                 </Surface>
                 <Surface className="p-5">
                   <p className="text-sm text-slate-500 dark:text-slate-400">Despesas</p>
                   <p className="mt-1 font-display text-xl font-semibold tabular-nums text-red-600 dark:text-red-400">
-                    R$ {formatBRL(summary.totalDespesas)}
+                    {formatMoney(summary.totalDespesas, summary.displayCurrency)}
                   </p>
                 </Surface>
                 <Surface className="p-5">
                   <p className="text-sm text-slate-500 dark:text-slate-400">Saldo</p>
                   <p className="mt-1 font-display text-xl font-semibold tabular-nums text-slate-900 dark:text-white">
-                    R$ {formatBRL(summary.saldo)}
+                    {formatMoney(summary.saldo, summary.displayCurrency)}
                   </p>
                 </Surface>
               </div>
+              {(summary.byCurrency?.length ?? 0) > 1 && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {summary.byCurrency!.map((c) => (
+                    <span
+                      key={c.currency}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium tabular-nums text-slate-600 dark:border-white/[0.08] dark:text-slate-300"
+                    >
+                      <span>{currencyOption(c.currency).flag} {c.currency}</span>
+                      <span className="text-green-600 dark:text-green-400">+{formatMoney(c.ganhos, c.currency)}</span>
+                      <span className="text-red-600 dark:text-red-400">−{formatMoney(c.despesas, c.currency)}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

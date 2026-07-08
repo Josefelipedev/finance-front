@@ -16,6 +16,7 @@ export interface UserProfile {
   isChatBot?: boolean;
   isGroup?: boolean;
   isMarried?: boolean;
+  currency?: string;
   spouseId?: number;
   spouse?: { id: number; name: string; phone?: string } | null;
   createdAt?: string;
@@ -29,6 +30,7 @@ export interface UpdateUserProfileDto {
   phone?: string;
   displayName?: string;
   whatsapp?: string;
+  currency?: string;
 }
 
 // ===================== HOOK =====================

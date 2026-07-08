@@ -5,6 +5,7 @@ import { useFinance, FinanceRecord } from '../../hooks/useFinance.ts';
 import { Modal } from '../ui/modal';
 import AddFinanceModal from './AddFinanceModal';
 import { useAuth } from '../../context/AuthContext.tsx';
+import { formatMoney } from '../../utils/currency';
 
 interface TransactionsListProps {
   dateRange: { startDate: string; endDate: string };
@@ -178,10 +179,7 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                     }
                   >
                     {transaction.type === 'income' ? '+' : '-'}
-                    {transaction.amount.toLocaleString('pt-BR', {
-                      style: 'currency',
-                      currency: 'BRL',
-                    })}
+                    {formatMoney(transaction.amount, transaction.currency)}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -233,10 +231,7 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                 Tem certeza que deseja excluir a transação{' '}
                 <strong>"{deletingRecord.description || 'sem descrição'}"</strong> de{' '}
                 <strong>
-                  {deletingRecord.amount.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  })}
+                  {formatMoney(deletingRecord.amount, deletingRecord.currency)}
                 </strong>
                 ? Esta ação não pode ser desfeita.
               </p>

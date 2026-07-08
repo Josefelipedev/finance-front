@@ -24,13 +24,14 @@ export default function TransactionsPage() {
         return;
       }
 
-      const header = ['Data', 'Descrição', 'Tipo', 'Categoria', 'Valor (R$)'].join(';');
+      const header = ['Data', 'Descrição', 'Tipo', 'Categoria', 'Moeda', 'Valor'].join(';');
       const rows = records.map((t) =>
         [
           new Date(t.referenceDate || t.createdAt).toLocaleDateString('pt-BR'),
           `"${(t.description || '').replace(/"/g, '""')}"`,
           t.type === 'income' ? 'Receita' : 'Despesa',
           `"${(t.category?.name || 'Sem categoria').replace(/"/g, '""')}"`,
+          t.currency || 'BRL',
           t.amount.toFixed(2).replace('.', ','),
         ].join(';')
       );

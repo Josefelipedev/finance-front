@@ -1,6 +1,8 @@
 // src/components/finance-metrics/FinanceMetrics.tsx
 import React from 'react';
 import Badge, { BadgeColor } from '../ui/badge/Badge';
+import { CurrencyBreakdown } from '../../hooks/useFinance';
+import { currencyOption, formatMoney } from '../../utils/currency';
 interface MetricItem {
   id: number;
   title: string;
@@ -20,6 +22,9 @@ interface FinanceMetricsProps {
   totalIncome: number;
   totalExpense: number;
   netBalance: number;
+  displayCurrency?: string;
+  rateDate?: string | null;
+  byCurrency?: CurrencyBreakdown[];
   dateRange?: {
     startDate: string;
     endDate: string;
@@ -31,6 +36,9 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
   totalIncome,
   totalExpense,
   netBalance,
+  displayCurrency = 'BRL',
+  rateDate,
+  byCurrency = [],
   dateRange,
 }) => {
   // Garantir que os valores não sejam undefined
@@ -60,7 +68,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
     {
       id: 1,
       title: 'Saldo Total',
-      value: `R$ ${formatCurrency(safeTotalBalance)}`,
+      value: formatMoney(safeTotalBalance, displayCurrency),
       change: safeTotalBalance >= 0 ? '+' : '-',
       variation: safeTotalBalance >= 0 ? balanceVariation : -balanceVariation,
       direction: safeTotalBalance >= 0 ? 'up' : 'down',
@@ -77,7 +85,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
     {
       id: 2,
       title: 'Total de Ganhos',
-      value: `R$ ${formatCurrency(safeTotalIncome)}`,
+      value: formatMoney(safeTotalIncome, displayCurrency),
       change: incomeVariation >= 0 ? '+' : '-',
       variation: Math.abs(incomeVariation),
       direction: incomeVariation >= 0 ? 'up' : 'down',
@@ -90,7 +98,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
     {
       id: 3,
       title: 'Total de Despesas',
-      value: `R$ ${formatCurrency(safeTotalExpense)}`,
+      value: formatMoney(safeTotalExpense, displayCurrency),
       change: expenseVariation <= 0 ? '+' : '-',
       variation: Math.abs(expenseVariation),
       direction: expenseVariation <= 0 ? 'up' : 'down',
@@ -103,7 +111,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
     {
       id: 4,
       title: 'Saldo Líquido',
-      value: `R$ ${formatCurrency(safeNetBalance)}`,
+      value: formatMoney(safeNetBalance, displayCurrency),
       change: safeNetBalance >= 0 ? '+' : '-',
       variation: Math.abs(balanceVariation),
       direction: safeNetBalance >= 0 ? 'up' : 'down',
@@ -181,6 +189,39 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
         ))}
       </div>
 
+      {/* Breakdown nativo por moeda (aparece quando o casal usa mais de uma) */}
+      {byCurrency.length > 1 && (
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/[0.06] dark:bg-slate-800 sm:mt-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              {byCurrency.map((c) => {
+                const opt = currencyOption(c.currency);
+                return (
+                  <span
+                    key={c.currency}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium tabular-nums text-slate-600 dark:border-white/[0.08] dark:text-slate-300"
+                  >
+                    <span>{opt.flag} {c.currency}</span>
+                    <span className="text-green-600 dark:text-green-400">
+                      +{formatMoney(c.ganhos, c.currency)}
+                    </span>
+                    <span className="text-red-600 dark:text-red-400">
+                      −{formatMoney(c.despesas, c.currency)}
+                    </span>
+                  </span>
+                );
+              })}
+            </div>
+            {rateDate && (
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                Totais convertidos p/ {currencyOption(displayCurrency).flag} {displayCurrency} · câmbio BCE de{' '}
+                {new Date(rateDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Barra de progresso do saldo */}
       <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/[0.06] dark:bg-slate-800 sm:mt-6">
         <div className="mb-3 flex items-center justify-between">
@@ -203,11 +244,11 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
         <div className="mt-3 flex justify-between text-xs text-slate-500 dark:text-slate-400">
           <span className="tabular-nums">
             <i className="fas fa-arrow-trend-up mr-1.5 text-green-500"></i>
-            Ganhos: R$ {formatCurrency(safeTotalIncome)}
+            Ganhos: {formatMoney(safeTotalIncome, displayCurrency)}
           </span>
           <span className="tabular-nums">
             <i className="fas fa-arrow-trend-down mr-1.5 text-red-500"></i>
-            Despesas: R$ {formatCurrency(safeTotalExpense)}
+            Despesas: {formatMoney(safeTotalExpense, displayCurrency)}
           </span>
         </div>
       </div>

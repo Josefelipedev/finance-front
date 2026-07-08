@@ -145,6 +145,9 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
           totalIncome={summaryData.totalGanhos}
           totalExpense={summaryData.totalDespesas}
           netBalance={summaryData.saldo}
+          displayCurrency={summaryData.displayCurrency}
+          rateDate={summaryData.rateDate}
+          byCurrency={summaryData.byCurrency}
           dateRange={dateRange}
         />
       )}

@@ -10,12 +10,14 @@ export interface CreateFinanceDto {
   categoryId?: number;
   iconName?: string;
   referenceDate?: string;
+  currency?: string;
 }
 
 export interface FinanceRecord {
   id: number;
   amount: number;
   type: 'income' | 'expense';
+  currency?: string;
   description: string | null;
   iconName: string;
   createdAt: string;
@@ -31,15 +33,31 @@ export interface FinanceRecord {
   };
 }
 
+export interface CurrencyBreakdown {
+  currency: string;
+  ganhos: number;
+  despesas: number;
+}
+
 export interface FinanceSummary {
   totalGanhos: number;
   totalDespesas: number;
   saldo: number;
+  /** Moeda de exibição do usuário — os totais acima já vêm convertidos para ela */
+  displayCurrency?: string;
+  /** Data da taxa de câmbio usada na conversão (null = sem conversão necessária) */
+  rateDate?: string | null;
+  /** Somas nativas por moeda, sem conversão */
+  byCurrency?: CurrencyBreakdown[];
+  unconvertedCurrencies?: string[];
 }
 
 export interface DashboardData {
   totalBalance: number;
   totalExpense: number;
+  displayCurrency?: string;
+  rateDate?: string | null;
+  byCurrency?: CurrencyBreakdown[];
   stats: {
     revenueLastWeek: number;
     foodLastWeek: number;
@@ -51,6 +69,7 @@ export interface DashboardData {
     time: string;
     tag: string;
     amount: number;
+    currency?: string;
   }>;
 }
 

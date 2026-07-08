@@ -12,6 +12,8 @@ export interface User {
     createdAt?: Date;
     updatedAt?: Date;
     hasPassword?: boolean;
+    /** Moeda de exibição preferida (BRL, EUR, ...) */
+    currency?: string;
 }
 
 export interface UserResponse {

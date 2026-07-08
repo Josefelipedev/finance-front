@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatMoney } from '../../../utils/currency';
 
 interface Transaction {
   id: string;
@@ -6,6 +7,7 @@ interface Transaction {
   date: string;
   time: string;
   tag: string;
+  currency?: string;
   amount: number;
 }
 
@@ -88,8 +90,8 @@ const FinanceTable: React.FC<FinanceTableProps> = ({ transactions }) => {
                       transaction.tag === 'income' ? 'text-green-600' : 'text-red-600'
                     }`}
                   >
-                    {transaction.tag === 'income' ? '+' : '-'} R${' '}
-                    {Math.abs(transaction.amount).toFixed(2)}
+                    {transaction.tag === 'income' ? '+' : '-'}{' '}
+                    {formatMoney(Math.abs(transaction.amount), transaction.currency)}
                   </div>
                 </td>
               </tr>

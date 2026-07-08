@@ -5,6 +5,8 @@ import { CreateFinanceDto, FinanceRecord, useFinance } from '../../hooks/useFina
 import { useFinanceCategory } from '../../hooks/useFinanceCategory.ts';
 import { Controller, useForm } from 'react-hook-form';
 import IconPicker from './ui/icon-picker/icon-picker.tsx';
+import { CURRENCY_OPTIONS } from '../../utils/currency';
+import { useAuth } from '../../context/AuthContext.tsx';
 
 export interface FinancePrefill {
   amount?: number;
@@ -40,6 +42,7 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
 }) => {
   const { addFinanceRecord, updateFinanceRecord, isLoading, error } = useFinance();
   const { categories, getAllCategories } = useFinanceCategory();
+  const { user } = useAuth();
 
   const [amountDisplay, setAmountDisplay] = useState('');
   const [amountFocused, setAmountFocused] = useState(false);
@@ -64,10 +67,13 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
     if (isOpen) {
       getAllCategories({ isActive: true });
 
+      const userCurrency = user?.currency || 'BRL';
+
       if (editRecord) {
         const prefill: CreateFinanceDto = {
           amount: editRecord.amount,
           type: editRecord.type,
+          currency: editRecord.currency || userCurrency,
           description: editRecord.description || '',
           categoryId: editRecord.categoryId ?? undefined,
           iconName: editRecord.iconName || 'pricetag',
@@ -80,6 +86,7 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
       } else if (prefill) {
         const merged: CreateFinanceDto = {
           ...defaultValues,
+          currency: userCurrency,
           amount: prefill.amount ?? 0,
           description: prefill.description ?? '',
           type: prefill.type ?? 'expense',
@@ -87,7 +94,7 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
         reset(merged);
         setAmountDisplay(prefill.amount ? formatBRL(prefill.amount) : '');
       } else {
-        reset(defaultValues);
+        reset({ ...defaultValues, currency: userCurrency });
         setAmountDisplay('');
       }
     }
@@ -181,7 +188,29 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
 
             <div>
               <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                Valor (R$)
+                Moeda
+              </label>
+              <Controller
+                name="currency"
+                control={control}
+                render={({ field }) => (
+                  <select
+                    {...field}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {CURRENCY_OPTIONS.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.code} — {c.symbol}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                Valor
               </label>
               <Controller
                 name="amount"
