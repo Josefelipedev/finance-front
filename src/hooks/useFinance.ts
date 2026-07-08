@@ -11,6 +11,7 @@ export interface CreateFinanceDto {
   iconName?: string;
   referenceDate?: string;
   currency?: string;
+  accountId?: number;
 }
 
 export interface FinanceRecord {

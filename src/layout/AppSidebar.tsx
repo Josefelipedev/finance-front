@@ -30,6 +30,7 @@ const sections: NavSection[] = [
     label: 'Planejamento',
     items: [
       { name: 'Orçamento', path: '/orcamento', icon: 'wallet' },
+      { name: 'Contas', path: '/contas', icon: 'building-columns' },
       { name: 'Categorias', path: '/categorias', icon: 'tags' },
       { name: 'Casal', path: '/casal', icon: 'heart' },
     ],

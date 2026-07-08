@@ -7,6 +7,7 @@ import { Controller, useForm } from 'react-hook-form';
 import IconPicker from './ui/icon-picker/icon-picker.tsx';
 import { CURRENCY_OPTIONS } from '../../utils/currency';
 import { useAuth } from '../../context/AuthContext.tsx';
+import { useBankAccounts } from '../../hooks/useBankAccounts.ts';
 
 export interface FinancePrefill {
   amount?: number;
@@ -43,6 +44,7 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
   const { addFinanceRecord, updateFinanceRecord, isLoading, error } = useFinance();
   const { categories, getAllCategories } = useFinanceCategory();
   const { user } = useAuth();
+  const { accounts, loadAccounts } = useBankAccounts();
 
   const [amountDisplay, setAmountDisplay] = useState('');
   const [amountFocused, setAmountFocused] = useState(false);
@@ -66,6 +68,7 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       getAllCategories({ isActive: true });
+      loadAccounts().catch(() => {});
 
       const userCurrency = user?.currency || 'BRL';
 
@@ -181,6 +184,35 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
                   >
                     <option value="expense">Despesa</option>
                     <option value="income">Receita</option>
+                  </select>
+                )}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
+                Conta (opcional)
+              </label>
+              <Controller
+                name="accountId"
+                control={control}
+                render={({ field }) => (
+                  <select
+                    value={field.value ?? ''}
+                    onChange={(e) => {
+                      const id = e.target.value ? Number(e.target.value) : undefined;
+                      field.onChange(id);
+                      const account = accounts.find((a) => a.id === id);
+                      if (account) setValue('currency', account.currency);
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Sem conta</option>
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.bankName} ({a.currency})
+                      </option>
+                    ))}
                   </select>
                 )}
               />
