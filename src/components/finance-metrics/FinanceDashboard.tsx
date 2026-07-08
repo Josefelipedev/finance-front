@@ -81,7 +81,7 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-400 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-400">Carregando dados financeiros...</p>
         </div>
       </div>
@@ -105,7 +105,7 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
             loadDashboardData();
             loadSummaryData();
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-brand-400 text-gray-950 font-medium rounded-lg hover:bg-brand-300 transition-colors"
         >
           Tentar novamente
         </button>
@@ -115,42 +115,27 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
 
   return (
     <div className="space-y-6 ">
-      {/* Período de Filtro */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 items-center">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setPeriod('week')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                activePeriod === 'week'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-            >
-              Última Semana
-            </button>
-            <button
-              onClick={() => setPeriod('month')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                activePeriod === 'month'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-            >
-              Último Mês
-            </button>
-            <button
-              onClick={() => setPeriod('year')}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                activePeriod === 'year'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-              }`}
-            >
-              Último Ano
-            </button>
-          </div>
-        </div>
+      {/* Período de Filtro — controle segmentado */}
+      <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 dark:border-white/[0.06] dark:bg-slate-800">
+        {(
+          [
+            { id: 'week', label: 'Semana' },
+            { id: 'month', label: 'Mês' },
+            { id: 'year', label: 'Ano' },
+          ] as const
+        ).map((period) => (
+          <button
+            key={period.id}
+            onClick={() => setPeriod(period.id)}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+              activePeriod === period.id
+                ? 'bg-brand-400 text-gray-950 shadow-theme-xs'
+                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+            }`}
+          >
+            {period.label}
+          </button>
+        ))}
       </div>
 
       {/* Métricas */}

@@ -93,7 +93,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
         enabled: false,
       },
     },
-    colors: ['#3B82F6', '#EF4444', '#10B981'],
+    colors: ['#A3E635', '#F87171', '#4ADE80'],
     stroke: {
       curve: 'smooth',
       width: [3, 3, 4],

@@ -17,11 +17,11 @@ const FinanceTable: React.FC<FinanceTableProps> = ({ transactions }) => {
   const getTagColor = (tag: string) => {
     switch (tag) {
       case 'income':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400';
       case 'expense':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-400';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 dark:bg-white/10 dark:text-gray-300';
     }
   };
 

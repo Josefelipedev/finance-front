@@ -10,8 +10,9 @@ interface MetricItem {
   direction: string;
   comparisonText: string;
   icon: string;
-  color: string;
-  bgColor: string;
+  valueColor: string;
+  iconChip: string;
+  highlight?: boolean;
   badgeColor: BadgeColor;
 }
 interface FinanceMetricsProps {
@@ -65,12 +66,12 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       direction: safeTotalBalance >= 0 ? 'up' : 'down',
       comparisonText: 'Disponível',
       icon: 'wallet',
-      color:
+      valueColor:
         safeTotalBalance >= 0
-          ? 'text-green-600 dark:text-green-400'
+          ? 'text-brand-700 dark:text-brand-300'
           : 'text-red-600 dark:text-red-400',
-      bgColor:
-        safeTotalBalance >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20',
+      iconChip: 'bg-brand-100 text-brand-700 dark:bg-brand-400/15 dark:text-brand-300',
+      highlight: true,
       badgeColor: safeTotalBalance >= 0 ? 'success' : 'error',
     },
     {
@@ -81,9 +82,9 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       variation: Math.abs(incomeVariation),
       direction: incomeVariation >= 0 ? 'up' : 'down',
       comparisonText: 'vs período anterior',
-      icon: 'arrow-up',
-      color: 'text-green-600 dark:text-green-400',
-      bgColor: 'bg-green-50 dark:bg-green-900/20',
+      icon: 'arrow-trend-up',
+      valueColor: 'text-green-600 dark:text-green-400',
+      iconChip: 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400',
       badgeColor: incomeVariation >= 0 ? 'success' : 'error',
     },
     {
@@ -94,9 +95,9 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       variation: Math.abs(expenseVariation),
       direction: expenseVariation <= 0 ? 'up' : 'down',
       comparisonText: 'vs período anterior',
-      icon: 'arrow-down',
-      color: 'text-red-600 dark:text-red-400',
-      bgColor: 'bg-red-50 dark:bg-red-900/20',
+      icon: 'arrow-trend-down',
+      valueColor: 'text-red-600 dark:text-red-400',
+      iconChip: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400',
       badgeColor: expenseVariation <= 0 ? 'success' : 'error',
     },
     {
@@ -107,15 +108,12 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       variation: Math.abs(balanceVariation),
       direction: safeNetBalance >= 0 ? 'up' : 'down',
       comparisonText: 'Ganhos - Despesas',
-      icon: 'balance-scale',
-      color:
+      icon: 'scale-balanced',
+      valueColor:
         safeNetBalance >= 0
-          ? 'text-blue-600 dark:text-blue-400'
+          ? 'text-slate-900 dark:text-white'
           : 'text-yellow-600 dark:text-yellow-400',
-      bgColor:
-        safeNetBalance >= 0
-          ? 'bg-blue-50 dark:bg-blue-900/20'
-          : 'bg-yellow-50 dark:bg-yellow-900/20',
+      iconChip: 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300',
       badgeColor: safeNetBalance >= 0 ? 'success' : 'warning',
     },
   ];
@@ -129,26 +127,30 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
   const expenseRatio =
     safeTotalIncome > 0 ? Math.min(100, (safeTotalExpense / safeTotalIncome) * 100) : 0;
 
+  const ratioColor =
+    expenseRatio <= 30 ? 'bg-brand-400' : expenseRatio <= 70 ? 'bg-yellow-400' : 'bg-red-500';
+
   return (
     <div>
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Resumo Financeiro</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{periodText}</p>
-      </div>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {metrics.map((item) => (
           <div
             key={item.id}
-            className={`rounded-xl border p-5 transition-all duration-300 hover:shadow-lg ${item.bgColor} border-transparent`}
+            className={`rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-0.5 ${
+              item.highlight
+                ? 'border-brand-200 bg-brand-25 dark:border-brand-400/20 dark:bg-slate-800 dark:bg-gradient-to-br dark:from-brand-400/[0.14] dark:to-slate-800 dark:shadow-glow'
+                : 'border-slate-200 bg-white dark:border-white/[0.06] dark:bg-slate-800'
+            }`}
           >
-            <div className="flex items-center justify-between mb-3">
-              <div className={`p-2 rounded-lg ${item.bgColor.replace('/20', '/30')}`}>
-                <i className={`fas fa-${item.icon} ${item.color} text-lg`}></i>
+            <div className="mb-4 flex items-center justify-between">
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-xl ${item.iconChip}`}
+              >
+                <i className={`fas fa-${item.icon} text-base`}></i>
               </div>
               {(item.id === 2 || item.id === 3 || item.id === 4) && (
                 <Badge color={item.badgeColor || 'light'}>
-                  <span className="text-xs font-medium">
+                  <span className="text-xs font-medium tabular-nums">
                     {item.change}
                     {item.variation.toFixed(1)}%
                   </span>
@@ -161,17 +163,17 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
               )}
             </div>
 
-            <p className="text-gray-600 dark:text-gray-400 text-sm font-medium mb-1">
+            <p className="mb-1 text-sm font-medium text-slate-500 dark:text-slate-400">
               {item.title}
             </p>
-            <div className="flex items-end justify-between">
-              <div>
-                <h4 className={`text-2xl font-bold ${item.color}`}>{item.value}</h4>
-              </div>
-            </div>
+            <h4
+              className={`font-display text-2xl font-semibold tracking-tight tabular-nums ${item.valueColor}`}
+            >
+              {item.value}
+            </h4>
 
-            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-              <span className="text-gray-500 dark:text-gray-400 text-xs">
+            <div className="mt-3 border-t border-slate-100 pt-3 dark:border-white/[0.06]">
+              <span className="text-xs text-slate-400 dark:text-slate-500">
                 {item.comparisonText}
               </span>
             </div>
@@ -180,34 +182,33 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       </div>
 
       {/* Barra de progresso do saldo */}
-      <div className="mt-6 bg-white dark:bg-gray-800 rounded-xl shadow p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Proporção Ganhos/Despesas
-          </span>
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/[0.06] dark:bg-slate-800 sm:mt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Quanto das receitas já foi gasto
+            </span>
+            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{periodText}</p>
+          </div>
+          <span className="font-display text-lg font-semibold tabular-nums text-slate-900 dark:text-white">
             {Math.round(expenseRatio)}%
           </span>
         </div>
-        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.06]">
           <div
-            className="h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 transition-all duration-500"
+            className={`h-full rounded-full transition-all duration-500 ${ratioColor}`}
             style={{ width: `${expenseRatio}%` }}
           ></div>
         </div>
-        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
-          <span>Ganhos: R$ {formatCurrency(safeTotalIncome)}</span>
-          <span>Despesas: R$ {formatCurrency(safeTotalExpense)}</span>
-        </div>
-        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span>Baixo (0-30%)</span>
-            <div className="w-3 h-3 rounded-full bg-yellow-500 ml-4"></div>
-            <span>Moderado (30-70%)</span>
-            <div className="w-3 h-3 rounded-full bg-red-500 ml-4"></div>
-            <span>Alto (70-100%)</span>
-          </div>
+        <div className="mt-3 flex justify-between text-xs text-slate-500 dark:text-slate-400">
+          <span className="tabular-nums">
+            <i className="fas fa-arrow-trend-up mr-1.5 text-green-500"></i>
+            Ganhos: R$ {formatCurrency(safeTotalIncome)}
+          </span>
+          <span className="tabular-nums">
+            <i className="fas fa-arrow-trend-down mr-1.5 text-red-500"></i>
+            Despesas: R$ {formatCurrency(safeTotalExpense)}
+          </span>
         </div>
       </div>
     </div>

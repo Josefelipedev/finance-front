@@ -90,7 +90,7 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
         borderRadiusApplication: 'end',
       },
     },
-    colors: ['#10B981', '#EF4444'],
+    colors: ['#4ADE80', '#F87171'],
     dataLabels: {
       enabled: false,
     },
