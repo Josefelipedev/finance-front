@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useShopping, PriceHistory } from '../../../hooks/useShopping';
+import { Modal } from '../../ui/modal';
 
 interface PriceHistoryModalProps {
   itemId: number;
@@ -57,22 +58,15 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ itemId, onClose }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
-              Histórico de Preços
-            </h3>
-            <button
-              onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-            >
-              <i className="fas fa-times text-xl"></i>
-            </button>
-          </div>
+    <Modal isOpen={true} onClose={onClose} className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="p-6">
+        <div className="mb-6 pr-8">
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
+            Histórico de Preços
+          </h3>
+        </div>
 
-          {isLoading ? (
+        {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
             </div>
@@ -146,8 +140,7 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ itemId, onClose }
             </>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

@@ -5,6 +5,7 @@ import { useBudget, BudgetLimit } from '../../../hooks/useBudget';
 import { useFinance } from '../../../hooks/useFinance';
 import { useFinanceCategory, FinanceCategory } from '../../../hooks/useFinanceCategory';
 import { Modal } from '../../ui/modal';
+import CategorySelect from '../../form/CategorySelect';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { formatMoney, currencyOption } from '../../../utils/currency';
 
@@ -272,21 +273,13 @@ const BudgetManager: React.FC = () => {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               Categoria *
             </label>
-            <select
-              value={formCategoryId}
-              onChange={(e) =>
-                setFormCategoryId(e.target.value === '' ? '' : Number(e.target.value))
-              }
+            <CategorySelect
+              value={typeof formCategoryId === 'number' ? formCategoryId : undefined}
+              onChange={(id) => setFormCategoryId(id ?? '')}
+              excludeIds={editing ? undefined : limits.map((l) => l.categoryId)}
               disabled={Boolean(editing)}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-60"
-            >
-              <option value="">Selecione...</option>
-              {availableCategories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              placeholder="Selecione..."
+            />
             {!editing && availableCategories.length === 0 && (
               <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                 Todas as categorias já têm limite definido.

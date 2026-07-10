@@ -1,4 +1,6 @@
 import React from 'react';
+import { Modal } from '../../ui/modal';
+import Button from '../../ui/button/Button';
 
 interface StorePrice {
   supermarket: string;
@@ -25,28 +27,16 @@ const StorePricesModal: React.FC<StorePricesModalProps> = ({ itemName, prices, i
   const sorted = [...prices].sort((a, b) => a.price - b.price);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div
-        className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-base font-semibold text-slate-800 dark:text-white">
-                Comparar Preços
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{itemName}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"
-            >
-              <i className="fas fa-times text-lg" />
-            </button>
-          </div>
+    <Modal isOpen={true} onClose={onClose} className="max-w-md">
+      <div className="p-5">
+        <div className="mb-4 pr-8">
+          <h3 className="text-base font-semibold text-slate-800 dark:text-white">
+            Comparar Preços
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{itemName}</p>
+        </div>
 
-          {isLoading ? (
+        {isLoading ? (
             <div className="flex justify-center items-center py-10">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" />
             </div>
@@ -88,17 +78,13 @@ const StorePricesModal: React.FC<StorePricesModalProps> = ({ itemName, prices, i
                 </div>
               ))}
             </div>
-          )}
+        )}
 
-          <button
-            onClick={onClose}
-            className="mt-4 w-full py-2 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition"
-          >
-            Fechar
-          </button>
-        </div>
+        <Button variant="outline" onClick={onClose} className="mt-4 w-full">
+          Fechar
+        </Button>
       </div>
-    </div>
+    </Modal>
   );
 };
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { AiGenerateResult } from '../../../hooks/useShopping';
+import { Modal } from '../../ui/modal';
 
 interface AIResultModalProps {
   result: AiGenerateResult;
@@ -11,28 +12,22 @@ const AIResultModal: React.FC<AIResultModalProps> = ({ result, onClose }) => {
     new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(v);
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Modal isOpen={true} onClose={onClose} className="max-w-2xl max-h-[90vh] overflow-y-auto">
 
-        {/* Header */}
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-purple-500 to-sky-500 rounded-t-2xl">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                <i className="fas fa-robot text-white text-lg" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-white">Lista Gerada com Sucesso!</h3>
-                <p className="text-sm text-white/80">{result.list.name}</p>
-              </div>
-            </div>
-            <button onClick={onClose} className="text-white/70 hover:text-white p-1">
-              <i className="fas fa-times text-xl" />
-            </button>
+      {/* Header */}
+      <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-purple-500 to-sky-500 rounded-t-3xl">
+        <div className="flex items-center gap-3 pr-8">
+          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+            <i className="fas fa-robot text-white text-lg" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white">Lista Gerada com Sucesso!</h3>
+            <p className="text-sm text-white/80">{result.list.name}</p>
           </div>
         </div>
+      </div>
 
-        <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6">
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4">
@@ -115,8 +110,7 @@ const AIResultModal: React.FC<AIResultModalProps> = ({ result, onClose }) => {
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

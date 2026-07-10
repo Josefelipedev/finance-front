@@ -8,6 +8,7 @@ import ShoppingListCard from './ShoppingListCard.tsx';
 import AIShoppingModal from './AIShoppingModal';
 import AIResultModal from './AIResultModal';
 import StorePricesModal from './StorePricesModal';
+import { useConfirm } from '../../ui/confirm/useConfirm';
 
 const ShoppingManager: React.FC = () => {
   const {
@@ -21,6 +22,7 @@ const ShoppingManager: React.FC = () => {
     isLoading,
     error,
   } = useShopping();
+  const { confirm, dialog } = useConfirm();
 
   const [isListFormOpen, setIsListFormOpen] = useState(false);
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
@@ -135,7 +137,14 @@ const ShoppingManager: React.FC = () => {
     );
   }
   const handleDeleteList = async (listId: number) => {
-    if (window.confirm('Tem certeza que deseja excluir esta lista? Todos os itens serão removidos.')) {
+    if (
+      await confirm({
+        title: 'Excluir lista',
+        message: 'Tem certeza que deseja excluir esta lista? Todos os itens serão removidos.',
+        confirmText: 'Excluir',
+        danger: true,
+      })
+    ) {
       try {
         await deleteList(listId);
         toast.success('Lista excluída com sucesso');
@@ -147,7 +156,14 @@ const ShoppingManager: React.FC = () => {
   };
 
   const handleDeleteItem = async (itemId: number) => {
-    if (window.confirm('Tem certeza que deseja excluir este item?')) {
+    if (
+      await confirm({
+        title: 'Excluir item',
+        message: 'Tem certeza que deseja excluir este item?',
+        confirmText: 'Excluir',
+        danger: true,
+      })
+    ) {
       try {
         await deleteItem(itemId);
         toast.success('Item excluído com sucesso');
@@ -297,6 +313,7 @@ const ShoppingManager: React.FC = () => {
           onClose={() => { setStorePricesItem(null); setStorePrices([]); }}
         />
       )}
+      {dialog}
     </div>
   );
 };

@@ -3,10 +3,12 @@ import { toast } from 'sonner';
 import { useFinanceCategory, FinanceCategory } from '../../../hooks/useFinanceCategory';
 import CategoryForm from './CategoryForm.tsx';
 import CategoryList from './CategoryList.tsx';
+import { useConfirm } from '../../ui/confirm/useConfirm';
 
 const CategoryManager: React.FC = () => {
   const { categories, getAllCategories, deleteCategory, toggleCategoryStatus, isLoading, error } =
     useFinanceCategory();
+  const { confirm, dialog } = useConfirm();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<FinanceCategory | null>(null);
 
@@ -35,9 +37,12 @@ const CategoryManager: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     if (
-      window.confirm(
-        'Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.'
-      )
+      await confirm({
+        title: 'Excluir categoria',
+        message: 'Tem certeza que deseja excluir esta categoria? Esta ação não pode ser desfeita.',
+        confirmText: 'Excluir',
+        danger: true,
+      })
     ) {
       try {
         await deleteCategory(id);
@@ -123,6 +128,7 @@ const CategoryManager: React.FC = () => {
           }}
         />
       )}
+      {dialog}
     </div>
   );
 };

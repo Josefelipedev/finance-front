@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal } from '../ui/modal';
 import { CreateFinanceDto, FinanceRecord, useFinance } from '../../hooks/useFinance.ts';
 import { useFinanceCategory } from '../../hooks/useFinanceCategory.ts';
+import CategorySelect from '../form/CategorySelect';
 import { Controller, useForm } from 'react-hook-form';
 import IconPicker from './ui/icon-picker/icon-picker.tsx';
 import { CURRENCY_OPTIONS } from '../../utils/currency';
@@ -318,21 +319,10 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
                 name="categoryId"
                 control={control}
                 render={({ field }) => (
-                  <select
-                    {...field}
-                    value={field.value ?? ''}
-                    onChange={(e) =>
-                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Selecione uma categoria</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                  <CategorySelect
+                    value={field.value ?? undefined}
+                    onChange={(id) => field.onChange(id)}
+                  />
                 )}
               />
             </div>

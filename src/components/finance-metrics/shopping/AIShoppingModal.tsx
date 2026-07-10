@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useShopping, AiGenerateResult } from '../../../hooks/useShopping';
+import { Modal } from '../../ui/modal';
 
 interface AIShoppingModalProps {
   onSuccess: (result: AiGenerateResult) => void;
@@ -34,36 +35,27 @@ const AIShoppingModal: React.FC<AIShoppingModalProps> = ({ onSuccess, onCancel }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg">
+    <Modal isOpen={true} onClose={onCancel} className="max-w-lg">
 
-        {/* Header */}
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-sky-500 rounded-xl flex items-center justify-center">
-                <i className="fas fa-robot text-white text-lg" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-800 dark:text-white">
-                  Gerar Lista com IA
-                </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  A IA analisa seus gastos e monta a lista mais econômica para você
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onCancel}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1"
-            >
-              <i className="fas fa-times text-xl" />
-            </button>
+      {/* Header */}
+      <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-3 pr-8">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-sky-500 rounded-xl flex items-center justify-center">
+            <i className="fas fa-robot text-white text-lg" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+              Gerar Lista com IA
+            </h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              A IA analisa seus gastos e monta a lista mais econômica para você
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="p-6 space-y-5">
 
           {/* Orçamento */}
           <div>
@@ -169,9 +161,8 @@ const AIShoppingModal: React.FC<AIShoppingModalProps> = ({ onSuccess, onCancel }
               )}
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 };
 

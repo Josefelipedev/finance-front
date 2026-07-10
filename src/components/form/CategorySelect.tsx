@@ -6,6 +6,9 @@ interface CategorySelectProps {
   onChange: (categoryId: number | undefined) => void;
   /** Filtra por tipo da categoria (income/expense/both). Omitir = todas. */
   type?: 'income' | 'expense';
+  /** Esconde estas categorias (ex.: as que já têm orçamento). */
+  excludeIds?: number[];
+  disabled?: boolean;
   placeholder?: string;
   error?: string;
   className?: string;
@@ -21,6 +24,8 @@ export default function CategorySelect({
   value,
   onChange,
   type,
+  excludeIds,
+  disabled = false,
   placeholder = 'Selecione uma categoria',
   error,
   className = '',
@@ -37,19 +42,20 @@ export default function CategorySelect({
 
   // Filtra por tipo quando a categoria expõe `type` (income/expense/both);
   // se o campo não vier da API, mostra todas (defensivo).
-  const visible = type
-    ? categories.filter((c) => {
-        const ct = (c as { type?: string }).type;
-        return !ct || ct === type || ct === 'both';
-      })
-    : categories;
+  const visible = categories.filter((c) => {
+    if (excludeIds && excludeIds.includes(c.id)) return false;
+    if (!type) return true;
+    const ct = (c as { type?: string }).type;
+    return !ct || ct === type || ct === 'both';
+  });
 
   return (
     <select
       id={id}
       value={value ?? ''}
+      disabled={disabled}
       onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
-      className={`h-11 w-full appearance-none rounded-lg border bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:bg-gray-900 dark:text-white/90 ${
+      className={`h-11 w-full appearance-none rounded-lg border bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 disabled:opacity-60 dark:bg-gray-900 dark:text-white/90 ${
         error
           ? 'border-error-500 focus:border-error-500'
           : 'border-gray-300 focus:border-brand-300 dark:border-gray-700 dark:focus:border-brand-800'

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useShopping, ShoppingItem } from '../../../hooks/useShopping';
+import { Modal } from '../../ui/modal';
+import Button from '../../ui/button/Button';
 
 interface ShoppingItemFormProps {
   listId: number;
@@ -95,22 +97,15 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
-              {item ? 'Editar Item' : 'Adicionar Item'}
-            </h3>
-            <button
-              onClick={onCancel}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-            >
-              <i className="fas fa-times text-xl"></i>
-            </button>
-          </div>
+    <Modal isOpen={true} onClose={onCancel} className="max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="p-6">
+        <div className="mb-6 pr-8">
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
+            {item ? 'Editar Item' : 'Adicionar Item'}
+          </h3>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
             {/* Nome do Item */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -195,11 +190,7 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
               >
                 Cancelar
               </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              <Button variant="primary" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <i className="fas fa-spinner fa-spin"></i>
@@ -211,12 +202,11 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
                     {item ? 'Salvar Alterações' : 'Adicionar Item'}
                   </>
                 )}
-              </button>
+              </Button>
             </div>
-          </form>
-        </div>
+        </form>
       </div>
-    </div>
+    </Modal>
   );
 };
 
