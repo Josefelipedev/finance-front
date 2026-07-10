@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useRecurringFinance, RecurringTransaction } from '../../../hooks/useRecurringFinance';
-import { Modal } from '../../ui/modal';
 import RecurringForm from './RecurringForm';
 import RecurringList from './RecurringList';
+import Button from '../../ui/button/Button';
+import { useConfirm } from '../../ui/confirm/useConfirm';
 
 const RecurringManager: React.FC = () => {
   const {
@@ -15,10 +16,9 @@ const RecurringManager: React.FC = () => {
     error,
   } = useRecurringFinance();
 
+  const { confirm, dialog } = useConfirm();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<RecurringTransaction | null>(null);
-  const [deletingTransaction, setDeletingTransaction] = useState<RecurringTransaction | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadTransactions();
@@ -33,23 +33,23 @@ const RecurringManager: React.FC = () => {
     setIsFormOpen(true);
   };
 
-  const handleDeleteRequest = (id: number) => {
+  const handleDeleteRequest = async (id: number) => {
     const transaction = transactions?.find((t) => t.id === id) ?? null;
-    setDeletingTransaction(transaction);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deletingTransaction) return;
-    setIsDeleting(true);
+    const confirmed = await confirm({
+      title: 'Excluir transação recorrente',
+      message: transaction
+        ? `Excluir a recorrente "${transaction.description}"? Ela deixará de gerar lançamentos automáticos. Esta ação não pode ser desfeita.`
+        : 'Excluir esta transação recorrente? Esta ação não pode ser desfeita.',
+      confirmText: 'Excluir',
+      danger: true,
+    });
+    if (!confirmed) return;
     try {
-      await deleteRecurringTransaction(deletingTransaction.id);
+      await deleteRecurringTransaction(id);
       toast.success('Transação recorrente excluída com sucesso!');
-      setDeletingTransaction(null);
       await loadTransactions();
     } catch {
       toast.error('Erro ao excluir transação recorrente.');
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -98,19 +98,15 @@ const RecurringManager: React.FC = () => {
           </p>
         </div>
 
-        <button
+        <Button
+          variant="primary"
+          type="button"
           onClick={() => setIsFormOpen(true)}
-          className="
-            w-full sm:w-auto
-            px-4 py-3 sm:py-2.5
-            bg-sky-500 text-white rounded-lg
-            hover:bg-sky-600 transition-colors
-            shadow-sm flex items-center justify-center gap-2
-          "
+          className="w-full sm:w-auto"
+          startIcon={<i className="fas fa-plus"></i>}
         >
-          <i className="fas fa-plus"></i>
           Nova Transação
-        </button>
+        </Button>
       </div>
 
       {/* List */}
@@ -132,62 +128,7 @@ const RecurringManager: React.FC = () => {
         />
       )}
 
-      {/* Modal de Confirmação de Exclusão */}
-      <Modal
-        isOpen={Boolean(deletingTransaction)}
-        onClose={() => setDeletingTransaction(null)}
-        className="max-w-md"
-      >
-        <div className="p-6">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">
-            Confirmar Exclusão
-          </h2>
-
-          {deletingTransaction && (
-            <div className="space-y-4">
-              <p className="text-slate-600 dark:text-slate-400">
-                Tem certeza que deseja excluir a transação recorrente{' '}
-                <strong>"{deletingTransaction.description}"</strong>? Esta ação não pode ser
-                desfeita.
-              </p>
-
-              <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 rounded-lg p-4">
-                <div className="flex items-center text-rose-600 dark:text-rose-400">
-                  <i className="fas fa-exclamation-triangle mr-2"></i>
-                  <span className="font-medium">Atenção!</span>
-                </div>
-                <p className="text-sm text-rose-600 dark:text-rose-400 mt-1">
-                  A transação será removida e não gerará mais lançamentos automáticos.
-                </p>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-2">
-                <button
-                  onClick={() => setDeletingTransaction(null)}
-                  disabled={isDeleting}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  disabled={isDeleting}
-                  className="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors disabled:opacity-50"
-                >
-                  {isDeleting ? (
-                    <span className="flex items-center gap-2">
-                      <i className="fas fa-spinner fa-spin"></i>
-                      Excluindo...
-                    </span>
-                  ) : (
-                    'Excluir'
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </Modal>
+      {dialog}
     </div>
   );
 };

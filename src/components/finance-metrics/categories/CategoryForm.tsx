@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFinanceCategory, FinanceCategory } from '../../../hooks/useFinanceCategory';
 import IconPicker from '../ui/icon-picker/icon-picker.tsx';
+import { Modal } from '../../ui/modal';
+import Button from '../../ui/button/Button';
 
 // Schema de validação com Zod
 const categorySchema = z.object({
@@ -105,22 +107,13 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onSuccess, onCanc
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
-              {category ? 'Editar Categoria' : 'Nova Categoria'}
-            </h3>
-            <button
-              onClick={onCancel}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-              type="button"
-              aria-label="Fechar"
-            >
-              <i className="fas fa-times text-xl"></i>
-            </button>
-          </div>
+    <Modal isOpen onClose={onCancel} className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="p-6">
+        <div className="mb-6 pr-8">
+          <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
+            {category ? 'Editar Categoria' : 'Nova Categoria'}
+          </h3>
+        </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
             {/* Nome da Categoria */}
@@ -256,18 +249,14 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onSuccess, onCanc
 
             {/* Botões */}
             <div className="flex justify-end gap-3 pt-4 border-t dark:border-slate-700">
-              <button
-                type="button"
-                onClick={onCancel}
-                className="px-4 py-2 border rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-                disabled={isSubmitting}
-              >
+              <Button variant="outline" type="button" onClick={onCancel} disabled={isSubmitting}>
                 Cancelar
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 type="submit"
                 disabled={isSubmitting || isLoading}
-                className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center min-w-[140px]"
+                className="min-w-[140px]"
               >
                 {isSubmitting || isLoading ? (
                   <>
@@ -279,12 +268,11 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onSuccess, onCanc
                 ) : (
                   'Criar Categoria'
                 )}
-              </button>
+              </Button>
             </div>
           </form>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 
