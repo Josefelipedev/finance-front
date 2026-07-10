@@ -7,6 +7,7 @@ import {
 } from '../../../hooks/useRecurringFinance';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { currencyOption } from '../../../utils/currency';
+import CategorySelect from '../../form/CategorySelect';
 
 interface RecurringFormProps {
   transaction?: RecurringTransaction | null;
@@ -27,7 +28,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     dueDay: 1,
     weekDay: 0,
     notification: false,
-    categoria: '',
+    categoryId: 0,
     endDate: '',
     occurrences: undefined,
   });
@@ -48,7 +49,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
         dueDay: transaction.dueDay || 1,
         weekDay: transaction.weekDay || 0,
         notification: transaction.notification,
-        categoria: transaction.category?.name || '',
+        categoryId: transaction.categoryId ?? transaction.category?.id ?? 0,
         endDate: transaction.endDate || '',
         occurrences: transaction.occurrences,
       });
@@ -66,12 +67,11 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
       newErrors.amount = 'Valor deve ser maior que zero';
     }
 
-    if (!formData.categoria.trim()) {
-      newErrors.categoria = 'Categoria é obrigatória';
+    if (!formData.categoryId) {
+      newErrors.categoryId = 'Categoria é obrigatória';
     }
 
     setErrors(newErrors);
-    console.log(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -84,7 +84,6 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
 
     try {
       if (transaction) {
-        console.log(transaction);
         await updateRecurringTransaction(transaction.id, formData);
       } else {
         await createRecurringTransaction(formData);
@@ -256,16 +255,15 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 Categoria *
               </label>
-              <input
-                type="text"
-                value={formData.categoria}
-                onChange={(e) => handleChange('categoria', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white ${
-                  errors.categoria ? 'border-red-500' : 'border-slate-300'
-                }`}
-                placeholder="Ex: Salário, Aluguel"
+              <CategorySelect
+                value={formData.categoryId || undefined}
+                onChange={(id) => handleChange('categoryId', id ?? 0)}
+                type={formData.type}
+                error={errors.categoryId}
               />
-              {errors.categoria && <p className="text-red-500 text-sm mt-1">{errors.categoria}</p>}
+              {errors.categoryId && (
+                <p className="text-red-500 text-sm mt-1">{errors.categoryId}</p>
+              )}
             </div>
 
             {/* Data de Término */}

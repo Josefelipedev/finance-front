@@ -35,7 +35,7 @@ export interface CreateRecurringTransactionDto {
   dueDay?: number;
   weekDay?: number;
   notification?: boolean;
-  categoria: string;
+  categoryId: number;
   endDate?: string;
   occurrences?: number;
 }
@@ -48,7 +48,7 @@ export interface UpdateRecurringTransactionDto {
   dueDay?: number;
   weekDay?: number;
   notification?: boolean;
-  categoria?: string;
+  categoryId?: number;
   endDate?: string;
   occurrences?: number;
 }
