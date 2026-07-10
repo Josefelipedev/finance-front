@@ -7,6 +7,7 @@ import GoalForm from './GoalForm.tsx';
 import { Modal } from '../../ui/modal';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { formatMoney, currencyOption } from '../../../utils/currency';
+import Button from '../../ui/button/Button';
 
 const FinanceGoals: React.FC = () => {
   const {
@@ -226,14 +227,16 @@ const FinanceGoals: React.FC = () => {
           <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
             Metas Financeiras
           </h3>
-          <button
+          <Button
+            variant="primary"
+            type="button"
             onClick={createModal.openModal}
             disabled={isSubmitting}
-            className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-all duration-200 disabled:opacity-50 flex items-center space-x-2 active:scale-95 shadow-sm"
+            startIcon={<i className="fas fa-plus"></i>}
+            className="active:scale-95"
           >
-            <i className="fas fa-plus"></i>
-            <span>Nova Meta</span>
-          </button>
+            Nova Meta
+          </Button>
         </div>
 
         {/* Tabs */}
@@ -647,20 +650,22 @@ const FinanceGoals: React.FC = () => {
               </div>
 
               <div className="flex justify-end space-x-3 pt-4">
-                <button
+                <Button
+                  variant="outline"
+                  type="button"
                   onClick={deleteModal.closeModal}
                   disabled={isSubmitting}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="danger"
+                  type="button"
                   onClick={handleConfirmDelete}
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors disabled:opacity-50"
                 >
                   {isSubmitting ? 'Excluindo...' : 'Excluir'}
-                </button>
+                </Button>
               </div>
             </div>
           )}

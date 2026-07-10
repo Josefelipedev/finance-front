@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { usePantry, PantryItem, UpsertPantryDto } from '../../../hooks/usePantry';
 import { Modal } from '../../ui/modal';
 import BarcodeScanModal from './BarcodeScanModal';
+import Button from '../../ui/button/Button';
 
 const emptyForm: UpsertPantryDto = {
   name: '',
@@ -136,20 +137,24 @@ const PantryManager: React.FC = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <button
+          <Button
+            variant="primary"
+            type="button"
             onClick={() => setIsBarcodeOpen(true)}
-            className="w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+            startIcon={<i className="fas fa-barcode"></i>}
+            className="w-full sm:w-auto"
           >
-            <i className="fas fa-barcode"></i>
             Escanear
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            type="button"
             onClick={() => openCreate()}
-            className="w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+            startIcon={<i className="fas fa-plus"></i>}
+            className="w-full sm:w-auto"
           >
-            <i className="fas fa-plus"></i>
             Novo Item
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -296,17 +301,19 @@ const PantryManager: React.FC = () => {
           </div>
 
           <div className="flex justify-end space-x-3 pt-2">
-            <button
+            <Button
+              variant="outline"
+              type="button"
               onClick={() => setIsFormOpen(false)}
               disabled={isSaving}
-              className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50"
             >
               {isSaving ? (
                 <span className="flex items-center gap-2">
@@ -316,7 +323,7 @@ const PantryManager: React.FC = () => {
               ) : (
                 'Salvar'
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -333,17 +340,19 @@ const PantryManager: React.FC = () => {
                 Tem certeza que deseja remover <strong>"{deleting.name}"</strong> da despensa?
               </p>
               <div className="flex justify-end space-x-3 pt-2">
-                <button
+                <Button
+                  variant="outline"
+                  type="button"
                   onClick={() => setDeleting(null)}
                   disabled={isDeleting}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="danger"
+                  type="button"
                   onClick={handleConfirmDelete}
                   disabled={isDeleting}
-                  className="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors disabled:opacity-50"
                 >
                   {isDeleting ? (
                     <span className="flex items-center gap-2">
@@ -353,7 +362,7 @@ const PantryManager: React.FC = () => {
                   ) : (
                     'Remover'
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           )}

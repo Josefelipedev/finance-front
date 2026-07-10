@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useFinance } from '../../hooks/useFinance';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import type { FinanceRecord } from '../../types/finance';
+import Button from '../ui/button/Button';
 
 const MONTH_NAMES = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -158,13 +159,16 @@ const MonthlyReport: React.FC = () => {
           >
             <i className="fas fa-chevron-right"></i>
           </button>
-          <button
+          <Button
+            variant="primary"
+            type="button"
+            size="sm"
             onClick={handleExport}
-            className="ml-1 px-3 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center gap-2 text-sm whitespace-nowrap"
+            startIcon={<i className="fas fa-file-export"></i>}
+            className="ml-1 whitespace-nowrap"
           >
-            <i className="fas fa-file-export"></i>
             <span className="hidden sm:inline">Exportar</span>
-          </button>
+          </Button>
         </div>
       </div>
 

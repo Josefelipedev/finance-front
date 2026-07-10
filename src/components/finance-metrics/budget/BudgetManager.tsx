@@ -8,6 +8,7 @@ import { Modal } from '../../ui/modal';
 import CategorySelect from '../../form/CategorySelect';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { formatMoney, currencyOption } from '../../../utils/currency';
+import Button from '../../ui/button/Button';
 
 const monthRange = () => {
   const now = new Date();
@@ -142,13 +143,15 @@ const BudgetManager: React.FC = () => {
           </p>
         </div>
 
-        <button
+        <Button
+          variant="primary"
+          type="button"
           onClick={openCreate}
-          className="w-full sm:w-auto px-4 py-3 sm:py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+          startIcon={<i className="fas fa-plus"></i>}
+          className="w-full sm:w-auto"
         >
-          <i className="fas fa-plus"></i>
           Novo Limite
-        </button>
+        </Button>
       </div>
 
       {/* Resumo do mês */}
@@ -319,18 +322,12 @@ const BudgetManager: React.FC = () => {
           </div>
 
           <div className="flex justify-end space-x-3 pt-2">
-            <button
-              onClick={() => setIsFormOpen(false)}
-              className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
-            >
+            <Button variant="outline" type="button" onClick={() => setIsFormOpen(false)}>
               Cancelar
-            </button>
-            <button
-              onClick={handleSave}
-              className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
-            >
+            </Button>
+            <Button variant="primary" type="button" onClick={handleSave}>
               Salvar
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -347,18 +344,12 @@ const BudgetManager: React.FC = () => {
                 Remover o limite de <strong>"{deleting.categoryName}"</strong>?
               </p>
               <div className="flex justify-end space-x-3 pt-2">
-                <button
-                  onClick={() => setDeleting(null)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
-                >
+                <Button variant="outline" type="button" onClick={() => setDeleting(null)}>
                   Cancelar
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
-                >
+                </Button>
+                <Button variant="danger" type="button" onClick={handleDelete}>
                   Remover
-                </button>
+                </Button>
               </div>
             </div>
           )}

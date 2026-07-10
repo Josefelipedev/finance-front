@@ -6,6 +6,7 @@ import { Modal } from '../ui/modal';
 import AddFinanceModal from './AddFinanceModal';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { formatMoney } from '../../utils/currency';
+import Button from '../ui/button/Button';
 
 interface TransactionsListProps {
   dateRange: { startDate: string; endDate: string };
@@ -69,12 +70,9 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
         <p className="text-gray-600 dark:text-gray-400 mb-4">
           {error.message || 'Não foi possível carregar as transações.'}
         </p>
-        <button
-          onClick={loadTransactions}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
+        <Button variant="primary" type="button" onClick={loadTransactions}>
           Tentar novamente
-        </button>
+        </Button>
       </div>
     );
   }
@@ -247,17 +245,19 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
               </div>
 
               <div className="flex justify-end space-x-3 pt-2">
-                <button
+                <Button
+                  variant="outline"
+                  type="button"
                   onClick={() => setDeletingRecord(null)}
                   disabled={isDeleting}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="danger"
+                  type="button"
                   onClick={handleDeleteConfirm}
                   disabled={isDeleting}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
                 >
                   {isDeleting ? (
                     <span className="flex items-center gap-2">
@@ -267,7 +267,7 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                   ) : (
                     'Excluir'
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           )}

@@ -4,6 +4,7 @@ import { useFinanceCategory, FinanceCategory } from '../../../hooks/useFinanceCa
 import CategoryForm from './CategoryForm.tsx';
 import CategoryList from './CategoryList.tsx';
 import { useConfirm } from '../../ui/confirm/useConfirm';
+import Button from '../../ui/button/Button';
 
 const CategoryManager: React.FC = () => {
   const { categories, getAllCategories, deleteCategory, toggleCategoryStatus, isLoading, error } =
@@ -102,13 +103,15 @@ const CategoryManager: React.FC = () => {
             Organize suas categorias de receitas e despesas
           </p>
         </div>
-        <button
+        <Button
+          variant="primary"
+          type="button"
           onClick={() => setIsFormOpen(true)}
-          className="px-4 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center justify-center gap-2 w-full sm:w-auto"
+          startIcon={<i className="fas fa-plus"></i>}
+          className="w-full sm:w-auto"
         >
-          <i className="fas fa-plus"></i>
           Nova Categoria
-        </button>
+        </Button>
       </div>
 
       <CategoryList

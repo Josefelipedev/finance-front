@@ -4,6 +4,7 @@ import { CreateGoalDto, UpdateGoalDto } from '../../../hooks/useGoals.ts';
 import DateRangePicker from '../../ui/date-range-picker';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { currencyOption } from '../../../utils/currency';
+import Button from '../../ui/button/Button';
 
 interface GoalFormProps {
   initialData?: CreateGoalDto;
@@ -199,19 +200,10 @@ const GoalForm: React.FC<GoalFormProps> = ({
       </div>
 
       <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isLoading}
-          className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
-        >
+        <Button variant="outline" type="button" onClick={onCancel} disabled={isLoading}>
           Cancelar
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        </Button>
+        <Button variant="primary" type="submit" disabled={isLoading}>
           {isLoading ? (
             <span className="flex items-center space-x-2">
               <i className="fas fa-spinner fa-spin"></i>
@@ -222,7 +214,7 @@ const GoalForm: React.FC<GoalFormProps> = ({
           ) : (
             'Criar'
           )}
-        </button>
+        </Button>
       </div>
     </form>
   );

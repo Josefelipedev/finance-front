@@ -9,6 +9,7 @@ import IconPicker from './ui/icon-picker/icon-picker.tsx';
 import { CURRENCY_OPTIONS } from '../../utils/currency';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { useBankAccounts } from '../../hooks/useBankAccounts.ts';
+import Button from '../ui/button/Button';
 
 export interface FinancePrefill {
   amount?: number;
@@ -363,11 +364,7 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
           </div>
 
           <div className="flex space-x-3 pt-4">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
+            <Button variant="primary" type="submit" disabled={isLoading} className="flex-1">
               {isLoading ? (
                 <span className="flex items-center justify-center">
                   <i className="fas fa-spinner fa-spin mr-2"></i>
@@ -378,16 +375,12 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
               ) : (
                 'Adicionar Transação'
               )}
-            </button>
+            </Button>
 
             {isOpen && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
-              >
+              <Button variant="outline" type="button" onClick={onClose}>
                 Cancelar
-              </button>
+              </Button>
             )}
           </div>
         </form>
