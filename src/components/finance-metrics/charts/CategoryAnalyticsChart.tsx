@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { formatMoney } from '../../../utils/currency';
 
 interface CategoryAnalyticsChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -10,6 +12,8 @@ interface CategoryAnalyticsChartProps {
 
 const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRange }) => {
   const { getAllFinances, isLoading } = useFinance();
+  const { profile, getProfile } = useUserProfile();
+  const displayCurrency = profile?.currency;
   const [categoryData, setCategoryData] = useState<
     Array<{
       name: string;
@@ -19,6 +23,10 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
     }>
   >([]);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
 
   useEffect(() => {
     const loadCategoryData = async () => {
@@ -101,8 +109,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
               fontSize: '24px',
               fontWeight: 'bold',
               color: '#111827',
-              formatter: (val) =>
-                `R$ ${parseFloat(val).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+              formatter: (val) => formatMoney(parseFloat(val), displayCurrency),
             },
             total: {
               show: true,
@@ -110,7 +117,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
               color: '#6B7280',
               formatter: (w) => {
                 const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
-                return `R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+                return formatMoney(total, displayCurrency);
               },
             },
           },
@@ -142,7 +149,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
     },
     tooltip: {
       y: {
-        formatter: (val) => `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        formatter: (val) => formatMoney(val, displayCurrency),
       },
       theme: 'dark',
     },
@@ -241,7 +248,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
                       </div>
                       <div className="text-right">
                         <span className="text-sm font-semibold text-gray-800 dark:text-white">
-                          R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {formatMoney(item.value, displayCurrency)}
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400 block">
                           {percentage.toFixed(1)}%
@@ -272,7 +279,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
               <div>
                 <p className="text-sm text-blue-700 dark:text-blue-300">Total Categorizado</p>
                 <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
-                  R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatMoney(total, displayCurrency)}
                 </p>
               </div>
             </div>

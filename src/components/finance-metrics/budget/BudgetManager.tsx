@@ -5,6 +5,8 @@ import { useBudget, BudgetLimit } from '../../../hooks/useBudget';
 import { useFinance } from '../../../hooks/useFinance';
 import { useFinanceCategory, FinanceCategory } from '../../../hooks/useFinanceCategory';
 import { Modal } from '../../ui/modal';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { formatMoney, currencyOption } from '../../../utils/currency';
 
 const monthRange = () => {
   const now = new Date();
@@ -13,13 +15,14 @@ const monthRange = () => {
   return { startDate: start.toISOString(), endDate: end.toISOString() };
 };
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-
 const BudgetManager: React.FC = () => {
   const { limits, upsert, remove } = useBudget();
   const { getAllFinances } = useFinance();
   const { getAllCategories } = useFinanceCategory();
+  const { profile, getProfile } = useUserProfile();
+  const displayCurrency = profile?.currency;
+  const currencySymbol = currencyOption(displayCurrency).symbol;
+  const formatCurrency = (value: number) => formatMoney(value, displayCurrency);
 
   const [categories, setCategories] = useState<FinanceCategory[]>([]);
   const [spendByCategory, setSpendByCategory] = useState<Record<number, number>>({});
@@ -35,6 +38,7 @@ const BudgetManager: React.FC = () => {
 
   useEffect(() => {
     load();
+    getProfile().catch(() => {});
   }, []);
 
   const load = async () => {
@@ -293,7 +297,7 @@ const BudgetManager: React.FC = () => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Limite mensal (R$) *
+                Limite mensal ({currencySymbol}) *
               </label>
               <input
                 type="number"

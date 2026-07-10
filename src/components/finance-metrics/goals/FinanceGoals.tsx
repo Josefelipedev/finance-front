@@ -5,6 +5,8 @@ import { useGoals, Goal } from '../../../hooks/useGoals.ts';
 import { useModal } from '../../../hooks/useModal.ts';
 import GoalForm from './GoalForm.tsx';
 import { Modal } from '../../ui/modal';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { formatMoney, currencyOption } from '../../../utils/currency';
 
 const FinanceGoals: React.FC = () => {
   const {
@@ -18,6 +20,10 @@ const FinanceGoals: React.FC = () => {
     data: goals,
     isLoading,
   } = useGoals();
+
+  const { profile, getProfile } = useUserProfile();
+  const displayCurrency = profile?.currency;
+  const currencySymbol = currencyOption(displayCurrency).symbol;
 
   // Modais
   const createModal = useModal();
@@ -38,6 +44,7 @@ const FinanceGoals: React.FC = () => {
   // Carregar metas ao montar o componente
   useEffect(() => {
     fetchGoals();
+    getProfile().catch(() => {});
   }, []);
 
   const fetchGoals = async () => {
@@ -79,7 +86,7 @@ const FinanceGoals: React.FC = () => {
       toast.success(
         newValue >= depositingGoal.targetValue
           ? 'Meta concluída! Parabéns! 🎉'
-          : `R$ ${amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} depositados com sucesso!`
+          : `${formatMoney(amount, displayCurrency)} depositados com sucesso!`
       );
       depositModal.closeModal();
       setDepositingGoal(null);
@@ -367,8 +374,8 @@ const FinanceGoals: React.FC = () => {
                         Progresso
                       </span>
                       <span className="font-semibold text-slate-800 dark:text-white">
-                        R$ {goal.currentValue.toLocaleString('pt-BR')} / R${' '}
-                        {goal.targetValue.toLocaleString('pt-BR')}
+                        {formatMoney(goal.currentValue, displayCurrency)} /{' '}
+                        {formatMoney(goal.targetValue, displayCurrency)}
                       </span>
                     </div>
 
@@ -383,7 +390,7 @@ const FinanceGoals: React.FC = () => {
                       <div className="flex items-center space-x-4">
                         <span className="font-medium">{percentage.toFixed(1)}% concluído</span>
                         <span>
-                          Falta: R$ {(goal.targetValue - goal.currentValue).toLocaleString('pt-BR')}
+                          Falta: {formatMoney(goal.targetValue - goal.currentValue, displayCurrency)}
                         </span>
                       </div>
                       {isOverdue && goal.status === 'ACTIVE' && (
@@ -542,17 +549,16 @@ const FinanceGoals: React.FC = () => {
               <p className="text-sm text-slate-600 dark:text-slate-400">
                 Meta: <strong>{depositingGoal.name}</strong> — Faltam{' '}
                 <strong>
-                  R${' '}
-                  {(depositingGoal.targetValue - depositingGoal.currentValue).toLocaleString(
-                    'pt-BR',
-                    { minimumFractionDigits: 2 }
+                  {formatMoney(
+                    depositingGoal.targetValue - depositingGoal.currentValue,
+                    displayCurrency
                   )}
                 </strong>
               </p>
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Valor a depositar (R$)
+                  Valor a depositar ({currencySymbol})
                 </label>
                 <input
                   type="text"
@@ -570,16 +576,13 @@ const FinanceGoals: React.FC = () => {
                   <p className="text-sm text-violet-700 dark:text-violet-300">
                     Novo progresso:{' '}
                     <strong>
-                      R${' '}
-                      {(
+                      {formatMoney(
                         depositingGoal.currentValue +
-                        (parseFloat(depositAmount.replace(',', '.')) || 0)
-                      ).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          (parseFloat(depositAmount.replace(',', '.')) || 0),
+                        displayCurrency
+                      )}
                     </strong>{' '}
-                    de R${' '}
-                    {depositingGoal.targetValue.toLocaleString('pt-BR', {
-                      minimumFractionDigits: 2,
-                    })}
+                    de {formatMoney(depositingGoal.targetValue, displayCurrency)}
                   </p>
                 </div>
               )}

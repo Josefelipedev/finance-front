@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../services/api';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { formatMoney, currencyOption } from '../../utils/currency';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -661,6 +663,13 @@ function ShoppingListView({
   onNotify: () => void;
   notifying: boolean;
 }) {
+  const { profile: userProfile, getProfile } = useUserProfile();
+  const displayCurrency = userProfile?.currency;
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
+
   const grouped = groupByCategory(list.items);
   const pending = list.items.filter((i) => !i.purchased);
   const totalPending = pending.reduce((s, i) => s + (i.estimatedPrice ?? 0), 0);
@@ -688,7 +697,7 @@ function ShoppingListView({
       <div className="mb-4">
         <div className="flex justify-between text-xs text-gray-500 mb-1">
           <span>{progress}% comprado</span>
-          <span>R${totalPending.toFixed(2)} restante</span>
+          <span>{formatMoney(totalPending, displayCurrency)} restante</span>
         </div>
         <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
@@ -700,7 +709,7 @@ function ShoppingListView({
 
       {list.totalEstimate && (
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 py-2 mb-4 text-sm text-blue-700 dark:text-blue-300 font-medium">
-          💰 Estimativa total da semana: R${list.totalEstimate.toFixed(2)}
+          💰 Estimativa total da semana: {formatMoney(list.totalEstimate, displayCurrency)}
         </div>
       )}
 
@@ -730,7 +739,7 @@ function ShoppingListView({
                   <span className="text-xs text-gray-400">{item.quantity} {item.unit}</span>
                   {item.estimatedPrice && (
                     <span className="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
-                      R${item.estimatedPrice.toFixed(2)}
+                      {formatMoney(item.estimatedPrice, displayCurrency)}
                     </span>
                   )}
                 </label>
@@ -766,9 +775,13 @@ export default function MealPlannerPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  const { profile: userProfile, getProfile } = useUserProfile();
+  const currencySymbol = currencyOption(userProfile?.currency).symbol;
+
   useEffect(() => {
     loadSchedule();
     loadActivePlan();
+    getProfile().catch(() => {});
   }, []);
 
   const flash = (type: 'success' | 'error', text: string) => {
@@ -944,7 +957,7 @@ export default function MealPlannerPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <input
             type="number"
-            placeholder="Orçamento (R$)"
+            placeholder={`Orçamento (${currencySymbol})`}
             value={budget}
             onChange={(e) => setBudget(e.target.value)}
             className="text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-blue-500"

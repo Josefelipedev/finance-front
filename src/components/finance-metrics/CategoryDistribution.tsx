@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../hooks/useFinance';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { formatMoney } from '../../utils/currency';
 
 interface CategoryDistributionProps {
   dateRange: { startDate: string; endDate: string };
@@ -45,8 +47,14 @@ interface CategoryData {
 
 const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }) => {
   const { getRecords, isLoading } = useFinance();
+  const { profile, getProfile } = useUserProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const displayCurrency = profile?.currency;
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -136,7 +144,7 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
               color: '#6B7280',
               formatter: function (w) {
                 const total = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
-                return `R$ ${total.toFixed(2)}`;
+                return formatMoney(total, displayCurrency);
               },
             },
           },
@@ -158,7 +166,7 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
     tooltip: {
       y: {
         formatter: function (value) {
-          return `R$ ${value.toFixed(2)}`;
+          return formatMoney(value, displayCurrency);
         },
       },
     },
@@ -210,7 +218,7 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
               </span>
             </div>
             <span className="text-sm font-semibold text-gray-800 dark:text-white">
-              R$ {item.amount.toFixed(2)}
+              {formatMoney(item.amount, displayCurrency)}
             </span>
           </div>
         ))}

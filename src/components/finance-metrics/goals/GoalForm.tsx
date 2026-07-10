@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { CreateGoalDto, UpdateGoalDto } from '../../../hooks/useGoals.ts';
 import DateRangePicker from '../../ui/date-range-picker';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { currencyOption } from '../../../utils/currency';
 
 interface GoalFormProps {
   initialData?: CreateGoalDto;
@@ -27,6 +29,13 @@ const GoalForm: React.FC<GoalFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { profile, getProfile } = useUserProfile();
+  const currencySymbol = currencyOption(profile?.currency).symbol;
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
 
   useEffect(() => {
     if (initialData) {
@@ -121,7 +130,7 @@ const GoalForm: React.FC<GoalFormProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Valor Alvo (R$) *
+            Valor Alvo ({currencySymbol}) *
           </label>
           <input
             type="number"
@@ -141,7 +150,7 @@ const GoalForm: React.FC<GoalFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Valor Atual (R$)
+            Valor Atual ({currencySymbol})
           </label>
           <input
             type="number"

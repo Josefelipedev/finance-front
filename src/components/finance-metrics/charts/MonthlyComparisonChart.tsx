@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { formatMoney, currencyOption } from '../../../utils/currency';
 
 interface MonthlyComparisonChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -10,12 +12,19 @@ interface MonthlyComparisonChartProps {
 
 const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRange }) => {
   const { getAllFinances, isLoading } = useFinance();
+  const { profile, getProfile } = useUserProfile();
+  const displayCurrency = profile?.currency;
+  const currencySymbol = currencyOption(displayCurrency).symbol;
   const [chartData, setChartData] = useState<{
     months: string[];
     income: number[];
     expense: number[];
   }>({ months: [], income: [], expense: [] });
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
 
   useEffect(() => {
     const loadChartData = async () => {
@@ -116,7 +125,7 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
     },
     yaxis: {
       title: {
-        text: 'Valor (R$)',
+        text: `Valor (${currencySymbol})`,
         style: {
           color: '#6B7280',
           fontSize: '12px',
@@ -128,7 +137,7 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
           colors: '#6B7280',
           fontSize: '12px',
         },
-        formatter: (value) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        formatter: (value) => formatMoney(value, displayCurrency),
       },
     },
     fill: {
@@ -164,7 +173,7 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
     },
     tooltip: {
       y: {
-        formatter: (value) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        formatter: (value) => formatMoney(value, displayCurrency),
       },
       theme: 'dark',
     },
@@ -238,10 +247,10 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
             <div>
               <p className="text-sm text-green-700 dark:text-green-300">Total Receitas</p>
               <p className="text-lg font-semibold text-green-800 dark:text-green-200">
-                R${' '}
-                {chartData.income
-                  .reduce((a, b) => a + b, 0)
-                  .toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                {formatMoney(
+                  chartData.income.reduce((a, b) => a + b, 0),
+                  displayCurrency
+                )}
               </p>
             </div>
           </div>
@@ -255,10 +264,10 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
             <div>
               <p className="text-sm text-red-700 dark:text-red-300">Total Despesas</p>
               <p className="text-lg font-semibold text-red-800 dark:text-red-200">
-                R${' '}
-                {chartData.expense
-                  .reduce((a, b) => a + b, 0)
-                  .toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                {formatMoney(
+                  chartData.expense.reduce((a, b) => a + b, 0),
+                  displayCurrency
+                )}
               </p>
             </div>
           </div>
@@ -280,11 +289,11 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
                     : 'text-red-600 dark:text-red-400'
                 }`}
               >
-                R${' '}
-                {(
+                {formatMoney(
                   chartData.income.reduce((a, b) => a + b, 0) -
-                  chartData.expense.reduce((a, b) => a + b, 0)
-                ).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    chartData.expense.reduce((a, b) => a + b, 0),
+                  displayCurrency
+                )}
               </p>
             </div>
           </div>

@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { formatMoney, currencyOption } from '../../../utils/currency';
 
 interface TrendAnalyticsChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -10,6 +12,9 @@ interface TrendAnalyticsChartProps {
 
 const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) => {
   const { getAllFinances, isLoading } = useFinance();
+  const { profile, getProfile } = useUserProfile();
+  const displayCurrency = profile?.currency;
+  const currencySymbol = currencyOption(displayCurrency).symbol;
   const [trendData, setTrendData] = useState<{
     dates: string[];
     balance: number[];
@@ -18,6 +23,10 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
     cumulativeBalance: number[];
   }>({ dates: [], balance: [], income: [], expense: [], cumulativeBalance: [] });
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
 
   useEffect(() => {
     const loadTrendData = async () => {
@@ -128,7 +137,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
     yaxis: [
       {
         title: {
-          text: 'Saldo (R$)',
+          text: `Saldo (${currencySymbol})`,
           style: {
             color: '#3B82F6',
             fontSize: '12px',
@@ -140,13 +149,13 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
             colors: '#6B7280',
             fontSize: '12px',
           },
-          formatter: (value) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+          formatter: (value) => formatMoney(value, displayCurrency),
         },
       },
       {
         opposite: true,
         title: {
-          text: 'Transações (R$)',
+          text: `Transações (${currencySymbol})`,
           style: {
             color: '#6B7280',
             fontSize: '12px',
@@ -158,7 +167,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
             colors: '#6B7280',
             fontSize: '12px',
           },
-          formatter: (value) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+          formatter: (value) => formatMoney(value, displayCurrency),
         },
       },
     ],
@@ -195,7 +204,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
       intersect: false,
       theme: 'dark',
       y: {
-        formatter: (value) => `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        formatter: (value) => formatMoney(value, displayCurrency),
       },
       x: {
         formatter: (value) => {
@@ -311,8 +320,8 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
                     : 'text-red-600 dark:text-red-400'
                 }`}
               >
-                {balanceChange >= 0 ? '+' : ''}R${' '}
-                {balanceChange.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                {balanceChange >= 0 ? '+' : ''}
+                {formatMoney(balanceChange, displayCurrency)}
                 <span className="text-sm ml-2">({balanceChangePercent.toFixed(1)}%)</span>
               </p>
             </div>
@@ -327,7 +336,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Média Diária</p>
               <p className="text-lg font-semibold text-gray-800 dark:text-white">
-                R$ {avgDailyBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                {formatMoney(avgDailyBalance, displayCurrency)}
               </p>
             </div>
           </div>
@@ -361,7 +370,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
                     : 'text-red-600 dark:text-red-400'
                 }`}
               >
-                R$ {lastBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                {formatMoney(lastBalance, displayCurrency)}
               </p>
             </div>
           </div>

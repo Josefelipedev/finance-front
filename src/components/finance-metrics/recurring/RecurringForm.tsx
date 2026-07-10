@@ -5,6 +5,8 @@ import {
   RecurringTransaction,
   CreateRecurringTransactionDto,
 } from '../../../hooks/useRecurringFinance';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { currencyOption } from '../../../utils/currency';
 
 interface RecurringFormProps {
   transaction?: RecurringTransaction | null;
@@ -15,6 +17,8 @@ interface RecurringFormProps {
 const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, onCancel }) => {
   const { createRecurringTransaction, updateRecurringTransaction, isLoading } =
     useRecurringFinance();
+  const { profile, getProfile } = useUserProfile();
+  const currencySymbol = currencyOption(profile?.currency).symbol;
   const [formData, setFormData] = useState<CreateRecurringTransactionDto>({
     description: '',
     amount: 0,
@@ -29,6 +33,10 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
 
   useEffect(() => {
     if (transaction) {
@@ -137,7 +145,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
-                  R$
+                  {currencySymbol}
                 </span>
                 <input
                   type="number"
