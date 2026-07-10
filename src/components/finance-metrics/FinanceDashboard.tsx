@@ -92,7 +92,7 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
     return (
       <div className="text-center py-8 px-4">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900 mb-4">
-          <i className="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-2xl"></i>
+          <i className="fas fa-exclamation-triangle text-error-600 dark:text-red-400 text-2xl"></i>
         </div>
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
           Erro ao carregar dados
@@ -116,7 +116,7 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
   return (
     <div className="space-y-6 ">
       {/* Período de Filtro — controle segmentado */}
-      <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 dark:border-white/[0.06] dark:bg-slate-800">
+      <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1 dark:border-white/[0.06] dark:bg-gray-800">
         {(
           [
             { id: 'week', label: 'Semana' },
@@ -130,7 +130,7 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               activePeriod === period.id
                 ? 'bg-brand-400 text-gray-950 shadow-theme-xs'
-                : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                : 'text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
             }`}
           >
             {period.label}

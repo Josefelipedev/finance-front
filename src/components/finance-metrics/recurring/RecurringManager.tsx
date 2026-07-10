@@ -62,7 +62,7 @@ const RecurringManager: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-sky-500" />
+        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-brand-500" />
       </div>
     );
   }
@@ -71,12 +71,12 @@ const RecurringManager: React.FC = () => {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 sm:p-6">
         <div className="flex gap-3">
-          <i className="fas fa-exclamation-circle text-red-500 text-xl mt-0.5"></i>
+          <i className="fas fa-exclamation-circle text-error-500 text-xl mt-0.5"></i>
           <div>
             <h3 className="font-semibold text-red-800 dark:text-red-300 text-sm sm:text-base">
               Erro ao carregar transações recorrentes
             </h3>
-            <p className="text-red-600 dark:text-red-400 text-xs sm:text-sm mt-1">
+            <p className="text-error-600 dark:text-red-400 text-xs sm:text-sm mt-1">
               {error.message}
             </p>
           </div>
@@ -90,10 +90,10 @@ const RecurringManager: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
             Transações Recorrentes
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             Gerencie suas transações que se repetem periodicamente
           </p>
         </div>

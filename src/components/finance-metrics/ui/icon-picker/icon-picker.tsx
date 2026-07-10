@@ -46,7 +46,7 @@ const IconPicker: React.FC<IconPickerProps> = ({
             onClick={() => onIconChange(icon)}
             className={`p-3 rounded-lg border transition-all ${
               selectedIcon === icon
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 shadow-sm scale-105'
+                ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/30 shadow-sm scale-105'
                 : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:scale-[1.02]'
             }`}
             title={icon.replace('-', ' ')}

@@ -47,8 +47,8 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ itemId, onClose }
 
   const getPriceChangeColor = (currentPrice: number, previousPrice: number) => {
     if (currentPrice < previousPrice) return 'text-green-600 dark:text-green-400';
-    if (currentPrice > previousPrice) return 'text-red-600 dark:text-red-400';
-    return 'text-slate-600 dark:text-slate-400';
+    if (currentPrice > previousPrice) return 'text-error-600 dark:text-red-400';
+    return 'text-gray-600 dark:text-gray-400';
   };
 
   const getPriceChangeIcon = (currentPrice: number, previousPrice: number) => {
@@ -61,19 +61,19 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ itemId, onClose }
     <Modal isOpen={true} onClose={onClose} className="max-w-2xl max-h-[90vh] overflow-y-auto">
       <div className="p-6">
         <div className="mb-6 pr-8">
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
             Histórico de Preços
           </h3>
         </div>
 
         {isLoading ? (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
             </div>
           ) : priceHistory.length === 0 ? (
             <div className="text-center py-8">
-              <i className="fas fa-chart-line text-4xl text-slate-300 dark:text-slate-600 mb-3"></i>
-              <p className="text-slate-600 dark:text-slate-400">
+              <i className="fas fa-chart-line text-4xl text-gray-300 dark:text-gray-600 mb-3"></i>
+              <p className="text-gray-600 dark:text-gray-400">
                 Nenhum histórico de preços encontrado
               </p>
             </div>
@@ -88,14 +88,14 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ itemId, onClose }
                   </p>
                 </div>
                 <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-                  <p className="text-sm text-red-600 dark:text-red-400">Maior Preço</p>
-                  <p className="text-xl font-bold text-red-600 dark:text-red-400">
+                  <p className="text-sm text-error-600 dark:text-red-400">Maior Preço</p>
+                  <p className="text-xl font-bold text-error-600 dark:text-red-400">
                     {formatCurrency(findHighestPrice(priceHistory))}
                   </p>
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                  <p className="text-sm text-blue-600 dark:text-blue-400">Preço Médio</p>
-                  <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                <div className="bg-brand-50 dark:bg-brand-900/20 rounded-lg p-4">
+                  <p className="text-sm text-brand-600 dark:text-brand-400">Preço Médio</p>
+                  <p className="text-xl font-bold text-brand-600 dark:text-brand-400">
                     {formatCurrency(calculateAveragePrice(priceHistory))}
                   </p>
                 </div>
@@ -106,13 +106,13 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ itemId, onClose }
                 {priceHistory.map((history, index) => (
                   <div
                     key={history.id}
-                    className="flex items-center justify-between p-3 border border-slate-200 dark:border-slate-700 rounded-lg"
+                    className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
                   >
                     <div>
-                      <p className="font-medium text-slate-800 dark:text-white">
+                      <p className="font-medium text-gray-800 dark:text-white">
                         {formatCurrency(history.price)}
                       </p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {formatDate(history.createdAt)}
                       </p>
                     </div>

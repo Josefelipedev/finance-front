@@ -88,10 +88,10 @@ const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({ isOpen, onClose, on
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-md">
       <div className="p-6 space-y-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
             Escanear Código de Barras
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Envie uma foto do código de barras do produto.
           </p>
         </div>
@@ -110,7 +110,7 @@ const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({ isOpen, onClose, on
             <img
               src={previewUrl}
               alt="Pré-visualização do código"
-              className="w-full max-h-56 object-contain rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
+              className="w-full max-h-56 object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
             />
             {isScanning && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
@@ -123,7 +123,7 @@ const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({ isOpen, onClose, on
         ) : (
           <button
             onClick={() => inputRef.current?.click()}
-            className="w-full border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl py-8 flex flex-col items-center gap-2 text-slate-500 dark:text-slate-400 hover:border-sky-400 hover:text-sky-500 transition-colors"
+            className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl py-8 flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:border-brand-400 hover:text-brand-500 transition-colors"
           >
             <i className="fas fa-barcode text-3xl"></i>
             <span className="text-sm font-medium">Tirar foto ou escolher imagem</span>
@@ -138,8 +138,8 @@ const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({ isOpen, onClose, on
         )}
 
         {/* Fallback manual (sempre disponível) */}
-        <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Ou digite o código
           </label>
           <div className="flex gap-2">
@@ -149,11 +149,11 @@ const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({ isOpen, onClose, on
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               placeholder="Ex.: 7891234567890"
-              className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
             <button
               onClick={handleManualSubmit}
-              className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors whitespace-nowrap"
+              className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors whitespace-nowrap"
             >
               Usar
             </button>
@@ -163,7 +163,7 @@ const BarcodeScanModal: React.FC<BarcodeScanModalProps> = ({ isOpen, onClose, on
         <div className="flex justify-end pt-1">
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
+            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
           >
             Cancelar
           </button>

@@ -52,7 +52,7 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
   if (isLoading) {
     return (
       <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
         <p className="mt-2 text-gray-600 dark:text-gray-400">Carregando transações...</p>
       </div>
     );
@@ -62,7 +62,7 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
     return (
       <div className="text-center py-8">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900 mb-4">
-          <i className="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-2xl"></i>
+          <i className="fas fa-exclamation-triangle text-error-600 dark:text-red-400 text-2xl"></i>
         </div>
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
           Erro ao carregar transações
@@ -127,9 +127,9 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
                         <i
-                          className={`fas fa-${transaction.iconName || 'pricetag'} text-blue-600 dark:text-blue-400`}
+                          className={`fas fa-${transaction.iconName || 'pricetag'} text-brand-600 dark:text-brand-400`}
                         ></i>
                       </div>
                     </div>
@@ -173,7 +173,7 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                     className={
                       transaction.type === 'income'
                         ? 'text-green-600 dark:text-green-400'
-                        : 'text-red-600 dark:text-red-400'
+                        : 'text-error-600 dark:text-red-400'
                     }
                   >
                     {transaction.type === 'income' ? '+' : '-'}
@@ -183,13 +183,13 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button
                     onClick={() => setEditingRecord(transaction)}
-                    className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-3"
+                    className="text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 mr-3"
                   >
                     Editar
                   </button>
                   <button
                     onClick={() => setDeletingRecord(transaction)}
-                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                    className="text-error-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                   >
                     Excluir
                   </button>
@@ -235,11 +235,11 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
               </p>
 
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                <div className="flex items-center text-red-600 dark:text-red-400">
+                <div className="flex items-center text-error-600 dark:text-red-400">
                   <i className="fas fa-exclamation-triangle mr-2"></i>
                   <span className="font-medium">Atenção!</span>
                 </div>
-                <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                <p className="text-sm text-error-600 dark:text-red-400 mt-1">
                   O registro será permanentemente removido.
                 </p>
               </div>

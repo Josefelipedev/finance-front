@@ -97,7 +97,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   return (
     <div className={`w-full ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           {label}
           {required && <span className="text-rose-500 ml-1">*</span>}
         </label>
@@ -117,11 +117,11 @@ const DatePicker: React.FC<DatePickerProps> = ({
             ${
               error
                 ? 'border-rose-500 focus:ring-2 focus:ring-rose-500 focus:border-rose-500'
-                : 'border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500'
+                : 'border-gray-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500'
             }
-            dark:bg-slate-700 dark:border-slate-600 dark:text-white
-            disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed
-            dark:disabled:bg-slate-800 dark:disabled:text-slate-400
+            dark:bg-gray-700 dark:border-gray-600 dark:text-white
+            disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed
+            dark:disabled:bg-gray-800 dark:disabled:text-gray-400
             ${className}
           `}
           placeholder={placeholder}
@@ -129,12 +129,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
 
         {!showTime && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <i className="fas fa-calendar text-slate-400"></i>
+            <i className="fas fa-calendar text-gray-400"></i>
           </div>
         )}
       </div>
 
-      {value && !error && <p className="text-xs text-slate-500 mt-1">{formatForDisplay(value)}</p>}
+      {value && !error && <p className="text-xs text-gray-500 mt-1">{formatForDisplay(value)}</p>}
 
       {error && (
         <p className="text-xs text-rose-500 mt-1">

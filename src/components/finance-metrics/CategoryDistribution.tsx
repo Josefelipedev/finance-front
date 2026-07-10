@@ -182,10 +182,10 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
 
       {isLoading ? (
         <div className="h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : error ? (
-        <div className="h-64 flex flex-col items-center justify-center text-red-500 dark:text-red-400">
+        <div className="h-64 flex flex-col items-center justify-center text-error-500 dark:text-red-400">
           <i className="fas fa-exclamation-triangle text-4xl mb-2"></i>
           <p className="text-center px-4">{error}</p>
         </div>

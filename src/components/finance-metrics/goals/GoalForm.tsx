@@ -97,7 +97,7 @@ const GoalForm: React.FC<GoalFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Nome da Meta *
         </label>
         <input
@@ -106,8 +106,8 @@ const GoalForm: React.FC<GoalFormProps> = ({
           value={formData.name}
           onChange={handleChange}
           required
-          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white transition-colors ${
-            errors.name ? 'border-rose-500' : 'border-slate-300'
+          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors ${
+            errors.name ? 'border-rose-500' : 'border-gray-300'
           }`}
           placeholder="Ex: Reserva de emergência"
         />
@@ -115,7 +115,7 @@ const GoalForm: React.FC<GoalFormProps> = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Descrição
         </label>
         <textarea
@@ -123,14 +123,14 @@ const GoalForm: React.FC<GoalFormProps> = ({
           value={formData.description || ''}
           onChange={handleChange}
           rows={3}
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white resize-none transition-colors"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-none transition-colors"
           placeholder="Descreva sua meta..."
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Valor Alvo ({currencySymbol}) *
           </label>
           <input
@@ -141,8 +141,8 @@ const GoalForm: React.FC<GoalFormProps> = ({
             required
             min="0.01"
             step="0.01"
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white transition-colors ${
-              errors.targetValue ? 'border-rose-500' : 'border-slate-300'
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors ${
+              errors.targetValue ? 'border-rose-500' : 'border-gray-300'
             }`}
             placeholder="0,00"
           />
@@ -150,7 +150,7 @@ const GoalForm: React.FC<GoalFormProps> = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Valor Atual ({currencySymbol})
           </label>
           <input
@@ -160,7 +160,7 @@ const GoalForm: React.FC<GoalFormProps> = ({
             onChange={handleChange}
             min="0"
             step="0.01"
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white transition-colors"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors"
             placeholder="0,00"
           />
         </div>
@@ -184,14 +184,14 @@ const GoalForm: React.FC<GoalFormProps> = ({
       />
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Status
         </label>
         <select
           name="status"
           value={formData.status}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white transition-colors"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors"
         >
           <option value="ACTIVE">Ativa</option>
           <option value="COMPLETED">Concluída</option>
@@ -199,7 +199,7 @@ const GoalForm: React.FC<GoalFormProps> = ({
         </select>
       </div>
 
-      <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
         <Button variant="outline" type="button" onClick={onCancel} disabled={isLoading}>
           Cancelar
         </Button>

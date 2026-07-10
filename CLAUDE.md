@@ -77,3 +77,22 @@ Always import from `src/services/api.ts` (the configured instance), not `http.ts
 ### SVG icons
 
 SVGs in `src/icons/` are transformed to React components by `vite-plugin-svgr`. Import them as `import IconName from '../icons/icon-name.svg?react'`.
+
+### Design tokens (contrato de cores) — LEIA antes de estilizar
+
+Tema **dark fintech** com acento **lima**. Use SEMPRE os tokens abaixo; não introduza cores fora da paleta.
+
+| Papel | Token canônico | Observações |
+|---|---|---|
+| Acento (CTA, foco, destaque) | `brand-400` (fill), `brand-500/600` (texto/hover) | Botão primário = `bg-brand-400 text-gray-950` |
+| Neutro (texto, borda, superfície) | `gray-*` | **Escala única.** Superfície dark = `dark:bg-gray-900`/`gray-950`; borda dark = `dark:border-white/[0.06]` ou `dark:border-gray-800` |
+| Sucesso | `success-*` (verde) | |
+| Erro / validação / destrutivo | `error-*` (vermelho) | Borda de campo inválido = `border-error-500` |
+| Aviso | `warning-*` (âmbar) | |
+| Foco de input | `focus:border-brand-300 focus:ring-brand-500/10` | (ver `components/form/InputField.tsx`) |
+| Card | `rounded-2xl border border-gray-200 bg-white shadow-theme-sm dark:border-white/[0.06] dark:bg-gray-900` | |
+
+⚠️ **Pegadinhas** (por que NÃO usar estas famílias):
+- `sky-*` e `slate-*` estão **remapeados** no `@theme` (`src/index.css`): `sky` renderiza **VERDE**, `slate` é um grafite frio. Enganam quem lê o código. **Não use** — acento é `brand`, neutro é `gray`.
+- `blue-*` / `indigo-*` **não** são remapeados → renderizam azul/roxo reais, fora da paleta. **Não use.**
+- Componentes compartilhados: `Button` (`ui/button`), `Modal` (`ui/modal`), `useConfirm` (`ui/confirm`), `CategorySelect` e primitivos de `components/form/`. Prefira-os a remarcar do zero.

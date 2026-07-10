@@ -73,35 +73,35 @@ const GlobalSearch: React.FC = () => {
   return (
     <div className="space-y-5 px-2 sm:px-0">
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">Busca Global</h2>
-        <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Busca Global</h2>
+        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
           Pesquise em transações, metas e listas de compras
         </p>
       </div>
 
       {/* Search input */}
       <div className="relative">
-        <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
           placeholder="Digite ao menos 2 caracteres..."
-          className="w-full pl-11 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+          className="w-full pl-11 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
         />
         {isLoading && (
-          <i className="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-sky-500"></i>
+          <i className="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-brand-500"></i>
         )}
       </div>
 
       {!hasQuery ? (
-        <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <i className="fas fa-search text-4xl mb-3 opacity-40"></i>
           <p>Comece a digitar para buscar.</p>
         </div>
       ) : total === 0 && !isLoading ? (
-        <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <i className="fas fa-folder-open text-4xl mb-3 opacity-40"></i>
           <p>Nenhum resultado para "{debounced}".</p>
         </div>
@@ -127,7 +127,7 @@ const GlobalSearch: React.FC = () => {
                       {formatCurrency(tx.amount)}
                     </span>
                   }
-                  iconClass="fa-exchange-alt text-sky-500"
+                  iconClass="fa-exchange-alt text-brand-500"
                 />
               ))}
             </Section>
@@ -142,7 +142,7 @@ const GlobalSearch: React.FC = () => {
                   title={g.name}
                   subtitle={`${formatCurrency(g.currentValue)} de ${formatCurrency(g.targetValue)}`}
                   trailing={
-                    <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 rounded-full">
+                    <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded-full">
                       {g.status === 'COMPLETED'
                         ? 'Concluída'
                         : g.status === 'CANCELED'
@@ -182,8 +182,8 @@ const Section: React.FC<{
   children: React.ReactNode;
 }> = ({ title, count, children }) => (
   <div>
-    <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
-      {title} <span className="text-slate-400">({count})</span>
+    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+      {title} <span className="text-gray-400">({count})</span>
     </h3>
     <div className="space-y-2">{children}</div>
   </div>
@@ -195,13 +195,13 @@ const ResultRow: React.FC<{
   trailing?: React.ReactNode;
   iconClass: string;
 }> = ({ title, subtitle, trailing, iconClass }) => (
-  <div className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-    <div className="w-9 h-9 rounded-lg bg-slate-50 dark:bg-slate-700 flex items-center justify-center shrink-0">
+  <div className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+    <div className="w-9 h-9 rounded-lg bg-gray-50 dark:bg-gray-700 flex items-center justify-center shrink-0">
       <i className={`fas ${iconClass}`}></i>
     </div>
     <div className="min-w-0 flex-1">
-      <p className="font-medium text-slate-800 dark:text-white truncate">{title}</p>
-      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{subtitle}</p>
+      <p className="font-medium text-gray-800 dark:text-white truncate">{title}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{subtitle}</p>
     </div>
     {trailing && <div className="shrink-0 font-semibold text-sm">{trailing}</div>}
   </div>

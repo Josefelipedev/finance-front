@@ -90,17 +90,17 @@ const TransactionsCalendar: React.FC = () => {
     <div className="space-y-4 px-2 sm:px-0">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">Calendário</h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Calendário</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             Visualize o saldo diário e clique em um dia para ver as transações
           </p>
         </div>
         {isLoading && (
-          <i className="fas fa-spinner fa-spin text-sky-500" aria-label="Carregando"></i>
+          <i className="fas fa-spinner fa-spin text-brand-500" aria-label="Carregando"></i>
         )}
       </div>
 
-      <div className="finance-calendar bg-white dark:bg-slate-800 rounded-xl p-2 sm:p-4">
+      <div className="finance-calendar bg-white dark:bg-gray-800 rounded-xl p-2 sm:p-4">
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
@@ -117,7 +117,7 @@ const TransactionsCalendar: React.FC = () => {
       {/* Detalhe do dia */}
       <Modal isOpen={Boolean(selectedDay)} onClose={() => setSelectedDay(null)} className="max-w-lg">
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-1">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-1">
             {selectedDay && new Date(selectedDay + 'T00:00:00').toLocaleDateString('pt-BR', {
               weekday: 'long',
               day: '2-digit',
@@ -137,7 +137,7 @@ const TransactionsCalendar: React.FC = () => {
           </div>
 
           {selectedTransactions.length === 0 ? (
-            <p className="text-center text-slate-500 dark:text-slate-400 py-6">
+            <p className="text-center text-gray-500 dark:text-gray-400 py-6">
               Nenhuma transação neste dia.
             </p>
           ) : (
@@ -145,13 +145,13 @@ const TransactionsCalendar: React.FC = () => {
               {selectedTransactions.map((tx) => (
                 <div
                   key={tx.id}
-                  className="flex items-center justify-between gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-700/40"
+                  className="flex items-center justify-between gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/40"
                 >
                   <div className="min-w-0">
-                    <p className="font-medium text-slate-800 dark:text-white truncate">
+                    <p className="font-medium text-gray-800 dark:text-white truncate">
                       {tx.description || 'Sem descrição'}
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {tx.category?.name || 'Sem categoria'}
                     </p>
                   </div>

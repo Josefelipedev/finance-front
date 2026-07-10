@@ -55,7 +55,7 @@ const RecentActivity: React.FC<RecentActivityProps> = ({ limit = 5 }) => {
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
                     Atividade Recente
                 </h3>
-                <button className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                <button className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400">
                     Ver todas
                 </button>
             </div>
@@ -76,7 +76,7 @@ const RecentActivity: React.FC<RecentActivityProps> = ({ limit = 5 }) => {
                                     <i className={`fas fa-${getTypeIcon(activity.type)} ${
                                         activity.type === 'income'
                                             ? 'text-green-600 dark:text-green-400'
-                                            : 'text-red-600 dark:text-red-400'
+                                            : 'text-error-600 dark:text-red-400'
                                     }`}></i>
                                 </div>
 
@@ -93,7 +93,7 @@ const RecentActivity: React.FC<RecentActivityProps> = ({ limit = 5 }) => {
                             <div className={`font-semibold ${
                                 activity.type === 'income'
                                     ? 'text-green-600 dark:text-green-400'
-                                    : 'text-red-600 dark:text-red-400'
+                                    : 'text-error-600 dark:text-red-400'
                             }`}>
                                 {activity.type === 'income' ? '+' : '-'} {formatMoney(Math.abs(activity.amount), activity.currency)}
                             </div>

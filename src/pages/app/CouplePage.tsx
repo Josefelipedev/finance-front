@@ -215,18 +215,18 @@ export default function CouplePage() {
               <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                 <div className="flex items-center gap-4">
                   <div className="flex -space-x-3">
-                    <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white bg-brand-400 font-display text-lg font-bold text-gray-950 dark:border-slate-800">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white bg-brand-400 font-display text-lg font-bold text-gray-950 dark:border-gray-800">
                       {initials(profile?.displayName || profile?.name)}
                     </span>
-                    <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white bg-slate-200 font-display text-lg font-bold text-slate-700 dark:border-slate-800 dark:bg-slate-700 dark:text-white">
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white bg-gray-200 font-display text-lg font-bold text-gray-700 dark:border-gray-800 dark:bg-gray-700 dark:text-white">
                       {initials(profile?.spouse?.name)}
                     </span>
                   </div>
                   <div>
-                    <p className="font-display text-lg font-semibold text-slate-900 dark:text-white">
+                    <p className="font-display text-lg font-semibold text-gray-900 dark:text-white">
                       Você &amp; {profile?.spouse?.name || 'seu par'}
                     </p>
-                    <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                    <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                       {profile?.spouse?.phone
                         ? `Telefone: ${profile.spouse.phone}`
                         : 'Workspace compartilhado'}
@@ -245,11 +245,11 @@ export default function CouplePage() {
           {summary && (
             <div>
               <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                   Este mês, juntos
                 </h2>
                 {summary.rateDate && (
-                  <span className="text-xs text-slate-400 dark:text-slate-500">
+                  <span className="text-xs text-gray-400 dark:text-gray-500">
                     em {currencyOption(summary.displayCurrency).flag} {summary.displayCurrency} · câmbio BCE de{' '}
                     {new Date(summary.rateDate + 'T00:00:00').toLocaleDateString('pt-BR')}
                   </span>
@@ -257,20 +257,20 @@ export default function CouplePage() {
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <Surface className="p-5">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Ganhos</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Ganhos</p>
                   <p className="mt-1 font-display text-xl font-semibold tabular-nums text-green-600 dark:text-green-400">
                     {formatMoney(summary.totalGanhos, summary.displayCurrency)}
                   </p>
                 </Surface>
                 <Surface className="p-5">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Despesas</p>
-                  <p className="mt-1 font-display text-xl font-semibold tabular-nums text-red-600 dark:text-red-400">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Despesas</p>
+                  <p className="mt-1 font-display text-xl font-semibold tabular-nums text-error-600 dark:text-red-400">
                     {formatMoney(summary.totalDespesas, summary.displayCurrency)}
                   </p>
                 </Surface>
                 <Surface className="p-5">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Saldo</p>
-                  <p className="mt-1 font-display text-xl font-semibold tabular-nums text-slate-900 dark:text-white">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Saldo</p>
+                  <p className="mt-1 font-display text-xl font-semibold tabular-nums text-gray-900 dark:text-white">
                     {formatMoney(summary.saldo, summary.displayCurrency)}
                   </p>
                 </Surface>
@@ -280,11 +280,11 @@ export default function CouplePage() {
                   {summary.byCurrency!.map((c) => (
                     <span
                       key={c.currency}
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium tabular-nums text-slate-600 dark:border-white/[0.08] dark:text-slate-300"
+                      className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-xs font-medium tabular-nums text-gray-600 dark:border-white/[0.08] dark:text-gray-300"
                     >
                       <span>{currencyOption(c.currency).flag} {c.currency}</span>
                       <span className="text-green-600 dark:text-green-400">+{formatMoney(c.ganhos, c.currency)}</span>
-                      <span className="text-red-600 dark:text-red-400">−{formatMoney(c.despesas, c.currency)}</span>
+                      <span className="text-error-600 dark:text-red-400">−{formatMoney(c.despesas, c.currency)}</span>
                     </span>
                   ))}
                 </div>
@@ -294,7 +294,7 @@ export default function CouplePage() {
 
           {/* O que é compartilhado */}
           <div>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
               O que vocês compartilham
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -302,16 +302,16 @@ export default function CouplePage() {
                 <Link
                   key={area.name}
                   to={area.path}
-                  className="group rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-brand-300 dark:border-white/[0.06] dark:bg-slate-800 dark:hover:border-brand-400/40"
+                  className="group rounded-2xl border border-gray-200 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-brand-300 dark:border-white/[0.06] dark:bg-gray-800 dark:hover:border-brand-400/40"
                 >
                   <div className="flex items-start justify-between">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-400/10 dark:text-brand-300">
                       <i className={`fas fa-${area.icon}`}></i>
                     </span>
-                    <i className="fas fa-arrow-right text-xs text-slate-300 transition-transform group-hover:translate-x-1 group-hover:text-brand-500 dark:text-slate-600 dark:group-hover:text-brand-400"></i>
+                    <i className="fas fa-arrow-right text-xs text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-brand-500 dark:text-gray-600 dark:group-hover:text-brand-400"></i>
                   </div>
-                  <p className="mt-3 font-medium text-slate-900 dark:text-white">{area.name}</p>
-                  <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                  <p className="mt-3 font-medium text-gray-900 dark:text-white">{area.name}</p>
+                  <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                     {area.description}
                   </p>
                 </Link>
@@ -323,8 +323,8 @@ export default function CouplePage() {
           <Surface className="p-5 sm:p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-medium text-slate-900 dark:text-white">Desfazer o vínculo</p>
-                <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                <p className="font-medium text-gray-900 dark:text-white">Desfazer o vínculo</p>
+                <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                   Cada um volta a ter um workspace separado. Nenhum dado é apagado.
                 </p>
               </div>
@@ -333,8 +333,8 @@ export default function CouplePage() {
                 disabled={isUnlinking}
                 className={`flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-60 ${
                   confirmUnlink
-                    ? 'bg-red-500 text-white hover:bg-red-600'
-                    : 'border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10'
+                    ? 'bg-error-500 text-white hover:bg-error-600'
+                    : 'border border-red-200 text-error-600 hover:bg-red-50 dark:border-error-500/30 dark:text-red-400 dark:hover:bg-error-500/10'
                 }`}
               >
                 {isUnlinking ? (
@@ -356,10 +356,10 @@ export default function CouplePage() {
                 {initials(receivedInvite.inviter.displayName || receivedInvite.inviter.name)}
               </span>
               <div>
-                <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">
+                <h2 className="font-display text-lg font-semibold text-gray-900 dark:text-white">
                   {receivedInvite.inviter.name} te convidou para compartilhar as finanças
                 </h2>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   Ao aceitar, transações, orçamento, metas, listas e despensa passam a ser dos
                   dois. Convite válido até{' '}
                   {new Date(receivedInvite.expiresAt).toLocaleDateString('pt-BR')}.
@@ -376,7 +376,7 @@ export default function CouplePage() {
               </button>
               <button
                 onClick={() => handleReject(receivedInvite.id)}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 px-5 py-3 font-medium text-slate-600 transition-colors hover:bg-slate-50 sm:flex-none dark:border-white/[0.08] dark:text-slate-300 dark:hover:bg-white/5"
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 px-5 py-3 font-medium text-gray-600 transition-colors hover:bg-gray-50 sm:flex-none dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-white/5"
               >
                 Recusar
               </button>
@@ -388,14 +388,14 @@ export default function CouplePage() {
         <Surface className="p-6 sm:p-8">
           <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xl text-slate-500 dark:bg-white/5 dark:text-slate-400">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-500 dark:bg-white/5 dark:text-gray-400">
                 <i className="fas fa-hourglass-half"></i>
               </span>
               <div>
-                <h2 className="font-display text-lg font-semibold text-slate-900 dark:text-white">
+                <h2 className="font-display text-lg font-semibold text-gray-900 dark:text-white">
                   Aguardando resposta de {sentInvite.invitee.name}
                 </h2>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   O convite foi enviado{sentInvite.invitee.phone ? ` para ${sentInvite.invitee.phone}` : ''} e
                   vale até {new Date(sentInvite.expiresAt).toLocaleDateString('pt-BR')}. Seu par
                   aceita na tela Casal do app dele(a).
@@ -404,7 +404,7 @@ export default function CouplePage() {
             </div>
             <button
               onClick={() => handleCancel(sentInvite.id)}
-              className="flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-red-200 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
+              className="flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-red-200 px-4 py-2.5 text-sm font-medium text-error-600 transition-colors hover:bg-red-50 dark:border-error-500/30 dark:text-red-400 dark:hover:bg-error-500/10"
             >
               <i className="fas fa-xmark"></i>
               Cancelar convite
@@ -418,10 +418,10 @@ export default function CouplePage() {
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-400 text-xl text-gray-950 shadow-glow">
               <i className="fas fa-heart"></i>
             </span>
-            <h2 className="mt-4 font-display text-xl font-semibold text-slate-900 dark:text-white">
+            <h2 className="mt-4 font-display text-xl font-semibold text-gray-900 dark:text-white">
               Finanças a dois, sem planilha nem confusão
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            <p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
               Ao vincular sua conta à do seu par, vocês passam a enxergar e gerenciar tudo juntos:
               cada transação, meta, lista de compras e item da despensa vale para os dois — de
               qualquer dispositivo, incluindo o WhatsApp.
@@ -429,7 +429,7 @@ export default function CouplePage() {
 
             <form onSubmit={handleLink} className="mt-6 space-y-3">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Telefone do seu par
                 </label>
                 <input
@@ -438,9 +438,9 @@ export default function CouplePage() {
                   value={spousePhone}
                   onChange={(e) => setSpousePhone(e.target.value)}
                   placeholder="Ex.: +351 912 345 678"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/30 dark:border-white/[0.08] dark:bg-slate-700 dark:text-white"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/30 dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
                 />
-                <p className="mt-1.5 text-xs text-slate-400 dark:text-slate-500">
+                <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
                   Use o número completo com DDI e DDD, o mesmo cadastrado na conta dele(a).
                 </p>
               </div>
@@ -466,21 +466,21 @@ export default function CouplePage() {
 
           {/* Como funciona */}
           <Surface className="p-6 lg:col-span-2">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
               Como funciona
             </h3>
             <ol className="mt-4 space-y-5">
               {howItWorks.map((step, index) => (
                 <li key={step.title} className="flex gap-4">
-                  <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                  <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-300">
                     <i className={`fas fa-${step.icon} text-sm`}></i>
                     <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-400 text-[10px] font-bold text-gray-950">
                       {index + 1}
                     </span>
                   </span>
                   <div>
-                    <p className="font-medium text-slate-900 dark:text-white">{step.title}</p>
-                    <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{step.text}</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{step.title}</p>
+                    <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{step.text}</p>
                   </div>
                 </li>
               ))}

@@ -132,10 +132,10 @@ const MonthlyReport: React.FC = () => {
       {/* Header + navegação */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
             Relatório Mensal
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             Resumo das suas receitas e despesas mês a mês
           </p>
         </div>
@@ -143,18 +143,18 @@ const MonthlyReport: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={prevMonth}
-            className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             aria-label="Mês anterior"
           >
             <i className="fas fa-chevron-left"></i>
           </button>
-          <span className="min-w-[140px] text-center font-medium text-slate-800 dark:text-white">
+          <span className="min-w-[140px] text-center font-medium text-gray-800 dark:text-white">
             {MONTH_NAMES[month]} {year}
           </span>
           <button
             onClick={nextMonth}
             disabled={isCurrentMonth}
-            className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Próximo mês"
           >
             <i className="fas fa-chevron-right"></i>
@@ -174,46 +174,46 @@ const MonthlyReport: React.FC = () => {
 
       {isLoading ? (
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-sky-500" />
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-brand-500" />
         </div>
       ) : (
         <>
           {/* Resumo do mês */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Receitas</p>
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Receitas</p>
               <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                 {formatCurrency(income)}
               </p>
             </div>
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Despesas</p>
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Despesas</p>
               <p className="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1">
                 {formatCurrency(expense)}
               </p>
             </div>
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
-              <p className="text-xs text-slate-500 dark:text-slate-400">Balanço</p>
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Balanço</p>
               <p
                 className={`text-xl font-bold mt-1 ${
                   balance < 0
                     ? 'text-rose-600 dark:text-rose-400'
-                    : 'text-slate-800 dark:text-white'
+                    : 'text-gray-800 dark:text-white'
                 }`}
               >
                 {formatCurrency(balance)}
               </p>
-              <p className="text-xs text-slate-400 mt-1">{records.length} transações</p>
+              <p className="text-xs text-gray-400 mt-1">{records.length} transações</p>
             </div>
           </div>
 
           {/* Despesas por categoria */}
-          <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-6 shadow-sm">
-            <h3 className="font-semibold text-slate-800 dark:text-white mb-4">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 sm:p-6 shadow-sm">
+            <h3 className="font-semibold text-gray-800 dark:text-white mb-4">
               Despesas por categoria
             </h3>
             {byCategory.length === 0 ? (
-              <p className="text-center text-slate-500 dark:text-slate-400 py-6">
+              <p className="text-center text-gray-500 dark:text-gray-400 py-6">
                 Nenhuma despesa registrada neste mês.
               </p>
             ) : (
@@ -221,18 +221,18 @@ const MonthlyReport: React.FC = () => {
                 {byCategory.map((cat) => (
                   <div key={cat.name}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-slate-700 dark:text-slate-300">{cat.name}</span>
-                      <span className="text-slate-800 dark:text-white font-medium">
+                      <span className="text-gray-700 dark:text-gray-300">{cat.name}</span>
+                      <span className="text-gray-800 dark:text-white font-medium">
                         {formatCurrency(cat.value)}
                       </span>
                     </div>
-                    <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                    <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-sky-500"
+                        className="h-full rounded-full bg-brand-500"
                         style={{ width: `${cat.pct}%` }}
                       />
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-gray-400 mt-0.5">
                       {cat.pct.toFixed(0)}% das despesas
                     </p>
                   </div>
@@ -242,16 +242,16 @@ const MonthlyReport: React.FC = () => {
           </div>
 
           {/* Insight IA */}
-          <div className="bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 border border-sky-100 dark:border-slate-700 rounded-xl p-4 sm:p-6">
+          <div className="bg-gradient-to-br from-sky-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800 border border-brand-100 dark:border-gray-700 rounded-xl p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3 mb-3">
-              <h3 className="font-semibold text-slate-800 dark:text-white flex items-center gap-2">
-                <i className="fas fa-wand-magic-sparkles text-indigo-500"></i>
+              <h3 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                <i className="fas fa-wand-magic-sparkles text-brand-500"></i>
                 Insight Financeiro (IA)
               </h3>
               <button
                 onClick={handleInsight}
                 disabled={insightLoading}
-                className="px-3 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-60 whitespace-nowrap"
+                className="px-3 py-2 bg-brand-400 text-gray-950 rounded-lg hover:bg-brand-300 transition-colors text-sm flex items-center gap-2 disabled:opacity-60 whitespace-nowrap"
               >
                 {insightLoading ? (
                   <i className="fas fa-spinner fa-spin"></i>
@@ -262,11 +262,11 @@ const MonthlyReport: React.FC = () => {
               </button>
             </div>
             {insight ? (
-              <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-line">
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
                 {insight}
               </p>
             ) : (
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Gere um comentário inteligente sobre suas finanças dos últimos 30 dias.
               </p>
             )}

@@ -65,7 +65,7 @@ export default function TransactionsPage() {
       ).toLocaleDateString('pt-BR')}`}
       actions={
         <>
-          <div className="rounded-xl border border-slate-200 bg-white p-1 dark:border-white/[0.06] dark:bg-slate-800">
+          <div className="rounded-xl border border-gray-200 bg-white p-1 dark:border-white/[0.06] dark:bg-gray-800">
             <DateRangePicker
               startDate={dateRange.startDate}
               endDate={dateRange.endDate}
@@ -78,7 +78,7 @@ export default function TransactionsPage() {
           <button
             onClick={handleExport}
             disabled={isExporting}
-            className="flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-white/[0.06] dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="flex items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60 dark:border-white/[0.06] dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             <i className={`fas ${isExporting ? 'fa-spinner fa-spin' : 'fa-file-export'} text-xs`}></i>
             {isExporting ? 'Exportando...' : 'Exportar CSV'}

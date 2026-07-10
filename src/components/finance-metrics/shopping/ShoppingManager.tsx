@@ -116,7 +116,7 @@ const ShoppingManager: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500"></div>
       </div>
     );
   }
@@ -125,12 +125,12 @@ const ShoppingManager: React.FC = () => {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
         <div className="flex items-center gap-3">
-          <i className="fas fa-exclamation-circle text-red-500 text-xl"></i>
+          <i className="fas fa-exclamation-circle text-error-500 text-xl"></i>
           <div>
             <h3 className="font-semibold text-red-800 dark:text-red-300">
               Erro ao carregar listas de compras
             </h3>
-            <p className="text-red-600 dark:text-red-400 text-sm mt-1">{error.message}</p>
+            <p className="text-error-600 dark:text-red-400 text-sm mt-1">{error.message}</p>
           </div>
         </div>
       </div>
@@ -187,22 +187,22 @@ const ShoppingManager: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Listas de Compras</h2>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Listas de Compras</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Organize suas compras e acompanhe os preços
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setIsAIModalOpen(true)}
-            className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-sky-500 text-white rounded-lg hover:from-purple-600 hover:to-sky-600 transition-all shadow-sm flex items-center gap-2"
+            className="px-4 py-2.5 bg-gradient-to-r from-purple-500 to-brand-500 text-white rounded-lg hover:from-purple-600 hover:to-brand-600 transition-all shadow-sm flex items-center gap-2"
           >
             <i className="fas fa-robot"></i>
             Gerar com IA
           </button>
           <button
             onClick={handleCreateList}
-            className="px-4 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center gap-2"
+            className="px-4 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors shadow-sm flex items-center gap-2"
           >
             <i className="fas fa-plus"></i>
             Nova Lista
@@ -211,25 +211,25 @@ const ShoppingManager: React.FC = () => {
       </div>
 
       {lists && lists.length === 0 ? (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-12 text-center">
-          <i className="fas fa-shopping-basket text-5xl text-slate-300 dark:text-slate-600 mb-4"></i>
-          <h3 className="text-xl font-semibold text-slate-700 dark:text-slate-300 mb-2">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-12 text-center">
+          <i className="fas fa-shopping-basket text-5xl text-gray-300 dark:text-gray-600 mb-4"></i>
+          <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
             Nenhuma lista de compras encontrada
           </h3>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
             Crie sua primeira lista manualmente ou deixe a IA montar uma lista econômica para você
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => setIsAIModalOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-sky-500 text-white rounded-lg hover:from-purple-600 hover:to-sky-600 transition-all shadow-sm flex items-center gap-2 justify-center"
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-brand-500 text-white rounded-lg hover:from-purple-600 hover:to-brand-600 transition-all shadow-sm flex items-center gap-2 justify-center"
             >
               <i className="fas fa-robot"></i>
               Gerar com IA
             </button>
             <button
               onClick={handleCreateList}
-              className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center gap-2 justify-center"
+              className="px-6 py-3 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors shadow-sm flex items-center gap-2 justify-center"
             >
               <i className="fas fa-plus"></i>
               Criar Manualmente

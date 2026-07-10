@@ -21,7 +21,7 @@ const FinanceTable: React.FC<FinanceTableProps> = ({ transactions }) => {
       case 'income':
         return 'bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400';
       case 'expense':
-        return 'bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-400';
+        return 'bg-red-100 text-red-800 dark:bg-error-500/10 dark:text-red-400';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-white/10 dark:text-gray-300';
     }
@@ -87,7 +87,7 @@ const FinanceTable: React.FC<FinanceTableProps> = ({ transactions }) => {
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div
                     className={`text-sm font-medium ${
-                      transaction.tag === 'income' ? 'text-green-600' : 'text-red-600'
+                      transaction.tag === 'income' ? 'text-green-600' : 'text-error-600'
                     }`}
                   >
                     {transaction.tag === 'income' ? '+' : '-'}{' '}

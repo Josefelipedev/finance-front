@@ -38,16 +38,16 @@ const AIShoppingModal: React.FC<AIShoppingModalProps> = ({ onSuccess, onCancel }
     <Modal isOpen={true} onClose={onCancel} className="max-w-lg">
 
       {/* Header */}
-      <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-3 pr-8">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-sky-500 rounded-xl flex items-center justify-center">
             <i className="fas fa-robot text-white text-lg" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-white">
               Gerar Lista com IA
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               A IA analisa seus gastos e monta a lista mais econômica para você
             </p>
           </div>
@@ -59,12 +59,12 @@ const AIShoppingModal: React.FC<AIShoppingModalProps> = ({ onSuccess, onCancel }
 
           {/* Orçamento */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              <i className="fas fa-wallet text-sky-500 mr-2" />
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              <i className="fas fa-wallet text-brand-500 mr-2" />
               Orçamento máximo (opcional)
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
                 €
               </span>
               <input
@@ -74,18 +74,18 @@ const AIShoppingModal: React.FC<AIShoppingModalProps> = ({ onSuccess, onCancel }
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
                 placeholder="Ex: 300,00"
-                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:text-white"
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Sem orçamento, a IA priorizará o máximo de economia possível.
             </p>
           </div>
 
           {/* Nome da lista */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              <i className="fas fa-tag text-sky-500 mr-2" />
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              <i className="fas fa-tag text-brand-500 mr-2" />
               Nome da lista (opcional)
             </label>
             <input
@@ -94,14 +94,14 @@ const AIShoppingModal: React.FC<AIShoppingModalProps> = ({ onSuccess, onCancel }
               onChange={(e) => setListName(e.target.value)}
               placeholder="Ex: Compras da semana"
               maxLength={60}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:text-white"
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
             />
           </div>
 
           {/* Preferências */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              <i className="fas fa-sliders-h text-sky-500 mr-2" />
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+              <i className="fas fa-sliders-h text-brand-500 mr-2" />
               Preferências e restrições (opcional)
             </label>
             <textarea
@@ -110,9 +110,9 @@ const AIShoppingModal: React.FC<AIShoppingModalProps> = ({ onSuccess, onCancel }
               placeholder="Ex: sou vegetariano, prefiro produtos orgânicos, tenho intolerância à lactose, quero focar em proteínas..."
               rows={3}
               maxLength={300}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:text-white resize-none"
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white resize-none"
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {preferences.length}/300 caracteres
             </p>
           </div>
@@ -139,7 +139,7 @@ const AIShoppingModal: React.FC<AIShoppingModalProps> = ({ onSuccess, onCancel }
               type="button"
               onClick={onCancel}
               disabled={isLoading}
-              className="px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+              className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>

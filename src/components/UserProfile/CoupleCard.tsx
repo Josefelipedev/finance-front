@@ -14,7 +14,7 @@ const CoupleCard: React.FC = () => {
   const isMarried = Boolean(profile?.isMarried && profile?.spouseId);
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-white/[0.06] dark:bg-slate-800 lg:p-6">
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-white/[0.06] dark:bg-gray-800 lg:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-400/10 dark:text-brand-300">

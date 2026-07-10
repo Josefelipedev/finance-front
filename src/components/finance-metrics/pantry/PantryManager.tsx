@@ -104,7 +104,7 @@ const PantryManager: React.FC = () => {
   if (isLoading && items.length === 0) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-sky-500" />
+        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-brand-500" />
       </div>
     );
   }
@@ -113,12 +113,12 @@ const PantryManager: React.FC = () => {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 sm:p-6">
         <div className="flex gap-3">
-          <i className="fas fa-exclamation-circle text-red-500 text-xl mt-0.5"></i>
+          <i className="fas fa-exclamation-circle text-error-500 text-xl mt-0.5"></i>
           <div>
             <h3 className="font-semibold text-red-800 dark:text-red-300 text-sm sm:text-base">
               Erro ao carregar a despensa
             </h3>
-            <p className="text-red-600 dark:text-red-400 text-xs sm:text-sm mt-1">{error.message}</p>
+            <p className="text-error-600 dark:text-red-400 text-xs sm:text-sm mt-1">{error.message}</p>
           </div>
         </div>
       </div>
@@ -130,8 +130,8 @@ const PantryManager: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">Despensa</h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Despensa</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             Controle os itens que você tem em casa e acompanhe validades
           </p>
         </div>
@@ -160,7 +160,7 @@ const PantryManager: React.FC = () => {
 
       {/* List */}
       {items.length === 0 ? (
-        <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <i className="fas fa-box-open text-4xl mb-3 opacity-40"></i>
           <p>Sua despensa está vazia. Adicione o primeiro item.</p>
         </div>
@@ -169,13 +169,13 @@ const PantryManager: React.FC = () => {
           {items.map((item) => (
             <div
               key={item.id}
-              className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm"
+              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-slate-800 dark:text-white truncate">{item.name}</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-white truncate">{item.name}</h3>
                   {item.category && (
-                    <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full">
+                    <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
                       {item.category}
                     </span>
                   )}
@@ -183,14 +183,14 @@ const PantryManager: React.FC = () => {
                 <div className="flex gap-1 shrink-0">
                   <button
                     onClick={() => openEdit(item)}
-                    className="p-2 text-slate-400 hover:text-sky-500 transition-colors"
+                    className="p-2 text-gray-400 hover:text-brand-500 transition-colors"
                     aria-label="Editar"
                   >
                     <i className="fas fa-pen text-sm"></i>
                   </button>
                   <button
                     onClick={() => setDeleting(item)}
-                    className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
+                    className="p-2 text-gray-400 hover:text-rose-500 transition-colors"
                     aria-label="Remover"
                   >
                     <i className="fas fa-trash text-sm"></i>
@@ -199,7 +199,7 @@ const PantryManager: React.FC = () => {
               </div>
 
               <div className="mt-3 flex items-center justify-between text-sm">
-                <span className="text-slate-600 dark:text-slate-300">
+                <span className="text-gray-600 dark:text-gray-300">
                   {item.quantity != null ? item.quantity : '—'} {item.unit || ''}
                 </span>
                 {item.expiresAt && (
@@ -223,26 +223,26 @@ const PantryManager: React.FC = () => {
       {/* Form Modal */}
       <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} className="max-w-md">
         <div className="p-6 space-y-4">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
             {editing ? 'Editar Item' : 'Novo Item'}
           </h2>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nome *
             </label>
             <input
               type="text"
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               placeholder="Ex.: Arroz"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Quantidade
               </label>
               <input
@@ -254,19 +254,19 @@ const PantryManager: React.FC = () => {
                     quantity: e.target.value === '' ? undefined : Number(e.target.value),
                   }))
                 }
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="0"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Unidade
               </label>
               <input
                 type="text"
                 value={form.unit ?? ''}
                 onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="kg, un, L..."
               />
             </div>
@@ -274,19 +274,19 @@ const PantryManager: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Categoria
               </label>
               <input
                 type="text"
                 value={form.category ?? ''}
                 onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="Ex.: Grãos"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Validade
               </label>
               <input
@@ -295,7 +295,7 @@ const PantryManager: React.FC = () => {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, expiresAt: e.target.value || undefined }))
                 }
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           </div>
@@ -331,12 +331,12 @@ const PantryManager: React.FC = () => {
       {/* Delete confirmation */}
       <Modal isOpen={Boolean(deleting)} onClose={() => setDeleting(null)} className="max-w-md">
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Confirmar Exclusão
           </h2>
           {deleting && (
             <div className="space-y-4">
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-gray-600 dark:text-gray-400">
                 Tem certeza que deseja remover <strong>"{deleting.name}"</strong> da despensa?
               </p>
               <div className="flex justify-end space-x-3 pt-2">

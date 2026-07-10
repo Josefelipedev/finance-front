@@ -65,7 +65,7 @@ const CategoryManager: React.FC = () => {
   if (isLoading && categories.length === 0) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-500"></div>
       </div>
     );
   }
@@ -74,12 +74,12 @@ const CategoryManager: React.FC = () => {
     return (
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
         <div className="flex items-center gap-3">
-          <i className="fas fa-exclamation-circle text-red-500 text-xl"></i>
+          <i className="fas fa-exclamation-circle text-error-500 text-xl"></i>
           <div>
             <h3 className="font-semibold text-red-800 dark:text-red-300">
               Erro ao carregar categorias
             </h3>
-            <p className="text-red-600 dark:text-red-400 text-sm mt-1">{error}</p>
+            <p className="text-error-600 dark:text-red-400 text-sm mt-1">{error}</p>
             <button
               onClick={loadCategories}
               className="mt-2 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-sm"
@@ -96,10 +96,10 @@ const CategoryManager: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
             Gerenciar Categorias
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Organize suas categorias de receitas e despesas
           </p>
         </div>

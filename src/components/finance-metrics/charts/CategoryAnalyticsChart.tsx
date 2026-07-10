@@ -186,7 +186,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
     return (
       <div className="h-80 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Carregando categorias...</p>
         </div>
       </div>
@@ -195,7 +195,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
 
   if (error) {
     return (
-      <div className="h-80 flex flex-col items-center justify-center text-red-500 dark:text-red-400">
+      <div className="h-80 flex flex-col items-center justify-center text-error-500 dark:text-red-400">
         <i className="fas fa-exclamation-triangle text-4xl mb-3"></i>
         <p className="text-lg font-medium">Erro ao carregar o gráfico</p>
         <p className="text-sm mt-1 text-center px-4">{error}</p>
@@ -271,14 +271,14 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
             </div>
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg p-4">
+          <div className="bg-brand-50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 rounded-lg p-4">
             <div className="flex items-center">
-              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-3">
-                <i className="fas fa-chart-pie text-blue-600 dark:text-blue-400"></i>
+              <div className="h-10 w-10 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center mr-3">
+                <i className="fas fa-chart-pie text-brand-600 dark:text-brand-400"></i>
               </div>
               <div>
-                <p className="text-sm text-blue-700 dark:text-blue-300">Total Categorizado</p>
-                <p className="text-lg font-semibold text-blue-800 dark:text-blue-200">
+                <p className="text-sm text-brand-700 dark:text-brand-300">Total Categorizado</p>
+                <p className="text-lg font-semibold text-brand-800 dark:text-brand-200">
                   {formatMoney(total, displayCurrency)}
                 </p>
               </div>

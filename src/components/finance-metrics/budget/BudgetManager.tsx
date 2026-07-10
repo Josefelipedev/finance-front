@@ -125,7 +125,7 @@ const BudgetManager: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-sky-500" />
+        <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-brand-500" />
       </div>
     );
   }
@@ -135,10 +135,10 @@ const BudgetManager: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
             Limites de Orçamento
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             Defina um teto mensal de gastos por categoria e acompanhe o consumo
           </p>
         </div>
@@ -156,21 +156,21 @@ const BudgetManager: React.FC = () => {
 
       {/* Resumo do mês */}
       {limits.length > 0 && (
-        <div className="bg-slate-50 dark:bg-slate-700/40 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex flex-wrap gap-4 justify-between">
+        <div className="bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-wrap gap-4 justify-between">
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Gasto do mês</p>
-            <p className="text-lg font-bold text-slate-800 dark:text-white">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Gasto do mês</p>
+            <p className="text-lg font-bold text-gray-800 dark:text-white">
               {formatCurrency(totalSpend)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Limite total</p>
-            <p className="text-lg font-bold text-slate-800 dark:text-white">
+            <p className="text-xs text-gray-500 dark:text-gray-400">Limite total</p>
+            <p className="text-lg font-bold text-gray-800 dark:text-white">
               {formatCurrency(totalLimit)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Disponível</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Disponível</p>
             <p
               className={`text-lg font-bold ${
                 totalLimit - totalSpend < 0
@@ -186,7 +186,7 @@ const BudgetManager: React.FC = () => {
 
       {/* Lista */}
       {limits.length === 0 ? (
-        <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <i className="fas fa-wallet text-4xl mb-3 opacity-40"></i>
           <p>Nenhum limite definido. Crie o primeiro para acompanhar seus gastos.</p>
         </div>
@@ -206,14 +206,14 @@ const BudgetManager: React.FC = () => {
             return (
               <div
                 key={limit.categoryId}
-                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm"
+                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-slate-800 dark:text-white truncate">
+                    <h3 className="font-semibold text-gray-800 dark:text-white truncate">
                       {limit.categoryName}
                     </h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                       {formatCurrency(spent)} de {formatCurrency(limit.monthlyLimit)}
                     </p>
                   </div>
@@ -232,14 +232,14 @@ const BudgetManager: React.FC = () => {
                     )}
                     <button
                       onClick={() => openEdit(limit)}
-                      className="p-2 text-slate-400 hover:text-sky-500 transition-colors"
+                      className="p-2 text-gray-400 hover:text-brand-500 transition-colors"
                       aria-label="Editar"
                     >
                       <i className="fas fa-pen text-sm"></i>
                     </button>
                     <button
                       onClick={() => setDeleting(limit)}
-                      className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
+                      className="p-2 text-gray-400 hover:text-rose-500 transition-colors"
                       aria-label="Remover"
                     >
                       <i className="fas fa-trash text-sm"></i>
@@ -248,13 +248,13 @@ const BudgetManager: React.FC = () => {
                 </div>
 
                 <div className="mt-3">
-                  <div className="h-2 w-full rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${barColor}`}
                       style={{ width: `${Math.min(100, pct)}%` }}
                     />
                   </div>
-                  <div className="flex justify-between mt-1 text-xs text-slate-400">
+                  <div className="flex justify-between mt-1 text-xs text-gray-400">
                     <span>{pct.toFixed(0)}% usado</span>
                     <span>alerta em {limit.alertAt}%</span>
                   </div>
@@ -268,12 +268,12 @@ const BudgetManager: React.FC = () => {
       {/* Form Modal */}
       <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} className="max-w-md">
         <div className="p-6 space-y-4">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
             {editing ? 'Editar Limite' : 'Novo Limite'}
           </h2>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Categoria *
             </label>
             <CategorySelect
@@ -292,7 +292,7 @@ const BudgetManager: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Limite mensal ({currencySymbol}) *
               </label>
               <input
@@ -301,12 +301,12 @@ const BudgetManager: React.FC = () => {
                 step="0.01"
                 value={formLimit}
                 onChange={(e) => setFormLimit(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="0,00"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Alertar em (%)
               </label>
               <input
@@ -315,7 +315,7 @@ const BudgetManager: React.FC = () => {
                 max="100"
                 value={formAlertAt}
                 onChange={(e) => setFormAlertAt(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="80"
               />
             </div>
@@ -335,12 +335,12 @@ const BudgetManager: React.FC = () => {
       {/* Delete confirmation */}
       <Modal isOpen={Boolean(deleting)} onClose={() => setDeleting(null)} className="max-w-md">
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Confirmar Exclusão
           </h2>
           {deleting && (
             <div className="space-y-4">
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-gray-600 dark:text-gray-400">
                 Remover o limite de <strong>"{deleting.categoryName}"</strong>?
               </p>
               <div className="flex justify-end space-x-3 pt-2">

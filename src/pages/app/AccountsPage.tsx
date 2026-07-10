@@ -94,7 +94,7 @@ export default function AccountsPage() {
         <Surface className="p-5 sm:p-6">
           <form onSubmit={handleCreate} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Banco
               </label>
               <input
@@ -102,11 +102,11 @@ export default function AccountsPage() {
                 value={form.bankName}
                 onChange={(e) => setForm({ ...form, bankName: e.target.value })}
                 placeholder="Ex.: Millennium, Nubank"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-slate-700 dark:text-white"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Nº da conta (opcional)
               </label>
               <input
@@ -114,17 +114,17 @@ export default function AccountsPage() {
                 value={form.accountNumber}
                 onChange={(e) => setForm({ ...form, accountNumber: e.target.value })}
                 placeholder="••••1234"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-slate-700 dark:text-white"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Moeda
               </label>
               <select
                 value={form.currency}
                 onChange={(e) => setForm({ ...form, currency: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-slate-700 dark:text-white"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
               >
                 {CURRENCY_OPTIONS.map((c) => (
                   <option key={c.code} value={c.code}>
@@ -134,7 +134,7 @@ export default function AccountsPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Saldo atual (opcional)
               </label>
               <div className="flex gap-2">
@@ -144,7 +144,7 @@ export default function AccountsPage() {
                   value={form.balance}
                   onChange={(e) => setForm({ ...form, balance: e.target.value.replace(/[^\d,.]/g, '') })}
                   placeholder="0,00"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-900 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-slate-700 dark:text-white"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
                 />
                 <button
                   type="submit"
@@ -165,13 +165,13 @@ export default function AccountsPage() {
         </div>
       ) : accounts.length === 0 ? (
         <Surface className="p-10 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-400 dark:bg-white/5 dark:text-slate-500">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-xl text-gray-400 dark:bg-white/5 dark:text-gray-500">
             <i className="fas fa-building-columns"></i>
           </span>
-          <h3 className="mt-4 font-display text-lg font-semibold text-slate-900 dark:text-white">
+          <h3 className="mt-4 font-display text-lg font-semibold text-gray-900 dark:text-white">
             Nenhuma conta cadastrada
           </h3>
-          <p className="mx-auto mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
+          <p className="mx-auto mt-1 max-w-md text-sm text-gray-500 dark:text-gray-400">
             Cadastre as contas de vocês dois — ex.: a sua em euro e a dela em real. Ao lançar uma
             transação pela conta, a moeda já vem certa.
           </p>
@@ -186,25 +186,25 @@ export default function AccountsPage() {
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-400/10 dark:text-brand-300">
                     <i className="fas fa-building-columns"></i>
                   </span>
-                  <span className="rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-500 dark:border-white/[0.08] dark:text-slate-400">
+                  <span className="rounded-full border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-500 dark:border-white/[0.08] dark:text-gray-400">
                     {opt.flag} {account.currency}
                   </span>
                 </div>
-                <p className="mt-3 font-medium text-slate-900 dark:text-white">{account.bankName}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">
+                <p className="mt-3 font-medium text-gray-900 dark:text-white">{account.bankName}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">
                   {account.accountNumber ? `Conta ${account.accountNumber}` : 'Sem número'}
                   {account.user?.name ? ` · ${account.user.name}` : ''}
                 </p>
-                <p className="mt-3 font-display text-xl font-semibold tabular-nums text-slate-900 dark:text-white">
+                <p className="mt-3 font-display text-xl font-semibold tabular-nums text-gray-900 dark:text-white">
                   {formatMoney(account.balance, account.currency)}
                 </p>
-                <div className="mt-4 border-t border-slate-100 pt-3 dark:border-white/[0.06]">
+                <div className="mt-4 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
                   <button
                     onClick={() => handleArchive(account.id)}
                     className={`text-xs font-medium transition-colors ${
                       confirmArchive === account.id
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-slate-400 hover:text-red-500 dark:text-slate-500'
+                        ? 'text-error-600 dark:text-red-400'
+                        : 'text-gray-400 hover:text-error-500 dark:text-gray-500'
                     }`}
                   >
                     <i className="fas fa-box-archive mr-1.5"></i>

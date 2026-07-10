@@ -14,7 +14,7 @@ export default function DashboardPage() {
       title="Visão geral"
       description="O pulso das finanças do casal, num só lugar"
       actions={
-        <div className="rounded-xl border border-slate-200 bg-white p-1 dark:border-white/[0.06] dark:bg-slate-800">
+        <div className="rounded-xl border border-gray-200 bg-white p-1 dark:border-white/[0.06] dark:bg-gray-800">
           <DateRangePicker
             startDate={dateRange.startDate}
             endDate={dateRange.endDate}

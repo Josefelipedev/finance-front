@@ -43,8 +43,8 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
       className={`rounded-lg border p-3 overflow-hidden transition-all
         ${
           item.purchased
-            ? 'bg-white/80 dark:bg-slate-800/80 border-green-200 dark:border-green-900/30'
-            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+            ? 'bg-white/80 dark:bg-gray-800/80 border-green-200 dark:border-green-900/30'
+            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
         }
       `}
     >
@@ -58,7 +58,7 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
               ${
                 item.purchased
                   ? 'bg-green-500 border-green-500'
-                  : 'border-slate-300 dark:border-slate-600 hover:border-sky-500'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-brand-500'
               }
             `}
           >
@@ -69,12 +69,12 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
           <div className="min-w-0">
             <p
               className={`text-sm font-medium truncate
-                ${item.purchased ? 'line-through text-slate-500' : 'text-slate-800 dark:text-white'}
+                ${item.purchased ? 'line-through text-gray-500' : 'text-gray-800 dark:text-white'}
               `}
             >
               {item.name}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
               {item.quantity} {getUnitLabel(item.unit)} ·{' '}
               {formatCurrency(item.price)}
             </p>
@@ -107,7 +107,7 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
 
           <button
             onClick={() => onViewHistory(item.id)}
-            className="p-1.5 rounded text-blue-500 hover:bg-blue-500/10"
+            className="p-1.5 rounded text-brand-500 hover:bg-brand-500/10"
             title="Ver histórico"
           >
             <i className="fas fa-chart-line" />
@@ -115,7 +115,7 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
 
           <button
             onClick={() => onEdit(item)}
-            className="p-1.5 rounded text-sky-500 hover:bg-sky-500/10"
+            className="p-1.5 rounded text-brand-500 hover:bg-brand-500/10"
             title="Editar"
           >
             <i className="fas fa-edit" />
@@ -123,7 +123,7 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
 
           <button
             onClick={() => onDelete(item.id)}
-            className="p-1.5 rounded text-red-500 hover:bg-red-500/10"
+            className="p-1.5 rounded text-error-500 hover:bg-error-500/10"
             title="Excluir"
           >
             <i className="fas fa-trash" />

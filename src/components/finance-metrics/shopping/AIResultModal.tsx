@@ -15,7 +15,7 @@ const AIResultModal: React.FC<AIResultModalProps> = ({ result, onClose }) => {
     <Modal isOpen={true} onClose={onClose} className="max-w-2xl max-h-[90vh] overflow-y-auto">
 
       {/* Header */}
-      <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-purple-500 to-sky-500 rounded-t-3xl">
+      <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-500 to-sky-500 rounded-t-3xl">
         <div className="flex items-center gap-3 pr-8">
           <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
             <i className="fas fa-robot text-white text-lg" />
@@ -37,9 +37,9 @@ const AIResultModal: React.FC<AIResultModalProps> = ({ result, onClose }) => {
                 {formatCurrency(result.totalEstimate)}
               </p>
             </div>
-            <div className="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-4 text-center">
-              <p className="text-sm text-sky-600 dark:text-sky-400 font-medium">Itens Criados</p>
-              <p className="text-2xl font-bold text-sky-700 dark:text-sky-300 mt-1">
+            <div className="bg-brand-50 dark:bg-brand-900/20 rounded-xl p-4 text-center">
+              <p className="text-sm text-brand-600 dark:text-brand-400 font-medium">Itens Criados</p>
+              <p className="text-2xl font-bold text-brand-700 dark:text-brand-300 mt-1">
                 {result.list.items.length}
               </p>
             </div>
@@ -60,23 +60,23 @@ const AIResultModal: React.FC<AIResultModalProps> = ({ result, onClose }) => {
 
           {/* Items list */}
           <div>
-            <h4 className="font-semibold text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
-              <i className="fas fa-list text-sky-500" />
+            <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+              <i className="fas fa-list text-brand-500" />
               Itens da lista
             </h4>
             <div className="space-y-2">
               {result.list.items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-start justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-700"
+                  className="flex items-start justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-slate-800 dark:text-white text-sm">{item.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="font-medium text-gray-800 dark:text-white text-sm">{item.name}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       {item.quantity} {item.unit}
                     </p>
                   </div>
-                  <p className="text-sm font-semibold text-sky-600 dark:text-sky-400 ml-4 shrink-0">
+                  <p className="text-sm font-semibold text-brand-600 dark:text-brand-400 ml-4 shrink-0">
                     {formatCurrency(item.price)}
                   </p>
                 </div>

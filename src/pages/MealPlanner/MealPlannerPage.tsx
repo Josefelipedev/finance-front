@@ -69,13 +69,13 @@ const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 
 const DAY_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 const DAY_TYPE_OPTIONS: { value: DayType; label: string; color: string }[] = [
-  { value: 'WORK', label: 'Trabalho (só café)', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
+  { value: 'WORK', label: 'Trabalho (só café)', color: 'bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300' },
   { value: 'HALF_OFF', label: 'Meia folga', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
   { value: 'OFF', label: 'Folga', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
 ];
 
 const MEAL_TYPE_COLORS: Record<string, string> = {
-  proteico: 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400',
+  proteico: 'bg-red-50 text-error-600 dark:bg-red-900/20 dark:text-red-400',
   leve: 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400',
   energético: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400',
   'clássico brasileiro': 'bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400',
@@ -130,7 +130,7 @@ function BreakfastCard({ meal, isWorkDay }: { meal: MealDetail; isWorkDay: boole
               Café da Manhã
             </span>
             {isWorkDay && (
-              <span className="ml-2 text-xs bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded-full">
+              <span className="ml-2 text-xs bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300 px-1.5 py-0.5 rounded-full">
                 dia de trabalho
               </span>
             )}
@@ -156,8 +156,8 @@ function BreakfastCard({ meal, isWorkDay }: { meal: MealDetail; isWorkDay: boole
         <div className="grid grid-cols-4 gap-1.5 mb-3">
           {[
             { label: 'kcal', value: meal.calories, color: 'text-orange-600 dark:text-orange-400' },
-            { label: 'prot', value: meal.protein ? `${meal.protein}g` : null, color: 'text-red-600 dark:text-red-400' },
-            { label: 'carb', value: meal.carbs ? `${meal.carbs}g` : null, color: 'text-blue-600 dark:text-blue-400' },
+            { label: 'prot', value: meal.protein ? `${meal.protein}g` : null, color: 'text-error-600 dark:text-red-400' },
+            { label: 'carb', value: meal.carbs ? `${meal.carbs}g` : null, color: 'text-brand-600 dark:text-brand-400' },
             { label: 'fibra', value: meal.fiber ? `${meal.fiber}g` : null, color: 'text-green-600 dark:text-green-400' },
           ]
             .filter((m) => m.value)
@@ -349,7 +349,7 @@ function ProfilePanel({
             value={height}
             onChange={(e) => setHeight(e.target.value)}
             placeholder="175"
-            className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -360,7 +360,7 @@ function ProfilePanel({
             value={weight}
             onChange={(e) => setWeight(e.target.value)}
             placeholder="70"
-            className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -376,7 +376,7 @@ function ProfilePanel({
         <select
           value={activityLevel}
           onChange={(e) => setActivityLevel(e.target.value)}
-          className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
         >
           {ACTIVITY_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -392,13 +392,13 @@ function ProfilePanel({
           {prefs.map((p) => (
             <span
               key={p}
-              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300"
             >
               {p}
               <button
                 type="button"
                 onClick={() => removePref(p)}
-                className="hover:text-blue-900 dark:hover:text-blue-100"
+                className="hover:text-brand-900 dark:hover:text-brand-100"
                 aria-label={`Remover ${p}`}
               >
                 ✕
@@ -421,7 +421,7 @@ function ProfilePanel({
               }
             }}
             placeholder="Adicionar (ex.: sem amendoim) e Enter"
-            className="flex-1 text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           <button
             type="button"
@@ -439,7 +439,7 @@ function ProfilePanel({
               key={s}
               type="button"
               onClick={() => addPref(s)}
-              className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition"
+              className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-brand-400 hover:text-brand-600 dark:hover:text-brand-300 transition"
             >
               + {s}
             </button>
@@ -450,7 +450,7 @@ function ProfilePanel({
       <button
         onClick={submit}
         disabled={saving}
-        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
+        className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
       >
         {saving ? 'Salvando...' : 'Salvar Perfil'}
       </button>
@@ -492,7 +492,7 @@ function ScheduleConfig({
               <select
                 value={s.dayType}
                 onChange={(e) => update(s.dayOfWeek, e.target.value as DayType)}
-                className="text-xs rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="text-xs rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {DAY_TYPE_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -506,14 +506,14 @@ function ScheduleConfig({
         })}
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 mb-4 text-sm text-blue-700 dark:text-blue-300">
+      <div className="bg-brand-50 dark:bg-brand-900/20 rounded-lg p-3 mb-4 text-sm text-brand-700 dark:text-brand-300">
         <strong>Sua configuração atual:</strong> Qui e Dom = Folga completa · Sex = Meia-folga · Demais = Trabalho (só café em casa)
       </div>
 
       <button
         onClick={onSave}
         disabled={saving}
-        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
+        className="px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
       >
         {saving ? 'Salvando...' : 'Salvar Agenda'}
       </button>
@@ -552,14 +552,14 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
           {plan.days.map((d) => {
             const dt = schedule.find((s) => s.dayOfWeek === d.dayOfWeek)?.dayType ?? 'WORK';
             const isActive = d.dayOfWeek === selectedDay;
-            const dotColor = dt === 'OFF' ? 'bg-green-400' : dt === 'HALF_OFF' ? 'bg-yellow-400' : 'bg-blue-400';
+            const dotColor = dt === 'OFF' ? 'bg-green-400' : dt === 'HALF_OFF' ? 'bg-yellow-400' : 'bg-brand-400';
             return (
               <button
                 key={d.dayOfWeek}
                 onClick={() => setSelectedDay(d.dayOfWeek)}
                 className={`flex flex-col items-center px-3 py-2 rounded-xl transition min-w-[56px] ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow'
+                    ? 'bg-brand-500 text-white shadow'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
                 }`}
               >
@@ -581,7 +581,7 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
                 {DAY_NAMES[selectedDay]}
               </span>
               {dayType === 'WORK' ? (
-                <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                <span className="text-xs bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 px-2 py-0.5 rounded-full">
                   💼 Dia de trabalho
                 </span>
               ) : dayType === 'HALF_OFF' ? (
@@ -708,7 +708,7 @@ function ShoppingListView({
       </div>
 
       {list.totalEstimate && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 py-2 mb-4 text-sm text-blue-700 dark:text-blue-300 font-medium">
+        <div className="bg-brand-50 dark:bg-brand-900/20 rounded-lg px-4 py-2 mb-4 text-sm text-brand-700 dark:text-brand-300 font-medium">
           💰 Estimativa total da semana: {formatMoney(list.totalEstimate, displayCurrency)}
         </div>
       )}
@@ -731,7 +731,7 @@ function ShoppingListView({
                     type="checkbox"
                     checked={item.purchased}
                     onChange={() => onToggle(item.id)}
-                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 shrink-0"
+                    className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 shrink-0"
                   />
                   <span className={`flex-1 text-sm text-gray-800 dark:text-white ${item.purchased ? 'line-through' : ''}`}>
                     {item.name}
@@ -960,12 +960,12 @@ export default function MealPlannerPage() {
             placeholder={`Orçamento (${currencySymbol})`}
             value={budget}
             onChange={(e) => setBudget(e.target.value)}
-            className="text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           <button
             onClick={generatePlan}
             disabled={generating}
-            className="flex items-center gap-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-50 whitespace-nowrap"
+            className="flex items-center gap-2 px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition disabled:opacity-50 whitespace-nowrap"
           >
             {generating ? (
               <>
@@ -1046,7 +1046,7 @@ export default function MealPlannerPage() {
             </p>
             <button
               onClick={() => setActiveTab('schedule')}
-              className="px-5 py-2 border border-blue-500 text-blue-600 dark:text-blue-400 rounded-lg text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
+              className="px-5 py-2 border border-brand-500 text-brand-600 dark:text-brand-400 rounded-lg text-sm hover:bg-brand-50 dark:hover:bg-brand-900/20 transition"
             >
               Configurar Agenda
             </button>
@@ -1100,7 +1100,7 @@ export default function MealPlannerPage() {
                   <button
                     onClick={clearAllHistory}
                     disabled={clearingHistory}
-                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50"
+                    className="flex-1 px-4 py-2 bg-error-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50"
                   >
                     {clearingHistory ? 'Apagando...' : 'Apagar tudo'}
                   </button>
@@ -1123,7 +1123,7 @@ export default function MealPlannerPage() {
                 <button
                   onClick={() => setConfirmClearAll(true)}
                   disabled={clearingHistory}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-error-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50"
                 >
                   🗑 {clearingHistory ? 'Limpando...' : 'Limpar tudo'}
                 </button>
@@ -1162,7 +1162,7 @@ export default function MealPlannerPage() {
                       key={p.id}
                       className="flex items-center gap-4 p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 transition"
                     >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center">
                         <span className="text-lg">📅</span>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1183,7 +1183,7 @@ export default function MealPlannerPage() {
                       <button
                         onClick={() => deletePlan(p.id)}
                         disabled={isConfirming}
-                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50"
+                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-error-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50"
                       >
                         {isConfirming ? (
                           <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">

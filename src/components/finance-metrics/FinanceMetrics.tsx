@@ -77,7 +77,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       valueColor:
         safeTotalBalance >= 0
           ? 'text-brand-700 dark:text-brand-300'
-          : 'text-red-600 dark:text-red-400',
+          : 'text-error-600 dark:text-red-400',
       iconChip: 'bg-brand-100 text-brand-700 dark:bg-brand-400/15 dark:text-brand-300',
       highlight: true,
       badgeColor: safeTotalBalance >= 0 ? 'success' : 'error',
@@ -104,8 +104,8 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       direction: expenseVariation <= 0 ? 'up' : 'down',
       comparisonText: 'vs período anterior',
       icon: 'arrow-trend-down',
-      valueColor: 'text-red-600 dark:text-red-400',
-      iconChip: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400',
+      valueColor: 'text-error-600 dark:text-red-400',
+      iconChip: 'bg-red-50 text-error-600 dark:bg-error-500/10 dark:text-red-400',
       badgeColor: expenseVariation <= 0 ? 'success' : 'error',
     },
     {
@@ -119,9 +119,9 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       icon: 'scale-balanced',
       valueColor:
         safeNetBalance >= 0
-          ? 'text-slate-900 dark:text-white'
+          ? 'text-gray-900 dark:text-white'
           : 'text-yellow-600 dark:text-yellow-400',
-      iconChip: 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300',
+      iconChip: 'bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-300',
       badgeColor: safeNetBalance >= 0 ? 'success' : 'warning',
     },
   ];
@@ -136,7 +136,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
     safeTotalIncome > 0 ? Math.min(100, (safeTotalExpense / safeTotalIncome) * 100) : 0;
 
   const ratioColor =
-    expenseRatio <= 30 ? 'bg-brand-400' : expenseRatio <= 70 ? 'bg-yellow-400' : 'bg-red-500';
+    expenseRatio <= 30 ? 'bg-brand-400' : expenseRatio <= 70 ? 'bg-yellow-400' : 'bg-error-500';
 
   return (
     <div>
@@ -146,8 +146,8 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
             key={item.id}
             className={`rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-0.5 ${
               item.highlight
-                ? 'border-brand-200 bg-brand-25 dark:border-brand-400/20 dark:bg-slate-800 dark:bg-gradient-to-br dark:from-brand-400/[0.14] dark:to-slate-800 dark:shadow-glow'
-                : 'border-slate-200 bg-white dark:border-white/[0.06] dark:bg-slate-800'
+                ? 'border-brand-200 bg-brand-25 dark:border-brand-400/20 dark:bg-gray-800 dark:bg-gradient-to-br dark:from-brand-400/[0.14] dark:to-gray-800 dark:shadow-glow'
+                : 'border-gray-200 bg-white dark:border-white/[0.06] dark:bg-gray-800'
             }`}
           >
             <div className="mb-4 flex items-center justify-between">
@@ -171,7 +171,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
               )}
             </div>
 
-            <p className="mb-1 text-sm font-medium text-slate-500 dark:text-slate-400">
+            <p className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
               {item.title}
             </p>
             <h4
@@ -180,8 +180,8 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
               {item.value}
             </h4>
 
-            <div className="mt-3 border-t border-slate-100 pt-3 dark:border-white/[0.06]">
-              <span className="text-xs text-slate-400 dark:text-slate-500">
+            <div className="mt-3 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
+              <span className="text-xs text-gray-400 dark:text-gray-500">
                 {item.comparisonText}
               </span>
             </div>
@@ -191,7 +191,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
 
       {/* Breakdown nativo por moeda (aparece quando o casal usa mais de uma) */}
       {byCurrency.length > 1 && (
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-white/[0.06] dark:bg-slate-800 sm:mt-6">
+        <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-white/[0.06] dark:bg-gray-800 sm:mt-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
               {byCurrency.map((c) => {
@@ -199,13 +199,13 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
                 return (
                   <span
                     key={c.currency}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-xs font-medium tabular-nums text-slate-600 dark:border-white/[0.08] dark:text-slate-300"
+                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-xs font-medium tabular-nums text-gray-600 dark:border-white/[0.08] dark:text-gray-300"
                   >
                     <span>{opt.flag} {c.currency}</span>
                     <span className="text-green-600 dark:text-green-400">
                       +{formatMoney(c.ganhos, c.currency)}
                     </span>
-                    <span className="text-red-600 dark:text-red-400">
+                    <span className="text-error-600 dark:text-red-400">
                       −{formatMoney(c.despesas, c.currency)}
                     </span>
                   </span>
@@ -213,7 +213,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
               })}
             </div>
             {rateDate && (
-              <span className="text-xs text-slate-400 dark:text-slate-500">
+              <span className="text-xs text-gray-400 dark:text-gray-500">
                 Totais convertidos p/ {currencyOption(displayCurrency).flag} {displayCurrency} · câmbio BCE de{' '}
                 {new Date(rateDate + 'T00:00:00').toLocaleDateString('pt-BR')}
               </span>
@@ -223,31 +223,31 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       )}
 
       {/* Barra de progresso do saldo */}
-      <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/[0.06] dark:bg-slate-800 sm:mt-6">
+      <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-white/[0.06] dark:bg-gray-800 sm:mt-6">
         <div className="mb-3 flex items-center justify-between">
           <div>
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Quanto das receitas já foi gasto
             </span>
-            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{periodText}</p>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-gray-500">{periodText}</p>
           </div>
-          <span className="font-display text-lg font-semibold tabular-nums text-slate-900 dark:text-white">
+          <span className="font-display text-lg font-semibold tabular-nums text-gray-900 dark:text-white">
             {Math.round(expenseRatio)}%
           </span>
         </div>
-        <div className="h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.06]">
+        <div className="h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.06]">
           <div
             className={`h-full rounded-full transition-all duration-500 ${ratioColor}`}
             style={{ width: `${expenseRatio}%` }}
           ></div>
         </div>
-        <div className="mt-3 flex justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div className="mt-3 flex justify-between text-xs text-gray-500 dark:text-gray-400">
           <span className="tabular-nums">
             <i className="fas fa-arrow-trend-up mr-1.5 text-green-500"></i>
             Ganhos: {formatMoney(safeTotalIncome, displayCurrency)}
           </span>
           <span className="tabular-nums">
-            <i className="fas fa-arrow-trend-down mr-1.5 text-red-500"></i>
+            <i className="fas fa-arrow-trend-down mr-1.5 text-error-500"></i>
             Despesas: {formatMoney(safeTotalExpense, displayCurrency)}
           </span>
         </div>

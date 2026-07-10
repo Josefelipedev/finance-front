@@ -58,10 +58,10 @@ const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({ isOpen, onClose, on
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-md">
       <div className="p-6 space-y-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
             Escanear Recibo
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Envie uma foto do recibo. A IA detecta valor, estabelecimento e categoria
             automaticamente.
           </p>
@@ -81,12 +81,12 @@ const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({ isOpen, onClose, on
             <img
               src={previewUrl}
               alt="Pré-visualização do recibo"
-              className="w-full max-h-72 object-contain rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
+              className="w-full max-h-72 object-contain rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
             />
             <button
               onClick={() => inputRef.current?.click()}
               disabled={isLoading}
-              className="absolute top-2 right-2 px-3 py-1.5 text-xs bg-white/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 rounded-lg shadow hover:bg-white dark:hover:bg-slate-700 disabled:opacity-50"
+              className="absolute top-2 right-2 px-3 py-1.5 text-xs bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 rounded-lg shadow hover:bg-white dark:hover:bg-gray-700 disabled:opacity-50"
             >
               <i className="fas fa-sync-alt mr-1"></i>Trocar
             </button>
@@ -94,7 +94,7 @@ const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({ isOpen, onClose, on
         ) : (
           <button
             onClick={() => inputRef.current?.click()}
-            className="w-full border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl py-10 flex flex-col items-center gap-2 text-slate-500 dark:text-slate-400 hover:border-sky-400 hover:text-sky-500 transition-colors"
+            className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl py-10 flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400 hover:border-brand-400 hover:text-brand-500 transition-colors"
           >
             <i className="fas fa-camera text-3xl"></i>
             <span className="text-sm font-medium">Tirar foto ou escolher imagem</span>
@@ -106,14 +106,14 @@ const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({ isOpen, onClose, on
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             onClick={handleAnalyze}
             disabled={!file || isLoading}
-            className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isLoading ? (
               <>

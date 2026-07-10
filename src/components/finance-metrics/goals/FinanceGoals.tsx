@@ -183,17 +183,17 @@ const FinanceGoals: React.FC = () => {
   // Cores baseadas no status - COM AZUL MAIS CLARO
   const getGoalColor = (goal: Goal) => {
     if (goal.status === 'COMPLETED') return 'bg-emerald-500'; // Verde mais suave
-    if (goal.status === 'CANCELED') return 'bg-slate-400'; // Cinza mais claro
+    if (goal.status === 'CANCELED') return 'bg-gray-400'; // Cinza mais claro
     if (isGoalOverdue(goal)) return 'bg-rose-500'; // Vermelho mais suave
-    return 'bg-sky-500'; // Azul mais claro (sky blue)
+    return 'bg-brand-500'; // Azul mais claro (sky blue)
   };
 
   // Cores para o texto do status
   const getStatusTextColor = (goal: Goal) => {
     if (goal.status === 'COMPLETED') return 'text-emerald-600 dark:text-emerald-400';
-    if (goal.status === 'CANCELED') return 'text-slate-500 dark:text-slate-400';
+    if (goal.status === 'CANCELED') return 'text-gray-500 dark:text-gray-400';
     if (isGoalOverdue(goal)) return 'text-rose-600 dark:text-rose-400';
-    return 'text-sky-600 dark:text-sky-400';
+    return 'text-brand-600 dark:text-brand-400';
   };
 
   // Formatar data
@@ -204,14 +204,14 @@ const FinanceGoals: React.FC = () => {
 
   if (isLoading && !goals) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/4 mb-4"></div>
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4"></div>
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="space-y-2">
-                <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
-                <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded"></div>
               </div>
             ))}
           </div>
@@ -222,9 +222,9 @@ const FinanceGoals: React.FC = () => {
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
             Metas Financeiras
           </h3>
           <Button
@@ -240,7 +240,7 @@ const FinanceGoals: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-slate-200 dark:border-slate-700 mb-4">
+        <div className="border-b border-gray-200 dark:border-gray-700 mb-4">
           <nav className="-mb-px flex space-x-4">
             {(['ACTIVE', 'COMPLETED', 'CANCELED'] as const).map((status) => (
               <button
@@ -250,15 +250,15 @@ const FinanceGoals: React.FC = () => {
                   py-2 px-1 border-b-2 font-medium text-sm transition-colors duration-200
                   ${
                     activeTab === status
-                      ? 'border-sky-500 text-sky-600 dark:text-sky-400'
-                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                      ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                   }
                 `}
               >
                 {status === 'ACTIVE' && 'Ativas'}
                 {status === 'COMPLETED' && 'Concluídas'}
                 {status === 'CANCELED' && 'Canceladas'}
-                <span className="ml-2 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs px-2 py-1 rounded-full">
+                <span className="ml-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-2 py-1 rounded-full">
                   {filterGoalsByStatus(status).length ?? 0}
                 </span>
               </button>
@@ -269,7 +269,7 @@ const FinanceGoals: React.FC = () => {
         {/* Lista de Metas */}
         <div className="space-y-4">
           {filteredGoals.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <i className="fas fa-bullseye text-4xl mb-3"></i>
               <p className="font-medium">
                 Nenhuma meta {activeTab === 'ACTIVE' ? 'ativa' : activeTab}
@@ -277,7 +277,7 @@ const FinanceGoals: React.FC = () => {
               {activeTab === 'ACTIVE' && (
                 <button
                   onClick={createModal.openModal}
-                  className="mt-2 text-sky-600 hover:text-sky-700 dark:text-sky-400 transition-colors"
+                  className="mt-2 text-brand-600 hover:text-brand-700 dark:text-brand-400 transition-colors"
                 >
                   Crie sua primeira meta
                 </button>
@@ -297,23 +297,23 @@ const FinanceGoals: React.FC = () => {
                   key={goal.id}
                   onClick={() => toggleGoalExpansion(goal.id)}
                   className={`
-                    p-4 border border-slate-200 dark:border-slate-700 rounded-lg 
+                    p-4 border border-gray-200 dark:border-gray-700 rounded-lg 
                     transition-all duration-300 cursor-pointer
-                    ${isExpanded ? 'shadow-md border-sky-200 dark:border-sky-700' : 'hover:shadow-sm'}
+                    ${isExpanded ? 'shadow-md border-brand-200 dark:border-brand-700' : 'hover:shadow-sm'}
                     ${isAnimating ? 'scale-[0.995]' : ''}
-                    bg-white dark:bg-slate-800
+                    bg-white dark:bg-gray-800
                   `}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-1">
-                        <h4 className="font-medium text-slate-800 dark:text-white">{goal.name}</h4>
+                        <h4 className="font-medium text-gray-800 dark:text-white">{goal.name}</h4>
                         <span
                           className={`
                           text-xs px-2 py-0.5 rounded-full font-medium
-                          ${goal.status === 'ACTIVE' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300' : ''}
+                          ${goal.status === 'ACTIVE' ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300' : ''}
                           ${goal.status === 'COMPLETED' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : ''}
-                          ${goal.status === 'CANCELED' ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300' : ''}
+                          ${goal.status === 'CANCELED' ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' : ''}
                         `}
                         >
                           {goal.status === 'ACTIVE' && 'Ativa'}
@@ -322,7 +322,7 @@ const FinanceGoals: React.FC = () => {
                         </span>
                       </div>
                       {goal.description && (
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           {goal.description}
                         </p>
                       )}
@@ -346,7 +346,7 @@ const FinanceGoals: React.FC = () => {
                         </button>
                         <button
                           onClick={(e) => handleEditClick(goal, e)}
-                          className="text-sky-600 hover:text-sky-700 dark:text-sky-400 text-sm p-2 rounded-full hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-colors"
+                          className="text-brand-600 hover:text-brand-700 dark:text-brand-400 text-sm p-2 rounded-full hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
                           title="Editar"
                         >
                           <i className="fas fa-edit"></i>
@@ -359,7 +359,7 @@ const FinanceGoals: React.FC = () => {
                           <i className="fas fa-trash"></i>
                         </button>
                         <button
-                          className="text-slate-500 hover:text-slate-700 dark:text-slate-400 text-sm p-2 transition-transform duration-300"
+                          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 text-sm p-2 transition-transform duration-300"
                           title={isExpanded ? 'Recolher' : 'Expandir'}
                         >
                           <i
@@ -373,23 +373,23 @@ const FinanceGoals: React.FC = () => {
                   {/* Barra de Progresso */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="font-medium text-slate-700 dark:text-slate-300">
+                      <span className="font-medium text-gray-700 dark:text-gray-300">
                         Progresso
                       </span>
-                      <span className="font-semibold text-slate-800 dark:text-white">
+                      <span className="font-semibold text-gray-800 dark:text-white">
                         {formatMoney(goal.currentValue, displayCurrency)} /{' '}
                         {formatMoney(goal.targetValue, displayCurrency)}
                       </span>
                     </div>
 
-                    <div className="h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${colorClass} transition-all duration-700 ease-out`}
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>
 
-                    <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-4">
                         <span className="font-medium">{percentage.toFixed(1)}% concluído</span>
                         <span>
@@ -412,24 +412,24 @@ const FinanceGoals: React.FC = () => {
                     ${isExpanded ? 'max-h-96 opacity-100 mt-4' : 'max-h-0 opacity-0'}
                   `}
                   >
-                    <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
                       {/* Datas */}
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="space-y-1">
-                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
                             <i className="fas fa-calendar-plus mr-1"></i>
                             Início
                           </p>
-                          <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                             {formatDate(goal.startDate)}
                           </p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
                             <i className="fas fa-calendar-check mr-1"></i>
                             Término
                           </p>
-                          <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
                             {formatDate(goal.endDate)}
                           </p>
                         </div>
@@ -438,11 +438,11 @@ const FinanceGoals: React.FC = () => {
                       {/* Informações adicionais */}
                       {goal.category && (
                         <div className="space-y-1 mb-4">
-                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
                             <i className="fas fa-tag mr-1"></i>
                             Categoria
                           </p>
-                          <span className="inline-block px-3 py-1 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 text-xs font-medium rounded-full">
+                          <span className="inline-block px-3 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-xs font-medium rounded-full">
                             {goal.category}
                           </span>
                         </div>
@@ -466,7 +466,7 @@ const FinanceGoals: React.FC = () => {
                               e.stopPropagation();
                               handleEditClick(goal, e);
                             }}
-                            className="flex-1 px-3 py-2 bg-sky-500 hover:bg-sky-600 text-white text-sm rounded-lg transition-colors flex items-center justify-center space-x-2"
+                            className="flex-1 px-3 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm rounded-lg transition-colors flex items-center justify-center space-x-2"
                           >
                             <i className="fas fa-edit"></i>
                             <span>Editar</span>
@@ -477,9 +477,9 @@ const FinanceGoals: React.FC = () => {
                   </div>
 
                   {/* Rodapé (sempre visível) */}
-                  <div className="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400 mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
+                  <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                     <div className="flex items-center space-x-2">
-                      <i className="fas fa-calendar-alt text-slate-400"></i>
+                      <i className="fas fa-calendar-alt text-gray-400"></i>
                       <span>Criada em: {formatDate(goal.createdAt)}</span>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -507,7 +507,7 @@ const FinanceGoals: React.FC = () => {
         className="max-lg:w-full max-w-md"
       >
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Nova Meta Financeira
           </h2>
           <GoalForm
@@ -525,7 +525,7 @@ const FinanceGoals: React.FC = () => {
         className="max-lg:w-full max-w-md"
       >
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">Editar Meta</h2>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Editar Meta</h2>
           {editingGoal && (
             <GoalForm
               initialData={editingGoal}
@@ -544,12 +544,12 @@ const FinanceGoals: React.FC = () => {
         className="max-lg:w-full max-w-md"
       >
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-1">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-1">
             Registrar Depósito
           </h2>
           {depositingGoal && (
             <div className="space-y-4">
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Meta: <strong>{depositingGoal.name}</strong> — Faltam{' '}
                 <strong>
                   {formatMoney(
@@ -560,7 +560,7 @@ const FinanceGoals: React.FC = () => {
               </p>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Valor a depositar ({currencySymbol})
                 </label>
                 <input
@@ -570,7 +570,7 @@ const FinanceGoals: React.FC = () => {
                   onChange={(e) => setDepositAmount(e.target.value.replace(/[^\d,.]/g, ''))}
                   placeholder="0,00"
                   autoFocus
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white text-lg"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-lg"
                 />
               </div>
 
@@ -594,7 +594,7 @@ const FinanceGoals: React.FC = () => {
                 <button
                   onClick={depositModal.closeModal}
                   disabled={isSubmitting}
-                  className="px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                 >
                   Cancelar
                 </button>
@@ -629,12 +629,12 @@ const FinanceGoals: React.FC = () => {
         className="max-lg:w-full max-w-md"
       >
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-4">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Confirmar Exclusão
           </h2>
           {deletingGoal && (
             <div className="space-y-4">
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-gray-600 dark:text-gray-400">
                 Tem certeza que deseja excluir a meta <strong>"{deletingGoal.name}"</strong>? Esta
                 ação não pode ser desfeita.
               </p>

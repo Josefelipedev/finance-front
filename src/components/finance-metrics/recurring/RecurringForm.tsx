@@ -107,7 +107,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     <Modal isOpen onClose={onCancel} className="max-w-md max-h-[90vh] overflow-y-auto">
       <div className="p-6">
         <div className="mb-6 pr-8">
-          <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
             {transaction ? 'Editar Transação Recorrente' : 'Nova Transação Recorrente'}
           </h3>
         </div>
@@ -115,30 +115,30 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Descrição */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Descrição *
               </label>
               <input
                 type="text"
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white ${
-                  errors.description ? 'border-red-500' : 'border-slate-300'
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                  errors.description ? 'border-error-500' : 'border-gray-300'
                 }`}
                 placeholder="Ex: Salário, Aluguel, Internet"
               />
               {errors.description && (
-                <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+                <p className="text-error-500 text-sm mt-1">{errors.description}</p>
               )}
             </div>
 
             {/* Valor */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Valor *
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                   {currencySymbol}
                 </span>
                 <input
@@ -147,18 +147,18 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                   min="0"
                   value={formData.amount}
                   onChange={(e) => handleChange('amount', parseFloat(e.target.value) || 0)}
-                  className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-white ${
-                    errors.amount ? 'border-red-500' : 'border-slate-300'
+                  className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                    errors.amount ? 'border-error-500' : 'border-gray-300'
                   }`}
                   placeholder="0,00"
                 />
               </div>
-              {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
+              {errors.amount && <p className="text-error-500 text-sm mt-1">{errors.amount}</p>}
             </div>
 
             {/* Tipo */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Tipo *
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -168,7 +168,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                   className={`px-3 py-2 rounded-lg border flex items-center justify-center gap-2 ${
                     formData.type === 'income'
                       ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300'
-                      : 'border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
+                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <i className="fas fa-arrow-up text-green-500"></i>
@@ -179,11 +179,11 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                   onClick={() => handleChange('type', 'expense')}
                   className={`px-3 py-2 rounded-lg border flex items-center justify-center gap-2 ${
                     formData.type === 'expense'
-                      ? 'bg-red-100 dark:bg-red-900/30 border-red-500 text-red-700 dark:text-red-300'
-                      : 'border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
+                      ? 'bg-red-100 dark:bg-red-900/30 border-error-500 text-red-700 dark:text-red-300'
+                      : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <i className="fas fa-arrow-down text-red-500"></i>
+                  <i className="fas fa-arrow-down text-error-500"></i>
                   Despesa
                 </button>
               </div>
@@ -191,13 +191,13 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
 
             {/* Frequência */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Frequência *
               </label>
               <select
                 value={formData.frequency}
                 onChange={(e) => handleChange('frequency', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
               >
                 <option value="daily">Diária</option>
                 <option value="weekly">Semanal</option>
@@ -209,7 +209,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
             {/* Dia do Vencimento (para mensal) */}
             {formData.frequency === 'monthly' && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Dia do Vencimento (1-31)
                 </label>
                 <input
@@ -218,7 +218,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                   max="31"
                   value={formData.dueDay || 1}
                   onChange={(e) => handleChange('dueDay', parseInt(e.target.value) || 1)}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
                 />
               </div>
             )}
@@ -226,13 +226,13 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
             {/* Dia da Semana (para semanal) */}
             {formData.frequency === 'weekly' && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Dia da Semana
                 </label>
                 <select
                   value={formData.weekDay || 0}
                   onChange={(e) => handleChange('weekDay', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
                 >
                   <option value={0}>Domingo</option>
                   <option value={1}>Segunda-feira</option>
@@ -247,7 +247,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
 
             {/* Categoria */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Categoria *
               </label>
               <CategorySelect
@@ -257,26 +257,26 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                 error={errors.categoryId}
               />
               {errors.categoryId && (
-                <p className="text-red-500 text-sm mt-1">{errors.categoryId}</p>
+                <p className="text-error-500 text-sm mt-1">{errors.categoryId}</p>
               )}
             </div>
 
             {/* Data de Término */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Data de Término (opcional)
               </label>
               <input
                 type="date"
                 value={formData.endDate || ''}
                 onChange={(e) => handleChange('endDate', e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
 
             {/* Número de Ocorrências */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Número de Ocorrências (opcional)
               </label>
               <input
@@ -286,7 +286,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                 onChange={(e) =>
                   handleChange('occurrences', e.target.value ? parseInt(e.target.value) : undefined)
                 }
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
                 placeholder="Deixe vazio para repetir indefinidamente"
               />
             </div>
@@ -298,11 +298,11 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                 id="notification"
                 checked={formData.notification}
                 onChange={(e) => handleChange('notification', e.target.checked)}
-                className="h-4 w-4 text-sky-500 rounded focus:ring-sky-500 border-slate-300 dark:border-slate-600"
+                className="h-4 w-4 text-brand-500 rounded focus:ring-brand-500 border-gray-300 dark:border-gray-600"
               />
               <label
                 htmlFor="notification"
-                className="ml-2 text-sm text-slate-700 dark:text-slate-300"
+                className="ml-2 text-sm text-gray-700 dark:text-gray-300"
               >
                 Enviar notificação antes do vencimento
               </label>

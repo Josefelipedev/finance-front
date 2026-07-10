@@ -77,10 +77,10 @@ const GrocerySearchManager: React.FC = () => {
     <div className="space-y-6 px-2 sm:px-0">
       {/* Header */}
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
           Buscar Preços
         </h2>
-        <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
+        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
           Compare preços de produtos nos supermercados (Continente, Auchan, Mercadona e Pingo Doce)
         </p>
       </div>
@@ -88,7 +88,7 @@ const GrocerySearchManager: React.FC = () => {
       {/* Search form */}
       <form
         onSubmit={handleSearch}
-        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-4"
+        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-4"
       >
         <div className="flex flex-col sm:flex-row gap-3">
           <input
@@ -96,19 +96,19 @@ const GrocerySearchManager: React.FC = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Ex.: frango, arroz, ovos..."
-            className="flex-1 px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="flex-1 px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           <input
             type="text"
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
             placeholder="Código postal (opcional)"
-            className="w-full sm:w-48 px-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="w-full sm:w-48 px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           <button
             type="submit"
             disabled={isLoading}
-            className="px-5 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 whitespace-nowrap"
+            className="px-5 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 whitespace-nowrap"
           >
             {isLoading ? (
               <i className="fas fa-spinner fa-spin"></i>
@@ -130,8 +130,8 @@ const GrocerySearchManager: React.FC = () => {
                 onClick={() => toggleChain(chain.id)}
                 className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
                   active
-                    ? 'bg-sky-500 text-white border-sky-500'
-                    : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-sky-400'
+                    ? 'bg-brand-500 text-white border-brand-500'
+                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-brand-400'
                 }`}
               >
                 <span className="mr-1">{chain.emoji}</span>
@@ -145,7 +145,7 @@ const GrocerySearchManager: React.FC = () => {
       {/* Error */}
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-          <p className="text-red-600 dark:text-red-400 text-sm">
+          <p className="text-error-600 dark:text-red-400 text-sm">
             <i className="fas fa-exclamation-circle mr-2"></i>
             {error.message}
           </p>
@@ -154,8 +154,8 @@ const GrocerySearchManager: React.FC = () => {
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-500 dark:text-slate-400">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sky-500" />
+        <div className="flex flex-col items-center justify-center py-12 gap-3 text-gray-500 dark:text-gray-400">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-500" />
           <p className="text-sm">Consultando Continente, Auchan, Mercadona e Pingo Doce...</p>
         </div>
       )}
@@ -168,8 +168,8 @@ const GrocerySearchManager: React.FC = () => {
               onClick={() => setStoreFilter('all')}
               className={`px-3 py-1.5 rounded-full text-xs sm:text-sm border transition-colors ${
                 storeFilter === 'all'
-                  ? 'bg-sky-500 text-white border-sky-500'
-                  : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600'
+                  ? 'bg-brand-500 text-white border-brand-500'
+                  : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
               }`}
             >
               Todos ({products.length})
@@ -180,22 +180,22 @@ const GrocerySearchManager: React.FC = () => {
                 onClick={() => setStoreFilter(store)}
                 className={`px-3 py-1.5 rounded-full text-xs sm:text-sm border transition-colors ${
                   storeFilter === store
-                    ? 'bg-sky-500 text-white border-sky-500'
-                    : 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600'
+                    ? 'bg-brand-500 text-white border-brand-500'
+                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600'
                 }`}
               >
                 {chainLabel(store)}
               </button>
             ))}
             {data.cached && (
-              <span className="ml-auto text-xs text-slate-400">
+              <span className="ml-auto text-xs text-gray-400">
                 <i className="fas fa-bolt mr-1"></i>resultado em cache
               </span>
             )}
           </div>
 
           {filtered.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <i className="fas fa-search text-4xl mb-3 opacity-40"></i>
               <p>Nenhum produto encontrado.</p>
             </div>
@@ -224,8 +224,8 @@ const ProductCard: React.FC<{ product: GroceryProduct; isBest: boolean }> = ({
     href={product.url}
     target="_blank"
     rel="noopener noreferrer"
-    className={`block bg-white dark:bg-slate-800 border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow ${
-      isBest ? 'border-emerald-400 dark:border-emerald-500' : 'border-slate-200 dark:border-slate-700'
+    className={`block bg-white dark:bg-gray-800 border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow ${
+      isBest ? 'border-emerald-400 dark:border-emerald-500' : 'border-gray-200 dark:border-gray-700'
     }`}
   >
     <div className="flex gap-3">
@@ -233,18 +233,18 @@ const ProductCard: React.FC<{ product: GroceryProduct; isBest: boolean }> = ({
         <img
           src={product.image_url}
           alt={product.name}
-          className="w-16 h-16 object-contain rounded-lg bg-slate-50 dark:bg-slate-700 shrink-0"
+          className="w-16 h-16 object-contain rounded-lg bg-gray-50 dark:bg-gray-700 shrink-0"
           loading="lazy"
         />
       ) : (
-        <div className="w-16 h-16 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
-          <i className="fas fa-shopping-basket text-slate-300 dark:text-slate-500"></i>
+        <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0">
+          <i className="fas fa-shopping-basket text-gray-300 dark:text-gray-500"></i>
         </div>
       )}
 
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full">
+          <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
             {chainLabel(product.source)}
           </span>
           {isBest && (
@@ -253,22 +253,22 @@ const ProductCard: React.FC<{ product: GroceryProduct; isBest: boolean }> = ({
             </span>
           )}
         </div>
-        <h3 className="font-medium text-slate-800 dark:text-white text-sm mt-1.5 line-clamp-2">
+        <h3 className="font-medium text-gray-800 dark:text-white text-sm mt-1.5 line-clamp-2">
           {product.name}
         </h3>
         {product.brand && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{product.brand}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{product.brand}</p>
         )}
       </div>
     </div>
 
     <div className="mt-3 flex items-end justify-between">
       <div>
-        <p className="text-lg font-bold text-slate-800 dark:text-white">
+        <p className="text-lg font-bold text-gray-800 dark:text-white">
           {formatPrice(product.price, product.currency)}
         </p>
         {product.unit_price != null && (
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {formatPrice(product.unit_price, product.currency)}
             {product.unit ? `/${product.unit}` : ''}
           </p>
@@ -280,7 +280,7 @@ const ProductCard: React.FC<{ product: GroceryProduct; isBest: boolean }> = ({
           product.availability?.toLowerCase() === 'in_stock' ||
           product.availability?.toLowerCase() === 'available'
             ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-            : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+            : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
         }`}
       >
         {product.availability || '—'}

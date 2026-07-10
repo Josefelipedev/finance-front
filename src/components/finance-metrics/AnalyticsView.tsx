@@ -16,7 +16,7 @@ const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string 
           onClick={() => setActiveChart('monthly')}
           className={`px-4 py-2 rounded-lg transition-colors ${
             activeChart === 'monthly'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-brand-400 text-gray-950'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
         >
@@ -27,7 +27,7 @@ const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string 
           onClick={() => setActiveChart('category')}
           className={`px-4 py-2 rounded-lg transition-colors ${
             activeChart === 'category'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-brand-400 text-gray-950'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
         >
@@ -38,7 +38,7 @@ const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string 
           onClick={() => setActiveChart('trend')}
           className={`px-4 py-2 rounded-lg transition-colors ${
             activeChart === 'trend'
-              ? 'bg-blue-600 text-white'
+              ? 'bg-brand-400 text-gray-950'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
         >

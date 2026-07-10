@@ -30,20 +30,20 @@ const StorePricesModal: React.FC<StorePricesModalProps> = ({ itemName, prices, i
     <Modal isOpen={true} onClose={onClose} className="max-w-md">
       <div className="p-5">
         <div className="mb-4 pr-8">
-          <h3 className="text-base font-semibold text-slate-800 dark:text-white">
+          <h3 className="text-base font-semibold text-gray-800 dark:text-white">
             Comparar Preços
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{itemName}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{itemName}</p>
         </div>
 
         {isLoading ? (
             <div className="flex justify-center items-center py-10">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" />
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500" />
             </div>
           ) : sorted.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">🔍</div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Nenhum preço encontrado para este produto.
               </p>
             </div>
@@ -55,7 +55,7 @@ const StorePricesModal: React.FC<StorePricesModalProps> = ({ itemName, prices, i
                   className={`flex items-center justify-between p-3 rounded-lg border ${
                     idx === 0
                       ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                      : 'bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-600'
+                      : 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -64,15 +64,15 @@ const StorePricesModal: React.FC<StorePricesModalProps> = ({ itemName, prices, i
                       {STORE_EMOJI[p.supermarket] ?? '🏷️'}
                     </span>
                     <div>
-                      <p className={`text-sm font-medium ${idx === 0 ? 'text-green-700 dark:text-green-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                      <p className={`text-sm font-medium ${idx === 0 ? 'text-green-700 dark:text-green-400' : 'text-gray-700 dark:text-gray-200'}`}>
                         {p.supermarket.charAt(0).toUpperCase() + p.supermarket.slice(1)}
                       </p>
                       {p.brand && (
-                        <p className="text-xs text-slate-400">{p.brand}</p>
+                        <p className="text-xs text-gray-400">{p.brand}</p>
                       )}
                     </div>
                   </div>
-                  <span className={`text-sm font-bold ${idx === 0 ? 'text-green-700 dark:text-green-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                  <span className={`text-sm font-bold ${idx === 0 ? 'text-green-700 dark:text-green-400' : 'text-gray-700 dark:text-gray-200'}`}>
                     €{p.price.toFixed(2)}
                   </span>
                 </div>

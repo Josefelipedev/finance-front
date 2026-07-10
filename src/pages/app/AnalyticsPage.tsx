@@ -12,7 +12,7 @@ export default function AnalyticsPage() {
       title="Análises"
       description="Tendências e padrões detalhados dos seus gastos"
       actions={
-        <div className="rounded-xl border border-slate-200 bg-white p-1 dark:border-white/[0.06] dark:bg-slate-800">
+        <div className="rounded-xl border border-gray-200 bg-white p-1 dark:border-white/[0.06] dark:bg-gray-800">
           <DateRangePicker
             startDate={dateRange.startDate}
             endDate={dateRange.endDate}

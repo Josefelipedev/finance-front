@@ -38,17 +38,17 @@ const CategoryList: React.FC<CategoryListProps> = ({
 
   if (categories.length === 0) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow p-6 text-center">
-        <i className="fas fa-tags text-4xl text-slate-300 dark:text-slate-600 mb-3" />
-        <p className="text-sm text-slate-500 dark:text-slate-400">Nenhuma categoria encontrada</p>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-center">
+        <i className="fas fa-tags text-4xl text-gray-300 dark:text-gray-600 mb-3" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">Nenhuma categoria encontrada</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
-        <i className="fas fa-tags text-sky-500" />
+      <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+        <i className="fas fa-tags text-brand-500" />
         Categorias
       </h3>
 
@@ -134,11 +134,11 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
 
   if (isEditing) {
     return (
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-sky-200 dark:border-sky-800 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-brand-200 dark:border-brand-800 p-4">
         <form onSubmit={handleSubmit(handleSubmitQuick)} className="space-y-3">
           <input
             {...register('name')}
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-sm"
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm"
             autoFocus
           />
 
@@ -159,7 +159,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
             <input type="color" {...register('color')} className="w-6 h-6" />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
             <button
               type="button"
               onClick={() => {
@@ -173,7 +173,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
             <button
               type="submit"
               disabled={!isValid || isSubmitting}
-              className="px-3 py-1.5 text-xs rounded-lg bg-sky-500 text-white disabled:opacity-50"
+              className="px-3 py-1.5 text-xs rounded-lg bg-brand-500 text-white disabled:opacity-50"
             >
               Salvar
             </button>
@@ -188,7 +188,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
 
   return (
     <div
-      className={`bg-white dark:bg-slate-800 rounded-xl shadow border p-4 overflow-hidden ${
+      className={`bg-white dark:bg-gray-800 rounded-xl shadow border p-4 overflow-hidden ${
         !category.isActive ? 'opacity-60' : ''
       }`}
       onDoubleClick={onStartEdit}
@@ -204,8 +204,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
           </div>
 
           <div className="min-w-0">
-            <p className="font-semibold text-slate-800 dark:text-white truncate">{category.name}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="font-semibold text-gray-800 dark:text-white truncate">{category.name}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {category.isActive ? 'Ativa' : 'Inativa'}
             </p>
           </div>
@@ -215,28 +215,28 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         <div className="flex gap-1 shrink-0">
           <button
             onClick={() => onToggleStatus(category.id, category.isActive)}
-            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <i className={`fas fa-${category.isActive ? 'eye' : 'eye-slash'}`} />
           </button>
 
           <button
             onClick={onStartEdit}
-            className="p-2 rounded-lg text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900/20"
+            className="p-2 rounded-lg text-brand-500 hover:bg-brand-100 dark:hover:bg-brand-900/20"
           >
             <i className="fas fa-edit" />
           </button>
 
           <button
             onClick={() => onEdit(category)}
-            className="p-2 rounded-lg text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/20"
+            className="p-2 rounded-lg text-brand-500 hover:bg-brand-100 dark:hover:bg-brand-900/20"
           >
             <i className="fas fa-cog" />
           </button>
 
           <button
             onClick={() => onDelete(category.id)}
-            className="p-2 rounded-lg text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20"
+            className="p-2 rounded-lg text-error-500 hover:bg-red-100 dark:hover:bg-red-900/20"
           >
             <i className="fas fa-trash" />
           </button>
@@ -247,14 +247,14 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         <>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 text-xs text-sky-500 flex items-center gap-1"
+            className="mt-2 text-xs text-brand-500 flex items-center gap-1"
           >
             <i className={`fas fa-chevron-${isExpanded ? 'up' : 'down'}`} />
             {isExpanded ? 'Ocultar descrição' : 'Mostrar descrição'}
           </button>
 
           {isExpanded && (
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
               {category.description}
             </p>
           )}

@@ -256,7 +256,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
     return (
       <div className="h-80 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
           <p className="mt-2 text-gray-600 dark:text-gray-400">Carregando tendências...</p>
         </div>
       </div>
@@ -265,7 +265,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
 
   if (error) {
     return (
-      <div className="h-80 flex flex-col items-center justify-center text-red-500 dark:text-red-400">
+      <div className="h-80 flex flex-col items-center justify-center text-error-500 dark:text-red-400">
         <i className="fas fa-exclamation-triangle text-4xl mb-3"></i>
         <p className="text-lg font-medium">Erro ao carregar o gráfico</p>
         <p className="text-sm mt-1 text-center px-4">{error}</p>
@@ -308,8 +308,8 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
           <div className="flex items-center">
-            <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-3">
-              <i className="fas fa-chart-line text-blue-600 dark:text-blue-400"></i>
+            <div className="h-10 w-10 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center mr-3">
+              <i className="fas fa-chart-line text-brand-600 dark:text-brand-400"></i>
             </div>
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Variação do Saldo</p>
@@ -317,7 +317,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
                 className={`text-lg font-semibold ${
                   balanceChange >= 0
                     ? 'text-green-600 dark:text-green-400'
-                    : 'text-red-600 dark:text-red-400'
+                    : 'text-error-600 dark:text-red-400'
                 }`}
               >
                 {balanceChange >= 0 ? '+' : ''}
@@ -367,7 +367,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
                 className={`text-lg font-semibold ${
                   lastBalance >= 0
                     ? 'text-green-600 dark:text-green-400'
-                    : 'text-red-600 dark:text-red-400'
+                    : 'text-error-600 dark:text-red-400'
                 }`}
               >
                 {formatMoney(lastBalance, displayCurrency)}
@@ -378,11 +378,11 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
       </div>
 
       {/* Insights */}
-      <div className="mt-6 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-gray-800 dark:to-gray-900 border border-blue-100 dark:border-blue-800 rounded-lg p-4">
+      <div className="mt-6 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-gray-800 dark:to-gray-900 border border-brand-100 dark:border-brand-800 rounded-lg p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-              <i className="fas fa-lightbulb text-blue-600 dark:text-blue-400"></i>
+            <div className="h-10 w-10 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center">
+              <i className="fas fa-lightbulb text-brand-600 dark:text-brand-400"></i>
             </div>
           </div>
           <div className="ml-4">
