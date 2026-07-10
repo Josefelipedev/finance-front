@@ -8,7 +8,12 @@ export const signUpSchema = z.object({
         .regex(/^[0-9+\-\s()]*$/, 'Invalid phone number format')
         .optional()
         .or(z.literal('')),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: z.string()
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[A-Z]/, 'Password must include an uppercase letter')
+        .regex(/[a-z]/, 'Password must include a lowercase letter')
+        .regex(/[0-9]/, 'Password must include a number')
+        .regex(/[^A-Za-z0-9]/, 'Password must include a special character'),
     agreeToTerms: z.boolean().refine(val => val === true, {
         message: 'You must agree to the terms and conditions',
     }),
@@ -26,8 +31,13 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z.object({
     code: z.string().min(6, 'Code must be 6 characters'),
-    newPassword: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
+    newPassword: z.string()
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[A-Z]/, 'Password must include an uppercase letter')
+        .regex(/[a-z]/, 'Password must include a lowercase letter')
+        .regex(/[0-9]/, 'Password must include a number')
+        .regex(/[^A-Za-z0-9]/, 'Password must include a special character'),
+    confirmPassword: z.string().min(8, 'Password must be at least 8 characters'),
 }).refine(data => data.newPassword === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],

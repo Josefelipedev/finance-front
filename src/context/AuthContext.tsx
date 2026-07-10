@@ -215,7 +215,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const sendEmailVerificationCode = async (email: string) => {
-    await authApi.post('/auth/send-email-verification-code', { email });
+    await authApi.post('/auth/send-email-code', { email });
     return { success: true };
   };
 
@@ -232,7 +232,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const sendPasswordResetCode = async (email: string) => {
-    await authApi.post('/auth/send-password-reset-code', { email });
+    await authApi.post('/auth/forgot-password', { email });
     return { success: true };
   };
 
