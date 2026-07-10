@@ -47,7 +47,7 @@ interface GetAllCategoriesOptions {
 export function useFinanceCategory() {
   const [categories, setCategories] = useState<FinanceCategory[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<Error | null>(null);
 
   // ===================== CREATE =====================
 
@@ -65,7 +65,7 @@ export function useFinanceCategory() {
 
       throw new Error('Categoria inválida');
     } catch (err: any) {
-      setError(err.message || 'Erro ao criar categoria');
+      setError(err instanceof Error ? err : new Error('Erro ao criar categoria'));
       throw err;
     } finally {
       setIsLoading(false);
@@ -93,7 +93,7 @@ export function useFinanceCategory() {
 
       throw new Error('Lista de categorias inválida');
     } catch (err: any) {
-      setError(err.message || 'Erro ao buscar categorias');
+      setError(err instanceof Error ? err : new Error('Erro ao buscar categorias'));
       throw err;
     } finally {
       setIsLoading(false);
@@ -113,7 +113,7 @@ export function useFinanceCategory() {
 
       throw new Error('Categoria não encontrada');
     } catch (err: any) {
-      setError(err.message || 'Erro ao buscar categoria');
+      setError(err instanceof Error ? err : new Error('Erro ao buscar categoria'));
       throw err;
     } finally {
       setIsLoading(false);
@@ -133,7 +133,7 @@ export function useFinanceCategory() {
 
       throw new Error('Resumo da categoria inválido');
     } catch (err: any) {
-      setError(err.message || 'Erro ao buscar resumo da categoria');
+      setError(err instanceof Error ? err : new Error('Erro ao buscar resumo da categoria'));
       throw err;
     } finally {
       setIsLoading(false);
@@ -156,7 +156,7 @@ export function useFinanceCategory() {
 
       throw new Error('Falha ao atualizar categoria');
     } catch (err: any) {
-      setError(err.message || 'Erro ao atualizar categoria');
+      setError(err instanceof Error ? err : new Error('Erro ao atualizar categoria'));
       throw err;
     } finally {
       setIsLoading(false);
@@ -173,7 +173,7 @@ export function useFinanceCategory() {
       await api.delete<boolean>(`/finance-category/${id}`);
       setCategories((prev) => prev.filter((cat) => cat.id !== id));
     } catch (err: any) {
-      setError(err.message || 'Erro ao excluir categoria');
+      setError(err instanceof Error ? err : new Error('Erro ao excluir categoria'));
       throw err;
     } finally {
       setIsLoading(false);
@@ -196,7 +196,7 @@ export function useFinanceCategory() {
 
       throw new Error('Falha ao alternar status da categoria');
     } catch (err: any) {
-      setError(err.message || 'Erro ao alternar status da categoria');
+      setError(err instanceof Error ? err : new Error('Erro ao alternar status da categoria'));
       throw err;
     } finally {
       setIsLoading(false);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import api from '../../services/api';
+import { useMealPlanner } from '../../hooks/useMealPlanner';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { formatMoney, currencyOption } from '../../utils/currency';
 
@@ -776,6 +776,19 @@ export default function MealPlannerPage() {
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const { profile: userProfile, getProfile } = useUserProfile();
+  const {
+    getSchedule,
+    getActivePlan,
+    getProfile: fetchDietProfile,
+    saveProfile: persistDietProfile,
+    saveSchedule: persistSchedule,
+    generatePlan: requestPlan,
+    toggleItem: toggleShoppingItem,
+    sendNotification: requestNotification,
+    getPlans,
+    deletePlan: removePlan,
+    clearHistory: removeAllHistory,
+  } = useMealPlanner();
   const currencySymbol = currencyOption(userProfile?.currency).symbol;
 
   useEffect(() => {
@@ -791,7 +804,7 @@ export default function MealPlannerPage() {
 
   async function loadSchedule() {
     try {
-      const data = await api.get<ScheduleItem[]>('/meal-planner/schedule');
+      const data = await getSchedule();
       if (data?.length) {
         setSchedule(DEFAULT_SCHEDULE.map((def) => data.find((d) => d.dayOfWeek === def.dayOfWeek) ?? def));
       }
@@ -801,7 +814,7 @@ export default function MealPlannerPage() {
   async function loadActivePlan() {
     setLoading(true);
     try {
-      const data = await api.get<MealPlan | null>('/meal-planner/active');
+      const data = await getActivePlan();
       setPlan(data);
     } catch {
       setPlan(null);
@@ -813,7 +826,7 @@ export default function MealPlannerPage() {
   async function loadProfile() {
     setLoadingProfile(true);
     try {
-      const data = await api.get<ProfileData>('/meal-planner/profile');
+      const data = await fetchDietProfile();
       setProfile(data);
     } catch {
       flash('error', 'Erro ao carregar o perfil dietético.');
@@ -825,7 +838,7 @@ export default function MealPlannerPage() {
   async function saveProfile(data: ProfileData) {
     setSavingProfile(true);
     try {
-      const updated = await api.patch<ProfileData>('/meal-planner/profile', data);
+      const updated = await persistDietProfile(data);
       setProfile(updated);
       flash('success', 'Perfil salvo! O próximo planejamento vai considerá-lo.');
     } catch {
@@ -838,7 +851,7 @@ export default function MealPlannerPage() {
   async function saveSchedule() {
     setSaving(true);
     try {
-      await api.post('/meal-planner/schedule', { schedule });
+      await persistSchedule(schedule);
       flash('success', 'Agenda salva!');
     } catch {
       flash('error', 'Erro ao salvar agenda.');
@@ -852,7 +865,7 @@ export default function MealPlannerPage() {
     try {
       const body: { budget?: number } = {};
       if (budget) body.budget = parseFloat(budget);
-      const data = await api.post<MealPlan>('/meal-planner/generate', body);
+      const data = await requestPlan(body);
       setPlan(data);
       setActiveTab('plan');
       flash('success', 'Planejamento gerado!');
@@ -865,7 +878,7 @@ export default function MealPlannerPage() {
 
   async function toggleItem(itemId: number) {
     try {
-      await api.patch(`/meal-planner/item/${itemId}/toggle`, {});
+      await toggleShoppingItem(itemId);
       setPlan((prev) => {
         if (!prev?.shoppingList) return prev;
         return {
@@ -886,7 +899,7 @@ export default function MealPlannerPage() {
   async function sendNotification() {
     setNotifying(true);
     try {
-      const r = await api.post<{ sent: boolean; reason?: string }>('/meal-planner/notify', {});
+      const r = await requestNotification();
       flash(r.sent ? 'success' : 'error', r.sent ? 'Lista enviada via WhatsApp!' : (r.reason ?? 'Não foi possível enviar.'));
     } catch {
       flash('error', 'Erro ao enviar notificação.');
@@ -898,7 +911,7 @@ export default function MealPlannerPage() {
   async function loadHistory() {
     setLoadingHistory(true);
     try {
-      const data = await api.get<MealPlan[]>('/meal-planner/plans');
+      const data = await getPlans();
       setAllPlans(data ?? []);
     } catch {
       flash('error', 'Erro ao carregar histórico.');
@@ -910,7 +923,7 @@ export default function MealPlannerPage() {
   async function deletePlan(id: number) {
     setDeletingId(id);
     try {
-      await api.delete(`/meal-planner/plans/${id}`);
+      await removePlan(id);
       setAllPlans((prev) => prev.filter((p) => p.id !== id));
       if (plan?.id === id) setPlan(null);
       flash('success', 'Plano apagado.');
@@ -925,7 +938,7 @@ export default function MealPlannerPage() {
     setClearingHistory(true);
     setConfirmClearAll(false);
     try {
-      await api.delete('/meal-planner/plans/history');
+      await removeAllHistory();
       setAllPlans([]);
       setPlan(null);
       flash('success', 'Histórico apagado com sucesso.');

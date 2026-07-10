@@ -79,7 +79,7 @@ const CategoryManager: React.FC = () => {
             <h3 className="font-semibold text-red-800 dark:text-red-300">
               Erro ao carregar categorias
             </h3>
-            <p className="text-error-600 dark:text-red-400 text-sm mt-1">{error}</p>
+            <p className="text-error-600 dark:text-red-400 text-sm mt-1">{error.message}</p>
             <button
               onClick={loadCategories}
               className="mt-2 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-sm"

@@ -31,6 +31,10 @@ export interface UpdateUserProfileDto {
   displayName?: string;
   whatsapp?: string;
   currency?: string;
+  fiscalCountry?: string;
+  fiscalRegime?: string;
+  activityStartDate?: string;
+  fiscalNumber?: string;
 }
 
 // ===================== HOOK =====================

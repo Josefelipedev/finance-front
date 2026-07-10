@@ -2,60 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import api from '../../services/api';
-
-// ===== Tipos da resposta de GET /fiscal/obligations =====
-interface FiscalProfile {
-  regime: string;
-  regimeLabel: string;
-  ivaStatus: string;
-  ivaLabel: string;
-  activityStartDate: string; // "YYYY-MM-DD"
-  fiscalNumber?: string | null;
-  thresholdEur: number; // 15000
-  currency: string;
-}
-
-interface FiscalStatus {
-  socialSecurityFirstYearExempt: boolean;
-  socialSecurityExemptUntil: string; // "YYYY-MM-DD"
-}
-
-interface FiscalObligation {
-  key: string;
-  title: string;
-  description: string;
-  frequency: string; // "Mensal · até dia 5"
-  meta?: string;
-}
-
-type FiscalTag = 'mensal' | 'anual' | 'ss' | 'limite';
-
-interface FiscalUpcoming {
-  date: string; // "YYYY-MM-DD"
-  endDate?: string;
-  title: string;
-  description: string;
-  tag: FiscalTag;
-  daysUntil: number;
-}
-
-interface FiscalDataConfigured {
-  configured: true;
-  country: string;
-  profile: FiscalProfile;
-  status: FiscalStatus;
-  obligations: FiscalObligation[];
-  upcoming: FiscalUpcoming[];
-  nextDeadline: FiscalUpcoming | null;
-  disclaimer: string;
-}
-
-interface FiscalDataNotConfigured {
-  configured: false;
-}
-
-type FiscalData = FiscalDataConfigured | FiscalDataNotConfigured;
+import { useFiscal, FiscalData, FiscalTag } from '../../hooks/useFiscal';
+import { useUserProfile } from '../../hooks/useUserProfile';
 
 // ===== Helpers de data (pt-PT) =====
 function toDate(iso: string): Date {
@@ -128,18 +76,21 @@ export default function FiscalPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({ activityStartDate: '', fiscalNumber: '' });
 
+  const { getObligations } = useFiscal();
+  const { updateProfile } = useUserProfile();
+
   const load = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await api.get<FiscalData>('/fiscal/obligations');
+      const res = await getObligations();
       setData(res);
     } catch (err) {
       setError((err as Error).message || 'Não foi possível carregar as obrigações fiscais.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [getObligations]);
 
   useEffect(() => {
     load();
@@ -163,7 +114,7 @@ export default function FiscalPage() {
     }
     setIsSaving(true);
     try {
-      await api.patch('/contacts/update', {
+      await updateProfile({
         fiscalCountry: 'PT',
         fiscalRegime: 'PT_SIMPLIFICADO_ISENCAO_ART53',
         activityStartDate: form.activityStartDate,
