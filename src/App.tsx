@@ -30,6 +30,7 @@ const CalendarPage = lazy(() => import('./pages/app/CalendarPage'));
 const SearchPage = lazy(() => import('./pages/app/SearchPage'));
 const CouplePage = lazy(() => import('./pages/app/CouplePage'));
 const AccountsPage = lazy(() => import('./pages/app/AccountsPage'));
+const FiscalPage = lazy(() => import('./pages/app/FiscalPage'));
 const MealPlannerPage = lazy(() => import('./pages/MealPlanner/MealPlannerPage'));
 const UserProfiles = lazy(() => import('./pages/UserProfiles'));
 
@@ -66,6 +67,7 @@ export default function App() {
               <Route path="/buscar" element={<SearchPage />} />
               <Route path="/casal" element={<CouplePage />} />
               <Route path="/contas" element={<AccountsPage />} />
+              <Route path="/fiscal" element={<FiscalPage />} />
               <Route path="/meal-planner" element={<MealPlannerPage />} />
               <Route path="/profile" element={<UserProfiles />} />
             </Route>

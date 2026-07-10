@@ -33,6 +33,7 @@ const sections: NavSection[] = [
       { name: 'Contas', path: '/contas', icon: 'building-columns' },
       { name: 'Categorias', path: '/categorias', icon: 'tags' },
       { name: 'Casal', path: '/casal', icon: 'heart' },
+      { name: 'Fiscal', path: '/fiscal', icon: 'file-invoice' },
     ],
   },
   {
