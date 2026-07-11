@@ -4,7 +4,8 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../hooks/useFinance';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { formatMoney } from '../../utils/currency';
+import { formatMoney, convertAmount } from '../../utils/currency';
+import { useExchangeRates } from '../../hooks/useExchangeRates';
 
 interface CategoryDistributionProps {
   dateRange: { startDate: string; endDate: string };
@@ -51,6 +52,7 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
   const [error, setError] = useState<string | null>(null);
   const displayCurrency = profile?.currency;
+  const rates = useExchangeRates();
 
   useEffect(() => {
     getProfile().catch(() => {});
@@ -96,8 +98,11 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
           };
         }
 
-        // Soma o valor absoluto (remove negativo para despesas)
-        acc[categoryKey].amount += Math.abs(record.amount);
+        // Soma o valor absoluto, convertido para a moeda de exibição
+        // (registros do casal podem estar em BRL e EUR misturados)
+        acc[categoryKey].amount += Math.abs(
+          convertAmount(record.amount, record.currency, displayCurrency, rates),
+        );
         return acc;
       }, {});
 
@@ -116,7 +121,7 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
     };
 
     loadData();
-  }, [dateRange]);
+  }, [dateRange, rates, displayCurrency]);
 
   // Cores para o gráfico - usa as cores das categorias ou padrão
   const getChartColors = () => {

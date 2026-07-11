@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
@@ -95,23 +95,30 @@ export default function CouplePage() {
   const receivedInvite = invites.received[0];
   const sentInvite = invites.sent[0];
 
-  const loadSummary = useCallback(async () => {
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    try {
-      const data = await getFinanceSummary({
-        startDate: monthStart.toISOString(),
-        endDate: now.toISOString(),
-      });
-      setSummary(data);
-    } catch {
-      setSummary(null);
-    }
-  }, [getFinanceSummary]);
-
+  // Carrega o resumo só quando o estado de casal muda.
+  // getFinanceSummary NÃO é memoizado no useFinance — incluí-lo nas deps causava
+  // re-render infinito (a página travava), então fica de fora de propósito.
   useEffect(() => {
-    if (isMarried) loadSummary();
-  }, [isMarried, loadSummary]);
+    if (!isMarried) return;
+    let alive = true;
+    (async () => {
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      try {
+        const data = await getFinanceSummary({
+          startDate: monthStart.toISOString(),
+          endDate: now.toISOString(),
+        });
+        if (alive) setSummary(data);
+      } catch {
+        if (alive) setSummary(null);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMarried]);
 
   // Cancela a confirmação de desvincular se o usuário não confirmar em alguns segundos
   useEffect(() => {

@@ -4,7 +4,8 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { formatMoney, currencyOption } from '../../../utils/currency';
+import { formatMoney, currencyOption, convertAmount } from '../../../utils/currency';
+import { useExchangeRates } from '../../../hooks/useExchangeRates';
 
 interface MonthlyComparisonChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -15,6 +16,7 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
   const currencySymbol = currencyOption(displayCurrency).symbol;
+  const rates = useExchangeRates();
   const [chartData, setChartData] = useState<{
     months: string[];
     income: number[];
@@ -45,10 +47,19 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
               acc[monthYear] = { income: 0, expense: 0 };
             }
 
+            // Converte para a moeda de exibição antes de somar
+            // (registros do casal podem estar em BRL e EUR misturados)
+            const value = convertAmount(
+              transaction.amount,
+              transaction.currency,
+              displayCurrency,
+              rates,
+            );
+
             if (transaction.type === 'income') {
-              acc[monthYear].income += transaction.amount;
+              acc[monthYear].income += value;
             } else {
-              acc[monthYear].expense += transaction.amount;
+              acc[monthYear].expense += value;
             }
 
             return acc;
@@ -78,7 +89,7 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
     };
 
     loadChartData();
-  }, [dateRange]);
+  }, [dateRange, rates, displayCurrency]);
 
   const options: ApexOptions = {
     chart: {

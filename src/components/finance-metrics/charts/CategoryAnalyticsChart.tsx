@@ -4,7 +4,8 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { formatMoney } from '../../../utils/currency';
+import { formatMoney, convertAmount } from '../../../utils/currency';
+import { useExchangeRates } from '../../../hooks/useExchangeRates';
 
 interface CategoryAnalyticsChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -14,6 +15,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
   const { getAllFinances, isLoading } = useFinance();
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
+  const rates = useExchangeRates();
   const [categoryData, setCategoryData] = useState<
     Array<{
       name: string;
@@ -59,7 +61,11 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
           if (!categoryTotals[categoryName]) {
             categoryTotals[categoryName] = 0;
           }
-          categoryTotals[categoryName] += Math.abs(transaction.amount);
+          // Converte o valor para a moeda de exibição antes de somar
+          // (registros do casal podem estar em BRL e EUR misturados)
+          categoryTotals[categoryName] += Math.abs(
+            convertAmount(transaction.amount, transaction.currency, displayCurrency, rates),
+          );
         });
 
         // Converter para array e mapear cores
@@ -84,7 +90,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
     };
 
     loadCategoryData();
-  }, [dateRange]);
+  }, [dateRange, rates, displayCurrency]);
 
   const options: ApexOptions = {
     chart: {

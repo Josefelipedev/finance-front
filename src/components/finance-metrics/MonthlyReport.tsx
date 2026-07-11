@@ -3,6 +3,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useFinance } from '../../hooks/useFinance';
 import { useAnalysis } from '../../hooks/useAnalysis';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { useExchangeRates } from '../../hooks/useExchangeRates';
+import { formatMoney, convertAmount } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import Button from '../ui/button/Button';
 
@@ -11,8 +14,8 @@ const MONTH_NAMES = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+const recordCurrency = (record: FinanceRecord) =>
+  (record as { currency?: string }).currency;
 
 const monthBounds = (year: number, month: number) => {
   const start = new Date(year, month, 1);
@@ -23,6 +26,12 @@ const monthBounds = (year: number, month: number) => {
 const MonthlyReport: React.FC = () => {
   const { getAllFinances } = useFinance();
   const { getInsight, isLoading: insightLoading } = useAnalysis();
+  const { profile, getProfile } = useUserProfile();
+  const displayCurrency = profile?.currency;
+  const rates = useExchangeRates();
+
+  // Totais agregados são formatados na moeda de exibição do usuário
+  const formatCurrency = (value: number) => formatMoney(value, displayCurrency);
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -31,6 +40,10 @@ const MonthlyReport: React.FC = () => {
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [insight, setInsight] = useState<string | null>(null);
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
 
   useEffect(() => {
     load();
@@ -76,19 +89,22 @@ const MonthlyReport: React.FC = () => {
     let exp = 0;
     const cats: Record<string, number> = {};
     for (const r of records) {
+      // Converte para a moeda de exibição antes de somar
+      // (registros do casal podem estar em BRL e EUR misturados)
+      const amount = convertAmount(r.amount, recordCurrency(r), displayCurrency, rates);
       if (r.type === 'income') {
-        inc += r.amount;
+        inc += amount;
       } else {
-        exp += r.amount;
+        exp += amount;
         const name = r.category?.name || 'Sem categoria';
-        cats[name] = (cats[name] || 0) + r.amount;
+        cats[name] = (cats[name] || 0) + amount;
       }
     }
     const byCategory = Object.entries(cats)
       .map(([name, value]) => ({ name, value, pct: exp > 0 ? (value / exp) * 100 : 0 }))
       .sort((a, b) => b.value - a.value);
     return { income: inc, expense: exp, balance: inc - exp, byCategory };
-  }, [records]);
+  }, [records, rates, displayCurrency]);
 
   const handleExport = () => {
     if (records.length === 0) {

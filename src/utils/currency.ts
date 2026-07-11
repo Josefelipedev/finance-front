@@ -24,6 +24,27 @@ export function currencyOption(code?: string | null): CurrencyOption {
   return CURRENCY_OPTIONS.find((c) => c.code === code) ?? CURRENCY_OPTIONS[0];
 }
 
+/** Taxas com base EUR (rates[EUR] = 1), vindas de GET /currency/rates. */
+export type ExchangeRates = Record<string, number>;
+
+/**
+ * Converte um valor entre moedas via taxa cruzada com base EUR.
+ * Sem taxas ou sem cobertura da moeda → retorna o valor original (melhor esforço).
+ * Use ANTES de agregar valores de moedas diferentes (ex.: totais do casal).
+ */
+export function convertAmount(
+  amount: number,
+  from: string | null | undefined,
+  to: string | null | undefined,
+  rates: ExchangeRates | null | undefined,
+): number {
+  if (!rates || !from || !to || from === to) return amount;
+  const rFrom = rates[from];
+  const rTo = rates[to];
+  if (!rFrom || !rTo) return amount;
+  return amount * (rTo / rFrom);
+}
+
 /** Formata um valor NA MOEDA ORIGINAL — nunca assumir R$ fixo. */
 export function formatMoney(amount: number, currency?: string | null): string {
   const opt = currencyOption(currency);

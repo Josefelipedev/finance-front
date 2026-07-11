@@ -4,7 +4,8 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { formatMoney, currencyOption } from '../../../utils/currency';
+import { formatMoney, currencyOption, convertAmount } from '../../../utils/currency';
+import { useExchangeRates } from '../../../hooks/useExchangeRates';
 
 interface TrendAnalyticsChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -15,6 +16,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
   const currencySymbol = currencyOption(displayCurrency).symbol;
+  const rates = useExchangeRates();
   const [trendData, setTrendData] = useState<{
     dates: string[];
     balance: number[];
@@ -52,12 +54,21 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
             dailyData[date] = { income: 0, expense: 0, balance: 0 };
           }
 
+          // Converte para a moeda de exibição antes de agregar
+          // (registros do casal podem estar em BRL e EUR misturados)
+          const value = convertAmount(
+            transaction.amount,
+            transaction.currency,
+            displayCurrency,
+            rates,
+          );
+
           if (transaction.type === 'income') {
-            dailyData[date].income += transaction.amount;
-            dailyData[date].balance += transaction.amount;
+            dailyData[date].income += value;
+            dailyData[date].balance += value;
           } else {
-            dailyData[date].expense += transaction.amount;
-            dailyData[date].balance -= transaction.amount;
+            dailyData[date].expense += value;
+            dailyData[date].balance -= value;
           }
         });
 
@@ -87,7 +98,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
     };
 
     loadTrendData();
-  }, [dateRange]);
+  }, [dateRange, rates, displayCurrency]);
 
   const options: ApexOptions = {
     chart: {

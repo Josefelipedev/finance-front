@@ -2,12 +2,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useBudget, BudgetLimit } from '../../../hooks/useBudget';
-import { useFinance } from '../../../hooks/useFinance';
+import { useFinance, FinanceRecord } from '../../../hooks/useFinance';
 import { useFinanceCategory, FinanceCategory } from '../../../hooks/useFinanceCategory';
 import { Modal } from '../../ui/modal';
 import CategorySelect from '../../form/CategorySelect';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { formatMoney, currencyOption } from '../../../utils/currency';
+import { useExchangeRates } from '../../../hooks/useExchangeRates';
+import { formatMoney, currencyOption, convertAmount } from '../../../utils/currency';
 import Button from '../../ui/button/Button';
 
 const monthRange = () => {
@@ -25,9 +26,10 @@ const BudgetManager: React.FC = () => {
   const displayCurrency = profile?.currency;
   const currencySymbol = currencyOption(displayCurrency).symbol;
   const formatCurrency = (value: number) => formatMoney(value, displayCurrency);
+  const rates = useExchangeRates();
 
   const [categories, setCategories] = useState<FinanceCategory[]>([]);
-  const [spendByCategory, setSpendByCategory] = useState<Record<number, number>>({});
+  const [transactions, setTransactions] = useState<FinanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -51,19 +53,27 @@ const BudgetManager: React.FC = () => {
         getAllFinances(monthRange()).catch(() => []),
       ]);
       setCategories(cats || []);
-
-      const spend: Record<number, number> = {};
-      for (const tx of txs || []) {
-        if (tx.type !== 'expense') continue;
-        const catId = tx.categoryId ?? tx.category?.id;
-        if (catId == null) continue;
-        spend[catId] = (spend[catId] || 0) + (tx.amount || 0);
-      }
-      setSpendByCategory(spend);
+      setTransactions(txs || []);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Gasto por categoria, convertido para a moeda de exibição antes de somar
+  // (registros do casal podem estar em BRL e EUR misturados). Recalcula quando
+  // as taxas de câmbio terminam de carregar.
+  const spendByCategory = useMemo(() => {
+    const spend: Record<number, number> = {};
+    for (const tx of transactions) {
+      if (tx.type !== 'expense') continue;
+      const catId = tx.categoryId ?? tx.category?.id;
+      if (catId == null) continue;
+      spend[catId] =
+        (spend[catId] || 0) +
+        convertAmount(tx.amount || 0, tx.currency, displayCurrency, rates);
+    }
+    return spend;
+  }, [transactions, rates, displayCurrency]);
 
   const openCreate = () => {
     setEditing(null);

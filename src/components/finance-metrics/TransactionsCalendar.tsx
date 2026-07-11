@@ -1,5 +1,5 @@
 // src/components/finance-metrics/TransactionsCalendar.tsx
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -8,21 +8,34 @@ import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 import type { DatesSetArg } from '@fullcalendar/core';
 import { toast } from 'sonner';
 import { useFinance } from '../../hooks/useFinance';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { useExchangeRates } from '../../hooks/useExchangeRates';
+import { formatMoney, convertAmount } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import { Modal } from '../ui/modal';
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+const recordCurrency = (record: FinanceRecord) =>
+  (record as { currency?: string }).currency;
 
 const dayKey = (record: FinanceRecord) =>
   new Date(record.referenceDate || record.createdAt).toISOString().split('T')[0];
 
 const TransactionsCalendar: React.FC = () => {
   const { getAllFinances } = useFinance();
+  const { profile, getProfile } = useUserProfile();
+  const displayCurrency = profile?.currency;
+  const rates = useExchangeRates();
 
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
+
+  // Totais agregados são formatados na moeda de exibição do usuário
+  const formatCurrency = (value: number) => formatMoney(value, displayCurrency);
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
 
   // Recarrega ao mudar o intervalo visível (navegação de mês)
   const handleDatesSet = useCallback(
@@ -50,11 +63,14 @@ const TransactionsCalendar: React.FC = () => {
     const map: Record<string, number> = {};
     for (const r of records) {
       const key = dayKey(r);
-      const delta = r.type === 'income' ? r.amount : -r.amount;
+      // Converte para a moeda de exibição antes de somar
+      // (registros do casal podem estar em BRL e EUR misturados)
+      const amount = convertAmount(r.amount, recordCurrency(r), displayCurrency, rates);
+      const delta = r.type === 'income' ? amount : -amount;
       map[key] = (map[key] || 0) + delta;
     }
     return map;
-  }, [records]);
+  }, [records, rates, displayCurrency]);
 
   const events = useMemo(
     () =>
@@ -80,11 +96,13 @@ const TransactionsCalendar: React.FC = () => {
     let income = 0;
     let expense = 0;
     for (const r of selectedTransactions) {
-      if (r.type === 'income') income += r.amount;
-      else expense += r.amount;
+      // Converte para a moeda de exibição antes de somar
+      const amount = convertAmount(r.amount, recordCurrency(r), displayCurrency, rates);
+      if (r.type === 'income') income += amount;
+      else expense += amount;
     }
     return { income, expense };
-  }, [selectedTransactions]);
+  }, [selectedTransactions, rates, displayCurrency]);
 
   return (
     <div className="space-y-4 px-2 sm:px-0">
@@ -163,7 +181,7 @@ const TransactionsCalendar: React.FC = () => {
                     }`}
                   >
                     {tx.type === 'income' ? '+' : '-'}
-                    {formatCurrency(tx.amount)}
+                    {formatMoney(tx.amount, recordCurrency(tx))}
                   </span>
                 </div>
               ))}
