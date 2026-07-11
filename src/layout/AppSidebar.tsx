@@ -21,6 +21,7 @@ const sections: NavSection[] = [
     items: [
       { name: 'Transações', path: '/transacoes', icon: 'arrow-right-arrow-left' },
       { name: 'Recorrentes', path: '/recorrentes', icon: 'rotate' },
+      { name: 'Contas a Pagar', path: '/contas-a-pagar', icon: 'file-invoice-dollar' },
       { name: 'Compras', path: '/compras', icon: 'cart-shopping' },
       { name: 'Despensa', path: '/despensa', icon: 'box-open' },
       { name: 'Preços', path: '/precos', icon: 'magnifying-glass-dollar' },

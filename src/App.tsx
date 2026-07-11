@@ -18,6 +18,7 @@ import PublicRoute from './components/public-route';
 const DashboardPage = lazy(() => import('./pages/app/DashboardPage'));
 const TransactionsPage = lazy(() => import('./pages/app/TransactionsPage'));
 const RecurringPage = lazy(() => import('./pages/app/RecurringPage'));
+const BillsPage = lazy(() => import('./pages/app/BillsPage'));
 const BudgetPage = lazy(() => import('./pages/app/BudgetPage'));
 const ShoppingPage = lazy(() => import('./pages/app/ShoppingPage'));
 const PantryPage = lazy(() => import('./pages/app/PantryPage'));
@@ -56,6 +57,7 @@ export default function App() {
               <Route index path="/" element={<DashboardPage />} />
               <Route path="/transacoes" element={<TransactionsPage />} />
               <Route path="/recorrentes" element={<RecurringPage />} />
+              <Route path="/contas-a-pagar" element={<BillsPage />} />
               <Route path="/orcamento" element={<BudgetPage />} />
               <Route path="/compras" element={<ShoppingPage />} />
               <Route path="/despensa" element={<PantryPage />} />
