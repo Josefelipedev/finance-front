@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import api from '../services/api';
 
 // ===================== DTOs =====================
@@ -91,18 +91,18 @@ export const useFinance = () => {
 
   const isLoading = loadingCount > 0;
 
-  const withLoading = async <T>(fn: () => Promise<T>): Promise<T> => {
+  const withLoading = useCallback(async <T,>(fn: () => Promise<T>): Promise<T> => {
     setLoadingCount((c) => c + 1);
     try {
       return await fn();
     } finally {
       setLoadingCount((c) => Math.max(0, c - 1));
     }
-  };
+  }, []);
 
   // ===================== CREATE =====================
 
-  const addFinanceRecord = async (data: CreateFinanceDto) => {
+  const addFinanceRecord = useCallback(async (data: CreateFinanceDto) => {
     setError(null);
     return withLoading(async () => {
       try {
@@ -117,11 +117,11 @@ export const useFinance = () => {
         throw err;
       }
     });
-  };
+  }, [withLoading]);
 
   // ===================== READ =====================
 
-  const getAllFinances = async (params?: QueryParams) => {
+  const getAllFinances = useCallback(async (params?: QueryParams) => {
     setError(null);
     return withLoading(async () => {
       try {
@@ -145,9 +145,9 @@ export const useFinance = () => {
         throw err;
       }
     });
-  };
+  }, [withLoading]);
 
-  const getFinanceSummary = async (params?: QueryParams) => {
+  const getFinanceSummary = useCallback(async (params?: QueryParams) => {
     setError(null);
     return withLoading(async () => {
       try {
@@ -167,9 +167,9 @@ export const useFinance = () => {
         throw err;
       }
     });
-  };
+  }, [withLoading]);
 
-  const getDashboardData = async (params?: QueryParams) => {
+  const getDashboardData = useCallback(async (params?: QueryParams) => {
     setError(null);
     return withLoading(async () => {
       try {
@@ -189,11 +189,11 @@ export const useFinance = () => {
         throw err;
       }
     });
-  };
+  }, [withLoading]);
 
   // ===================== UPDATE =====================
 
-  const updateFinanceRecord = async (id: number, data: Partial<CreateFinanceDto>) => {
+  const updateFinanceRecord = useCallback(async (id: number, data: Partial<CreateFinanceDto>) => {
     setError(null);
     return withLoading(async () => {
       try {
@@ -208,33 +208,36 @@ export const useFinance = () => {
         throw err;
       }
     });
-  };
+  }, [withLoading]);
 
   // ===================== DELETE =====================
 
-  const deleteFinanceRecord = async (id: number) => {
+  const deleteFinanceRecord = useCallback(async (id: number) => {
     setError(null);
     return withLoading(async () => {
       try {
         // A API lança erro em caso de falha (cai no catch); se resolveu, removeu.
         await api.delete(`/finance/${id}`);
         setRecords((prev) => prev.filter((record) => record.id !== id));
-        if (dashboardData) {
-          setDashboardData({
-            ...dashboardData,
-            transactions: dashboardData.transactions.filter((tx) => tx.id !== id.toString()),
-          });
-        }
+        // Atualização funcional: mantém a função estável (sem depender de dashboardData)
+        setDashboardData((prev) =>
+          prev
+            ? {
+                ...prev,
+                transactions: prev.transactions.filter((tx) => tx.id !== id.toString()),
+              }
+            : prev,
+        );
       } catch (err) {
         setError(err as Error);
         throw err;
       }
     });
-  };
+  }, [withLoading]);
 
   // ===================== REFRESH =====================
 
-  const refreshAllData = async (params?: QueryParams) => {
+  const refreshAllData = useCallback(async (params?: QueryParams) => {
     try {
       await Promise.all([
         getAllFinances(params),
@@ -245,7 +248,7 @@ export const useFinance = () => {
       console.error('Erro ao atualizar dados financeiros:', err);
       throw err;
     }
-  };
+  }, [getAllFinances, getDashboardData, getFinanceSummary]);
 
   // ===================== PUBLIC API =====================
 
