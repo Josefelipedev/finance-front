@@ -1,12 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Button from '../../components/ui/button/Button';
+import { Modal } from '../../components/ui/modal';
 import { useBills, BillItem } from '../../hooks/useBills';
-import { useUserProfile } from '../../hooks/useUserProfile';
-import { useExchangeRates } from '../../hooks/useExchangeRates';
-import { convertAmount, formatMoney } from '../../utils/currency';
+import { currencyOption, formatMoney } from '../../utils/currency';
 
 // ===== Helpers de mês / data =====
 
@@ -43,19 +42,19 @@ function formatDueDate(iso: string): string {
 export default function BillsPage() {
   const [month, setMonth] = useState<string>(currentMonth());
   const [items, setItems] = useState<BillItem[]>([]);
+  // Totais JÁ convertidos pelo servidor para a moeda de exibição do usuário.
+  const [totalPending, setTotalPending] = useState(0);
+  const [totalPaid, setTotalPaid] = useState(0);
+  const [displayCurrency, setDisplayCurrency] = useState('BRL');
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
 
+  // Modal "valor pago" ao marcar uma conta pendente como paga.
+  const [payingItem, setPayingItem] = useState<BillItem | null>(null);
+  const [payAmount, setPayAmount] = useState('');
+
   const { getBills, payBill, unpayBill } = useBills();
-  const { profile, getProfile } = useUserProfile();
-  const rates = useExchangeRates();
-
-  const displayCurrency = profile?.currency ?? 'BRL';
-
-  useEffect(() => {
-    getProfile().catch(() => {});
-  }, [getProfile]);
 
   const load = useCallback(
     async (targetMonth: string) => {
@@ -64,6 +63,9 @@ export default function BillsPage() {
       try {
         const res = await getBills(targetMonth);
         setItems(res?.items ?? []);
+        setTotalPending(res?.totalPending ?? 0);
+        setTotalPaid(res?.totalPaid ?? 0);
+        setDisplayCurrency(res?.displayCurrency ?? 'BRL');
       } catch (err) {
         setError((err as Error).message || 'Não foi possível carregar as contas.');
       } finally {
@@ -77,29 +79,44 @@ export default function BillsPage() {
     load(month);
   }, [load, month]);
 
-  // ===== Totais convertidos para a moeda de exibição do perfil =====
-  const { pendingTotal, paidTotal } = useMemo(() => {
-    let pending = 0;
-    let paid = 0;
-    for (const item of items) {
-      const value = convertAmount(item.amount, item.currency, displayCurrency, rates);
-      if (item.status === 'paid') paid += value;
-      else pending += value;
-    }
-    return { pendingTotal: pending, paidTotal: paid };
-  }, [items, displayCurrency, rates]);
-
-  const handleToggle = async (item: BillItem) => {
+  // Clicar no checkbox: pago → despaga direto; pendente → abre o modal de valor.
+  const handleToggle = (item: BillItem) => {
     if (togglingId != null) return;
+    if (item.status === 'paid') {
+      void unpay(item);
+    } else {
+      setPayingItem(item);
+      // Pré-preenche com o previsto, na moeda nativa da conta.
+      setPayAmount(String(item.amount));
+    }
+  };
+
+  const unpay = async (item: BillItem) => {
     setTogglingId(item.id);
     try {
-      if (item.status === 'paid') {
-        await unpayBill(item.id);
-        toast.success('Conta marcada como pendente.');
-      } else {
-        await payBill(item.id);
-        toast.success('Conta marcada como paga!');
-      }
+      await unpayBill(item.id);
+      toast.success('Conta marcada como pendente.');
+      await load(month);
+    } catch (err) {
+      toast.error((err as Error).message || 'Não foi possível atualizar a conta.');
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const confirmPay = async () => {
+    if (!payingItem) return;
+    const amountValue = Number.parseFloat(payAmount.replace(',', '.'));
+    if (!Number.isFinite(amountValue) || amountValue < 0) {
+      toast.error('Informe um valor válido.');
+      return;
+    }
+    const item = payingItem;
+    setTogglingId(item.id);
+    try {
+      await payBill(item.id, amountValue);
+      toast.success('Conta marcada como paga!');
+      setPayingItem(null);
       await load(month);
     } catch (err) {
       toast.error((err as Error).message || 'Não foi possível atualizar a conta.');
@@ -143,7 +160,7 @@ export default function BillsPage() {
             Pendente
           </p>
           <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-error-500 dark:text-error-400">
-            {formatMoney(pendingTotal, displayCurrency)}
+            {formatMoney(totalPending, displayCurrency)}
           </p>
         </Surface>
         <Surface className="p-5">
@@ -151,7 +168,7 @@ export default function BillsPage() {
             Pago
           </p>
           <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-success-600 dark:text-success-400">
-            {formatMoney(paidTotal, displayCurrency)}
+            {formatMoney(totalPaid, displayCurrency)}
           </p>
         </Surface>
       </div>
@@ -263,17 +280,30 @@ export default function BillsPage() {
 
                 {/* Valor na moeda nativa */}
                 <div className="shrink-0 text-right">
-                  <p
-                    className={`font-display font-semibold tabular-nums ${
-                      isPaid
-                        ? 'text-gray-400 line-through dark:text-gray-500'
-                        : isOverdue
-                          ? 'text-error-600 dark:text-error-400'
-                          : 'text-gray-900 dark:text-white'
-                    }`}
-                  >
-                    {formatMoney(item.amount, item.currency)}
-                  </p>
+                  {(() => {
+                    // Conta paga → mostra o valor efetivamente pago em destaque.
+                    // Se diferir do previsto, exibe o previsto em miúdo abaixo.
+                    const paidValue = isPaid && item.paidAmount != null ? item.paidAmount : item.amount;
+                    const showPrevisto = isPaid && item.paidAmount != null && item.paidAmount !== item.amount;
+                    return (
+                      <>
+                        <p
+                          className={`font-display font-semibold tabular-nums ${
+                            !isPaid && isOverdue
+                              ? 'text-error-600 dark:text-error-400'
+                              : 'text-gray-900 dark:text-white'
+                          }`}
+                        >
+                          {formatMoney(paidValue, item.currency)}
+                        </p>
+                        {showPrevisto && (
+                          <p className="mt-0.5 text-[11px] tabular-nums text-gray-400 dark:text-gray-500">
+                            previsto {formatMoney(item.amount, item.currency)}
+                          </p>
+                        )}
+                      </>
+                    );
+                  })()}
                   {isPaid && (
                     <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-success-600 dark:text-success-400">
                       <i className="fas fa-check text-[10px]"></i>
@@ -286,6 +316,86 @@ export default function BillsPage() {
           })}
         </Surface>
       )}
+
+      {/* Modal: valor efetivamente pago ao marcar uma conta pendente como paga */}
+      <Modal
+        isOpen={payingItem != null}
+        onClose={() => {
+          if (togglingId == null) setPayingItem(null);
+        }}
+        className="max-w-md p-6 sm:p-7"
+      >
+        <h3 className="font-display text-lg font-semibold text-gray-900 dark:text-white">
+          Marcar como paga
+        </h3>
+        {payingItem && (
+          <>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Quanto foi pago em <span className="font-medium text-gray-700 dark:text-gray-300">{payingItem.description}</span>?
+            </p>
+            <div className="mt-5">
+              <label
+                htmlFor="bill-pay-amount"
+                className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400"
+              >
+                Valor pago
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-sm font-medium text-gray-400 dark:text-gray-500">
+                  {currencyOption(payingItem.currency).symbol}
+                </span>
+                <input
+                  id="bill-pay-amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  inputMode="decimal"
+                  autoFocus
+                  value={payAmount}
+                  onChange={(e) => setPayAmount(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void confirmPay();
+                    }
+                  }}
+                  className="h-11 w-full rounded-lg border border-gray-300 bg-white pl-12 pr-3.5 text-sm tabular-nums text-gray-900 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-400"
+                />
+              </div>
+              <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
+                Previsto: {formatMoney(payingItem.amount, payingItem.currency)}
+              </p>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={togglingId != null}
+                onClick={() => setPayingItem(null)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                disabled={togglingId != null}
+                onClick={() => void confirmPay()}
+              >
+                {togglingId != null ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin text-xs"></i>
+                    A guardar…
+                  </>
+                ) : (
+                  'Confirmar pagamento'
+                )}
+              </Button>
+            </div>
+          </>
+        )}
+      </Modal>
     </PageShell>
   );
 }

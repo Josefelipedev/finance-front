@@ -5,7 +5,8 @@ import api from '../services/api';
 export interface BillItem {
   id: number;
   description: string;
-  amount: number;
+  amount: number; // valor previsto, na moeda nativa
+  paidAmount: number | null; // valor efetivamente pago, na moeda nativa (null quando pendente)
   currency: string;
   categoryId: number | null;
   categoryName: string | null;
@@ -17,11 +18,21 @@ export interface BillItem {
   carriedOver: boolean; // veio de um mês anterior (atrasada)
 }
 
+/** Subtotal pendente por moeda nativa. */
+export interface BillCurrencySubtotal {
+  currency: string;
+  amount: number;
+}
+
 export interface BillsResponse {
   month: string; // "YYYY-MM"
   items: BillItem[];
-  totalPending: number;
-  totalPaid: number;
+  totalPending: number; // JÁ convertido para displayCurrency (servidor)
+  totalPaid: number; // JÁ convertido para displayCurrency (servidor)
+  displayCurrency: string; // moeda de exibição do usuário, ex. "EUR" | "BRL"
+  rateDate: string | null; // data da taxa de câmbio usada
+  byCurrency: BillCurrencySubtotal[]; // subtotais pendentes por moeda nativa
+  unconvertedCurrencies: string[]; // moedas sem cobertura de taxa
 }
 
 /**
@@ -48,11 +59,12 @@ export function useBills() {
     }
   }, []);
 
-  const payBill = useCallback(async (id: number) => {
+  const payBill = useCallback(async (id: number, amount?: number) => {
     setIsLoading(true);
     setError(null);
     try {
-      return await api.patch<BillItem>(`/bills/${id}/pay`);
+      const body = amount != null ? { amount } : {};
+      return await api.patch<BillItem>(`/bills/${id}/pay`, body);
     } catch (err) {
       const e = err instanceof Error ? err : new Error(String(err));
       setError(e);
