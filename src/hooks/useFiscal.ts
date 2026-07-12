@@ -54,6 +54,16 @@ export interface FiscalDataNotConfigured {
 
 export type FiscalData = FiscalDataConfigured | FiscalDataNotConfigured;
 
+// ===== Assistente Fiscal (POST /fiscal/ask) =====
+export interface FiscalChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface FiscalAskResponse {
+  answer: string;
+}
+
 /**
  * Obrigações fiscais do utilizador (GET /fiscal/obligations).
  * A ESCRITA do perfil fiscal é feita via useUserProfile().updateProfile.
@@ -76,5 +86,22 @@ export function useFiscal() {
     }
   }, []);
 
-  return { getObligations, isLoading, error };
+  const askFiscal = useCallback(
+    async (question: string, history?: FiscalChatMessage[]) => {
+      setError(null);
+      try {
+        return await api.post<FiscalAskResponse>('/fiscal/ask', {
+          question,
+          history,
+        });
+      } catch (err) {
+        const e = err instanceof Error ? err : new Error(String(err));
+        setError(e);
+        throw e;
+      }
+    },
+    [],
+  );
+
+  return { getObligations, askFiscal, isLoading, error };
 }

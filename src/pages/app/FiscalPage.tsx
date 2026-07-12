@@ -1,9 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { useFiscal, FiscalData, FiscalTag } from '../../hooks/useFiscal';
+import Button from '../../components/ui/button/Button';
+import { useFiscal, FiscalChatMessage, FiscalData, FiscalTag } from '../../hooks/useFiscal';
 import { useUserProfile } from '../../hooks/useUserProfile';
+
+// ===== Assistente Fiscal — sugestões iniciais =====
+const FISCAL_SUGGESTIONS = [
+  'Preciso de fazer alguma coisa agora?',
+  'Como emito uma fatura-recibo?',
+  'Quando entrego o IRS?',
+  'O que acontece se passar dos 15.000 €?',
+];
 
 // ===== Helpers de data (pt-PT) =====
 function toDate(iso: string): Date {
@@ -76,8 +85,46 @@ export default function FiscalPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({ activityStartDate: '', fiscalNumber: '' });
 
-  const { getObligations } = useFiscal();
+  const { getObligations, askFiscal } = useFiscal();
   const { updateProfile } = useUserProfile();
+
+  // ===== Assistente Fiscal (chat) =====
+  const [chat, setChat] = useState<FiscalChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chat, isThinking]);
+
+  const sendChat = useCallback(
+    async (raw: string) => {
+      const question = raw.trim();
+      if (!question || isThinking) return;
+
+      const history = chat;
+      setChat((prev) => [...prev, { role: 'user', content: question }]);
+      setChatInput('');
+      setIsThinking(true);
+      try {
+        const { answer } = await askFiscal(question, history);
+        setChat((prev) => [...prev, { role: 'assistant', content: answer }]);
+      } catch (err) {
+        toast.error((err as Error).message || 'Não foi possível obter a resposta.');
+        setChat((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: 'Desculpe, não consegui responder agora. Tente novamente daqui a pouco.',
+          },
+        ]);
+      } finally {
+        setIsThinking(false);
+      }
+    },
+    [askFiscal, chat, isThinking],
+  );
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -389,6 +436,99 @@ export default function FiscalPage() {
           </div>
         </Surface>
       )}
+
+      {/* 2b. Assistente Fiscal (chat) */}
+      <Surface className="flex flex-col overflow-hidden">
+        <div className="flex items-center gap-3 border-b border-gray-100 p-5 dark:border-white/[0.06] sm:p-6">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-400 text-xl text-gray-950 shadow-glow">
+            🤖
+          </span>
+          <div>
+            <p className="font-display text-lg font-semibold text-gray-900 dark:text-white">
+              Assistente Fiscal
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Tire dúvidas sobre as suas obrigações
+            </p>
+          </div>
+        </div>
+
+        {/* Área de mensagens */}
+        <div className="max-h-96 min-h-[9rem] flex-1 space-y-4 overflow-y-auto p-5 sm:p-6">
+          {chat.length === 0 && !isThinking && (
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Faça uma pergunta ou comece por uma destas:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {FISCAL_SUGGESTIONS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => sendChat(s)}
+                    className="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-brand-400 hover:text-brand-600 dark:border-white/[0.08] dark:text-gray-300 dark:hover:border-brand-400 dark:hover:text-brand-300"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {chat.map((m, i) => (
+            <div
+              key={i}
+              className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  m.role === 'user'
+                    ? 'bg-brand-400 text-gray-950'
+                    : 'bg-gray-100 text-gray-800 dark:bg-white/[0.06] dark:text-gray-200'
+                }`}
+              >
+                {m.content}
+              </div>
+            </div>
+          ))}
+
+          {isThinking && (
+            <div className="flex justify-start">
+              <div className="flex items-center gap-2 rounded-2xl bg-gray-100 px-4 py-2.5 dark:bg-white/[0.06]">
+                <LoadingSpinner size="xs" color="brand" />
+                <span className="text-sm text-gray-500 dark:text-gray-400">a pensar…</span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            sendChat(chatInput);
+          }}
+          className="flex items-center gap-2 border-t border-gray-100 p-4 dark:border-white/[0.06]"
+        >
+          <input
+            type="text"
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            placeholder="Escreva a sua pergunta…"
+            disabled={isThinking}
+            className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 disabled:opacity-60 dark:border-white/[0.08] dark:bg-gray-800 dark:text-white"
+          />
+          <Button
+            type="submit"
+            size="sm"
+            disabled={isThinking || !chatInput.trim()}
+            startIcon={<i className="fas fa-paper-plane text-xs"></i>}
+          >
+            Enviar
+          </Button>
+        </form>
+      </Surface>
 
       {/* 3. Próximos prazos (timeline) */}
       {upcoming.length > 0 && (
