@@ -35,6 +35,24 @@ export interface UpdateUserProfileDto {
   fiscalRegime?: string;
   activityStartDate?: string;
   fiscalNumber?: string;
+  fiscalAccountingRegime?: 'simplified' | 'organized';
+  fiscalVatRegime?: 'exempt_art53' | 'exempt_art9' | 'normal_quarterly' | 'normal_monthly';
+  fiscalWithholdingMode?: 'exempt_art101b' | 'withholding' | 'not_applicable';
+  fiscalSocialSecurityStatus?:
+    | 'auto'
+    | 'contributing'
+    | 'exempt_employment'
+    | 'exempt_pension'
+    | 'foreign_scheme'
+    | 'professional_fund';
+  fiscalActivityCode?: string;
+  fiscalAnnualRevenue?: number;
+  fiscalHasEuB2bClients?: boolean;
+  fiscalHasNonEuClients?: boolean;
+  fiscalHasPaymentsOnAccount?: boolean;
+  fiscalHasWorkAccidentInsurance?: boolean;
+  fiscalUsesPortalInvoices?: boolean;
+  fiscalHasEmployees?: boolean;
 }
 
 // ===================== HOOK =====================
@@ -92,27 +110,30 @@ export function useUserProfile() {
 
   // ===================== ASSOCIATE COUPLE =====================
 
-  const associateAsCouple = useCallback(async (spousePhone: string) => {
-    setIsLoading(true);
-    setError(null);
+  const associateAsCouple = useCallback(
+    async (spousePhone: string) => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      // Backend: @Controller('contacts') + @Post('couple') → retorna mensagem (string)
-      const response = await api.post<string>('/contacts/couple', {
-        spousePhone,
-      });
+      try {
+        // Backend: @Controller('contacts') + @Post('couple') → retorna mensagem (string)
+        const response = await api.post<string>('/contacts/couple', {
+          spousePhone,
+        });
 
-      // Recarrega o perfil para refletir isMarried/spouseId atualizados
-      await getProfile();
+        // Recarrega o perfil para refletir isMarried/spouseId atualizados
+        await getProfile();
 
-      return response;
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getProfile]);
+        return response;
+      } catch (err) {
+        setError(err as Error);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [getProfile]
+  );
 
   // ===================== DISSOCIATE COUPLE =====================
 

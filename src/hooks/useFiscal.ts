@@ -5,17 +5,34 @@ import api from '../services/api';
 export interface FiscalProfile {
   regime: string;
   regimeLabel: string;
-  ivaStatus: string;
+  accountingRegime: 'simplified' | 'organized';
+  ivaStatus: 'exempt_art53' | 'exempt_art9' | 'normal_quarterly' | 'normal_monthly';
   ivaLabel: string;
+  withholdingMode: 'exempt_art101b' | 'withholding' | 'not_applicable';
+  withholdingLabel: string;
+  socialSecurityStatus: string;
+  socialSecurityLabel: string;
   activityStartDate: string; // "YYYY-MM-DD"
+  activityCode?: string | null;
   fiscalNumber?: string | null;
+  annualRevenue: number;
   thresholdEur: number; // 15000
+  immediateExitThresholdEur: number; // 18750
   currency: string;
+  hasEuB2bClients: boolean;
+  hasNonEuClients: boolean;
+  hasPaymentsOnAccount: boolean;
+  hasWorkAccidentInsurance: boolean;
+  usesPortalInvoices: boolean;
+  hasEmployees: boolean;
 }
 
 export interface FiscalStatus {
   socialSecurityFirstYearExempt: boolean;
-  socialSecurityExemptUntil: string; // "YYYY-MM-DD"
+  socialSecurityExemptUntil: string | null;
+  socialSecurityContributing: boolean;
+  revenueProgressPercent: number;
+  profileCompleteness: number;
 }
 
 export interface FiscalObligation {
@@ -23,10 +40,13 @@ export interface FiscalObligation {
   title: string;
   description: string;
   frequency: string; // "Mensal · até dia 5"
+  category: 'setup' | 'invoice' | 'vat' | 'irs' | 'ss' | 'cross_border' | 'accounting';
   meta?: string;
+  sourceUrl?: string;
+  conditional?: boolean;
 }
 
-export type FiscalTag = 'mensal' | 'anual' | 'ss' | 'limite';
+export type FiscalTag = 'faturas' | 'iva' | 'irs' | 'ss' | 'estrangeiro' | 'contabilidade';
 
 export interface FiscalUpcoming {
   date: string; // "YYYY-MM-DD"
@@ -35,6 +55,15 @@ export interface FiscalUpcoming {
   description: string;
   tag: FiscalTag;
   daysUntil: number;
+  sourceUrl?: string;
+}
+
+export interface FiscalWarning {
+  key: string;
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  description: string;
+  sourceUrl?: string;
 }
 
 export interface FiscalDataConfigured {
@@ -42,14 +71,17 @@ export interface FiscalDataConfigured {
   country: string;
   profile: FiscalProfile;
   status: FiscalStatus;
+  warnings: FiscalWarning[];
   obligations: FiscalObligation[];
   upcoming: FiscalUpcoming[];
   nextDeadline: FiscalUpcoming | null;
+  sources: { title: string; url: string }[];
   disclaimer: string;
 }
 
 export interface FiscalDataNotConfigured {
   configured: false;
+  country?: string;
 }
 
 export type FiscalData = FiscalDataConfigured | FiscalDataNotConfigured;
@@ -86,22 +118,19 @@ export function useFiscal() {
     }
   }, []);
 
-  const askFiscal = useCallback(
-    async (question: string, history?: FiscalChatMessage[]) => {
-      setError(null);
-      try {
-        return await api.post<FiscalAskResponse>('/fiscal/ask', {
-          question,
-          history,
-        });
-      } catch (err) {
-        const e = err instanceof Error ? err : new Error(String(err));
-        setError(e);
-        throw e;
-      }
-    },
-    [],
-  );
+  const askFiscal = useCallback(async (question: string, history?: FiscalChatMessage[]) => {
+    setError(null);
+    try {
+      return await api.post<FiscalAskResponse>('/fiscal/ask', {
+        question,
+        history,
+      });
+    } catch (err) {
+      const e = err instanceof Error ? err : new Error(String(err));
+      setError(e);
+      throw e;
+    }
+  }, []);
 
   return { getObligations, askFiscal, isLoading, error };
 }
