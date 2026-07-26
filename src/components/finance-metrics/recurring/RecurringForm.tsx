@@ -6,7 +6,7 @@ import {
   CreateRecurringTransactionDto,
 } from '../../../hooks/useRecurringFinance';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { currencyOption } from '../../../utils/currency';
+import { CURRENCY_OPTIONS, currencyOption } from '../../../utils/currency';
 import CategorySelect from '../../form/CategorySelect';
 import { Modal } from '../../ui/modal';
 import Button from '../../ui/button/Button';
@@ -21,10 +21,10 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
   const { createRecurringTransaction, updateRecurringTransaction, isLoading } =
     useRecurringFinance();
   const { profile, getProfile } = useUserProfile();
-  const currencySymbol = currencyOption(profile?.currency).symbol;
   const [formData, setFormData] = useState<CreateRecurringTransactionDto>({
     description: '',
     amount: 0,
+    currency: undefined,
     type: 'expense',
     frequency: 'monthly',
     dueDay: 1,
@@ -34,6 +34,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     endDate: '',
     occurrences: undefined,
   });
+  const currencySymbol = currencyOption(formData.currency ?? profile?.currency).symbol;
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -41,11 +42,19 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     getProfile().catch(() => {});
   }, [getProfile]);
 
+  // Default de moeda = moeda do perfil (só enquanto o usuário não escolheu)
+  useEffect(() => {
+    if (!transaction && profile?.currency) {
+      setFormData((prev) => (prev.currency ? prev : { ...prev, currency: profile.currency }));
+    }
+  }, [profile?.currency, transaction]);
+
   useEffect(() => {
     if (transaction) {
       setFormData({
         description: transaction.description,
         amount: transaction.amount,
+        currency: transaction.currency,
         type: transaction.type,
         frequency: transaction.frequency,
         dueDay: transaction.dueDay || 1,
@@ -132,28 +141,46 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
               )}
             </div>
 
-            {/* Valor */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Valor *
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                  {currencySymbol}
-                </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount}
-                  onChange={(e) => handleChange('amount', parseFloat(e.target.value) || 0)}
-                  className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                    errors.amount ? 'border-error-500' : 'border-gray-300'
-                  }`}
-                  placeholder="0,00"
-                />
+            {/* Moeda + Valor */}
+            <div className="grid grid-cols-[8.5rem_1fr] gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Moeda
+                </label>
+                <select
+                  value={formData.currency ?? profile?.currency ?? 'BRL'}
+                  onChange={(e) => handleChange('currency', e.target.value)}
+                  className="w-full px-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
+                >
+                  {CURRENCY_OPTIONS.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code}
+                    </option>
+                  ))}
+                </select>
               </div>
-              {errors.amount && <p className="text-error-500 text-sm mt-1">{errors.amount}</p>}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Valor *
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    {currencySymbol}
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.amount}
+                    onChange={(e) => handleChange('amount', parseFloat(e.target.value) || 0)}
+                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                      errors.amount ? 'border-error-500' : 'border-gray-300'
+                    }`}
+                    placeholder="0,00"
+                  />
+                </div>
+                {errors.amount && <p className="text-error-500 text-sm mt-1">{errors.amount}</p>}
+              </div>
             </div>
 
             {/* Tipo */}

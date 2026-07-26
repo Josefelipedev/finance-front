@@ -6,6 +6,8 @@ export type BillType = 'expense' | 'income';
 
 export interface BillItem {
   id: number;
+  /** id da recorrente que gerou a conta; null = conta avulsa */
+  recurringId: number | null;
   type: BillType; // 'expense' (a pagar) | 'income' (a receber)
   description: string;
   amount: number; // valor previsto, na moeda nativa

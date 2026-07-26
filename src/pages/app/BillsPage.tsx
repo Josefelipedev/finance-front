@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -497,6 +498,16 @@ export default function BillsPage() {
                 Mês anterior
               </span>
             )}
+            {item.recurringId != null && (
+              <Link
+                to="/recorrentes"
+                title="Gerada automaticamente a partir de uma transação recorrente — clique para gerir"
+                className="inline-flex items-center gap-1 rounded-md border border-brand-200 bg-brand-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-brand-600 transition-colors hover:bg-brand-100 dark:border-brand-400/30 dark:bg-brand-400/10 dark:text-brand-400 dark:hover:bg-brand-400/20"
+              >
+                <i className="fas fa-rotate text-[9px]"></i>
+                Recorrente
+              </Link>
+            )}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
             <span className="inline-flex items-center gap-1 tabular-nums">
@@ -610,6 +621,14 @@ export default function BillsPage() {
       description="Acompanhe o que vence, o que entra e o saldo previsto × realizado."
       actions={
         <div className="flex items-center gap-2">
+          <Link
+            to="/recorrentes"
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+            title="As recorrentes geram as contas deste mês automaticamente"
+          >
+            <i className="fas fa-rotate text-xs"></i>
+            Recorrentes
+          </Link>
           <Button type="button" variant="primary" size="sm" onClick={openCreate}>
             <i className="fas fa-plus text-xs"></i>
             Nova conta

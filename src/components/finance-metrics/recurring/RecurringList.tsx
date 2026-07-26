@@ -1,5 +1,6 @@
 import React from 'react';
 import { RecurringTransaction } from '../../../hooks/useRecurringFinance';
+import { formatMoney } from '../../../utils/currency';
 
 interface RecurringListProps {
   transactions: RecurringTransaction[];
@@ -38,12 +39,6 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
         return frequency;
     }
   };
-
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(amount);
 
   return (
     <div className="space-y-4">
@@ -133,7 +128,7 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
                   transaction.type === 'income' ? 'text-green-600' : 'text-error-600'
                 }`}
               >
-                {formatCurrency(transaction.amount)}
+                {formatMoney(transaction.amount, transaction.currency)}
               </p>
             </div>
 
@@ -145,7 +140,9 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
             </div>
 
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Execuções</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400" title="Contas geradas por esta recorrente e marcadas como pagas">
+                Pagamentos
+              </p>
               <p className="font-medium text-gray-800 dark:text-white">
                 {transaction.executedCount}
                 {transaction.occurrences && ` / ${transaction.occurrences}`}
@@ -153,9 +150,9 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
             </div>
 
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Total pago</p>
               <p className="font-medium text-gray-800 dark:text-white">
-                {formatCurrency(transaction.amount * transaction.executedCount)}
+                {formatMoney(transaction.amount * transaction.executedCount, transaction.currency)}
               </p>
             </div>
           </div>

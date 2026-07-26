@@ -8,6 +8,8 @@ export interface RecurringTransaction {
   id: number;
   description: string;
   amount: number;
+  /** Moeda nativa da recorrência (ex.: "EUR", "BRL") */
+  currency: string;
   type: 'income' | 'expense';
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
   dueDay?: number;
@@ -30,6 +32,7 @@ export interface RecurringTransaction {
 export interface CreateRecurringTransactionDto {
   description: string;
   amount: number;
+  currency?: string;
   type: 'income' | 'expense';
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
   dueDay?: number;
@@ -43,6 +46,7 @@ export interface CreateRecurringTransactionDto {
 export interface UpdateRecurringTransactionDto {
   description?: string;
   amount?: number;
+  currency?: string;
   type?: 'income' | 'expense';
   frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly';
   dueDay?: number;
