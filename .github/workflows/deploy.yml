@@ -28,9 +28,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      # wrangler vem das devDependencies (npm ci) — sem isso o npx tenta baixar
+      # em runner não-interativo e falha com "npx canceled due to missing packages"
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=finploit-finance --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 46f2a7889afc9d49ec429792e23659bf
+        run: npx --no-install wrangler pages deploy dist --project-name=finploit-finance --branch=main
