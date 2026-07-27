@@ -57,10 +57,41 @@ export interface GeneratePlanBody {
   budget?: number;
 }
 
+/** The three axes that shape the menu: household, cuisine and nutritional goal. */
+export interface MealPreferences {
+  adults: number;
+  children: number;
+  cuisineStyle: string;
+  dietGoal: string;
+  favoriteFoods: string[];
+  dislikedFoods: string[];
+  mealPrepMode: boolean;
+  onboarded: boolean;
+  /** Adult-equivalent portions, computed by the API from adults + children. */
+  servings: number;
+}
+
+export type SavePreferencesBody = Partial<Omit<MealPreferences, 'onboarded' | 'servings'>> & {
+  markOnboarded?: boolean;
+};
+
+export interface PreferenceOption {
+  value: string;
+  label: string;
+}
+
+export interface PreferenceOptions {
+  cuisineStyles: PreferenceOption[];
+  dietGoals: PreferenceOption[];
+}
+
 export interface NotifyResult {
   sent: boolean;
   reason?: string;
 }
+
+/** Matches the Android client's read timeout for the same endpoint (180s). */
+const GENERATE_TIMEOUT_MS = 180_000;
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
@@ -124,6 +155,36 @@ export function useMealPlanner() {
     }
   }, []);
 
+  const getPreferences = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      return await api.get<MealPreferences>('/meal-planner/preferences');
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const savePreferences = useCallback(async (data: SavePreferencesBody) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      return await api.patch<MealPreferences>('/meal-planner/preferences', data);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const getPreferenceOptions = useCallback(async () => {
+    return api.get<PreferenceOptions>('/meal-planner/preferences/options');
+  }, []);
+
   const saveSchedule = useCallback(async (schedule: MealScheduleItem[]) => {
     setIsLoading(true);
     setError(null);
@@ -141,7 +202,11 @@ export function useMealPlanner() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await api.post<MealPlan>('/meal-planner/generate', body);
+      // AI generation (prices pre-fetch + LLM with provider fallback) runs well past
+      // the client's 15s default, which made this call always time out.
+      const data = await api.post<MealPlan>('/meal-planner/generate', body, {
+        timeout: GENERATE_TIMEOUT_MS,
+      });
       setActivePlan(data);
       return data;
     } catch (err) {
@@ -232,6 +297,9 @@ export function useMealPlanner() {
     getActivePlan,
     getProfile,
     saveProfile,
+    getPreferences,
+    savePreferences,
+    getPreferenceOptions,
     saveSchedule,
     generatePlan,
     toggleItem,

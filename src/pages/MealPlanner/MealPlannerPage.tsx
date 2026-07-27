@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useMealPlanner } from '../../hooks/useMealPlanner';
+import type {
+  MealPreferences,
+  PreferenceOptions,
+  SavePreferencesBody,
+} from '../../hooks/useMealPlanner';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { formatMoney, currencyOption } from '../../utils/currency';
+import PreferencesPanel from './PreferencesPanel';
+import OnboardingQuestionnaire from './OnboardingQuestionnaire';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -754,7 +761,7 @@ function ShoppingListView({
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-type Tab = 'schedule' | 'plan' | 'shopping' | 'history' | 'profile';
+type Tab = 'schedule' | 'plan' | 'shopping' | 'history' | 'preferences' | 'profile';
 
 export default function MealPlannerPage() {
   const [activeTab, setActiveTab] = useState<Tab>('plan');
@@ -773,6 +780,10 @@ export default function MealPlannerPage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [preferences, setPreferences] = useState<MealPreferences | null>(null);
+  const [prefOptions, setPrefOptions] = useState<PreferenceOptions | null>(null);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const { profile: userProfile, getProfile } = useUserProfile();
@@ -781,6 +792,9 @@ export default function MealPlannerPage() {
     getActivePlan,
     getProfile: fetchDietProfile,
     saveProfile: persistDietProfile,
+    getPreferences: fetchPreferences,
+    savePreferences: persistPreferences,
+    getPreferenceOptions: fetchPreferenceOptions,
     saveSchedule: persistSchedule,
     generatePlan: requestPlan,
     toggleItem: toggleShoppingItem,
@@ -794,7 +808,9 @@ export default function MealPlannerPage() {
   useEffect(() => {
     loadSchedule();
     loadActivePlan();
+    loadPreferences();
     getProfile().catch(() => {});
+    fetchPreferenceOptions().then(setPrefOptions).catch(() => {});
   }, []);
 
   const flash = (type: 'success' | 'error', text: string) => {
@@ -846,6 +862,44 @@ export default function MealPlannerPage() {
     } finally {
       setSavingProfile(false);
     }
+  }
+
+  async function loadPreferences() {
+    try {
+      const data = await fetchPreferences();
+      setPreferences(data);
+      // First visit: ask what the household is and what they like to eat.
+      if (data && !data.onboarded) setShowOnboarding(true);
+    } catch { /* mantém os defaults */ }
+  }
+
+  async function savePreferences(data: SavePreferencesBody, successMsg = 'Preferências salvas!') {
+    setSavingPrefs(true);
+    try {
+      const updated = await persistPreferences(data);
+      setPreferences(updated);
+      flash('success', successMsg);
+      return true;
+    } catch {
+      flash('error', 'Erro ao salvar as preferências.');
+      return false;
+    } finally {
+      setSavingPrefs(false);
+    }
+  }
+
+  async function finishOnboarding(data: SavePreferencesBody) {
+    const ok = await savePreferences(data, 'Tudo pronto! Agora é só gerar o cardápio.');
+    if (ok) setShowOnboarding(false);
+  }
+
+  async function skipOnboarding() {
+    setShowOnboarding(false);
+    // Marks it as seen so the questionnaire does not reopen on every visit.
+    try {
+      const updated = await persistPreferences({ markOnboarded: true });
+      setPreferences(updated);
+    } catch { /* tenta de novo na próxima visita */ }
   }
 
   async function saveSchedule() {
@@ -949,10 +1003,22 @@ export default function MealPlannerPage() {
     }
   }
 
+  // What the next generation will use, shown next to the generate button.
+  const prefSummary = preferences
+    ? [
+        preferences.children > 0
+          ? `${preferences.adults} adulto${preferences.adults > 1 ? 's' : ''} + ${preferences.children} criança${preferences.children > 1 ? 's' : ''}`
+          : `${preferences.adults} pessoa${preferences.adults > 1 ? 's' : ''}`,
+        prefOptions?.cuisineStyles.find((o) => o.value === preferences.cuisineStyle)?.label,
+        prefOptions?.dietGoals.find((o) => o.value === preferences.dietGoal)?.label,
+      ].filter(Boolean)
+    : [];
+
   const tabs: { key: Tab; label: string; emoji: string }[] = [
     { key: 'plan', label: 'Cardápio', emoji: '🍽️' },
     { key: 'shopping', label: 'Compras', emoji: '🛒' },
     { key: 'schedule', label: 'Agenda', emoji: '📅' },
+    { key: 'preferences', label: 'Preferências', emoji: '⭐' },
     { key: 'profile', label: 'Perfil', emoji: '👤' },
     { key: 'history', label: 'Histórico', emoji: '📋' },
   ];
@@ -966,6 +1032,25 @@ export default function MealPlannerPage() {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             IA cria cardápio semanal personalizado com café detalhado + lista de compras
           </p>
+          {prefSummary.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+              {prefSummary.map((label) => (
+                <span
+                  key={label}
+                  className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300"
+                >
+                  {label}
+                </span>
+              ))}
+              <button
+                type="button"
+                onClick={() => setActiveTab('preferences')}
+                className="text-xs text-brand-600 dark:text-brand-400 hover:underline"
+              >
+                alterar
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <input
@@ -1027,6 +1112,19 @@ export default function MealPlannerPage() {
       {/* Content */}
       {activeTab === 'schedule' && (
         <ScheduleConfig schedule={schedule} onChange={setSchedule} onSave={saveSchedule} saving={saving} />
+      )}
+
+      {activeTab === 'preferences' && (
+        preferences === null ? (
+          <div className="flex items-center justify-center py-20 text-gray-400">Carregando preferências...</div>
+        ) : (
+          <PreferencesPanel
+            initial={preferences}
+            options={prefOptions}
+            saving={savingPrefs}
+            onSave={(data) => savePreferences(data)}
+          />
+        )
       )}
 
       {activeTab === 'profile' && (
@@ -1214,6 +1312,14 @@ export default function MealPlannerPage() {
           </div>
         </>
       )}
+
+      <OnboardingQuestionnaire
+        isOpen={showOnboarding}
+        options={prefOptions}
+        saving={savingPrefs}
+        onFinish={finishOnboarding}
+        onSkip={skipOnboarding}
+      />
     </div>
   );
 }
