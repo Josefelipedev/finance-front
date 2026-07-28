@@ -41,7 +41,8 @@ export class HttpClient {
         }
 
         const status = error.response.status;
-        const message = (error.response.data as any)?.message || 'Erro inesperado';
+        const serverMessage = (error.response.data as any)?.message;
+        const message = serverMessage || 'Erro inesperado';
 
         const url = error.config?.url || '';
         const isAuthRoute = url.includes('/auth/');
@@ -58,8 +59,12 @@ export class HttpClient {
           }
         }
 
+        // O servidor costuma explicar melhor o limite atingido (ex.: cardápio
+        // já em geração) do que a mensagem genérica — só cai nela sem detalhe.
         if (status === 429) {
-          return Promise.reject(new Error('Muitas tentativas. Aguarde alguns minutos e tente novamente.'));
+          return Promise.reject(
+            new Error(serverMessage || 'Muitas tentativas. Aguarde alguns minutos e tente novamente.')
+          );
         }
 
         return Promise.reject(new Error(message));
