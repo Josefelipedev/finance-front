@@ -15,6 +15,12 @@ export interface DatePickerProps {
   className?: string;
   error?: string;
   showTime?: boolean;
+  /**
+   * Trata a data escolhida como o **fim** desse dia (23:59:59.999) em vez do
+   * começo. Sem isto, escolher "29/07" como data final excluía o próprio 29/07
+   * do período, porque o filtro da API é `lte`.
+   */
+  endOfDay?: boolean;
 }
 
 const DatePicker: React.FC<DatePickerProps> = ({
@@ -29,6 +35,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
   className = '',
   error,
   showTime = false,
+  endOfDay = false,
 }) => {
   // Converter ISO para yyyy-MM-dd ou yyyy-MM-ddThh:mm
   const formatForInput = (isoDate: string): string => {
@@ -61,7 +68,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
       }
 
       // date retorna yyyy-MM-dd
-      const date = new Date(inputValue + 'T00:00:00');
+      const date = new Date(inputValue + (endOfDay ? 'T23:59:59.999' : 'T00:00:00'));
       return date.toISOString();
     } catch {
       return '';

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import FinanceMetrics from './FinanceMetrics';
 import { DashboardData, FinanceSummary, useFinance } from '../../hooks/useFinance.ts';
 import FinanceTable from './ui/FinanceTable.tsx';
+import { endOfDayISO, startOfDayISO } from '../../utils/date-range';
 
 interface FinanceDashboardProps {
   dateRange: { startDate: string; endDate: string };
@@ -41,8 +42,8 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
     }
 
     setDateRange({
-      startDate: start.toISOString().split('T')[0],
-      endDate: now.toISOString().split('T')[0],
+      startDate: startOfDayISO(start),
+      endDate: endOfDayISO(now),
     });
   };
 

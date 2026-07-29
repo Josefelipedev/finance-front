@@ -55,6 +55,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
         minDate={startDate} // A data final não pode ser antes da inicial
         maxDate={maxDate}
         error={endError}
+        endOfDay // o dia escolhido entra inteiro no período
       />
     </div>
   );

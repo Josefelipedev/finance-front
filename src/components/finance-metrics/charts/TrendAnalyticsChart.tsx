@@ -39,16 +39,19 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
           endDate: dateRange.endDate,
         });
 
-        // Ordenar transações por data
+        // Ordenar pela data do movimento (a mesma que o período filtra),
+        // não pela data em que foi digitado
+        const movementDate = (t: { referenceDate?: string | null; createdAt: string }) =>
+          new Date(t.referenceDate || t.createdAt);
         const sortedTransactions = [...transactions].sort(
-          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          (a, b) => movementDate(a).getTime() - movementDate(b).getTime()
         );
 
         // Agrupar por dia e calcular saldo diário
         const dailyData: Record<string, { income: number; expense: number; balance: number }> = {};
 
         sortedTransactions.forEach((transaction) => {
-          const date = new Date(transaction.createdAt).toISOString().split('T')[0];
+          const date = movementDate(transaction).toISOString().split('T')[0];
 
           if (!dailyData[date]) {
             dailyData[date] = { income: 0, expense: 0, balance: 0 };
