@@ -45,6 +45,32 @@ export function convertAmount(
   return amount * (rTo / rFrom);
 }
 
+/**
+ * Moedas da lista que NÃO dá para converter para `to` com as taxas em mão.
+ * Vazio = pode somar à vontade.
+ *
+ * Existe porque `convertAmount` devolve o valor original quando falta a taxa
+ * ("melhor esforço"): sem esta verificação, um total mistura reais e euros
+ * como se fossem a mesma moeda. Medido em produção com uma conta do casal:
+ * 5.345,29 € apresentados onde o valor real era 919,10 €. Quem soma valores
+ * de várias moedas deve chamar isto ANTES e recusar-se a mostrar o total
+ * quando vier algo.
+ */
+export function unconvertibleCurrencies(
+  currencies: (string | null | undefined)[],
+  to: string | null | undefined,
+  rates: ExchangeRates | null | undefined,
+): string[] {
+  if (!to) return [];
+  const faltam = new Set<string>();
+  for (const raw of currencies) {
+    const from: string = raw || to;
+    if (from === to) continue;
+    if (!rates || !rates[from] || !rates[to]) faltam.add(from);
+  }
+  return [...faltam];
+}
+
 /** Formata um valor NA MOEDA ORIGINAL — nunca assumir R$ fixo. */
 export function formatMoney(amount: number, currency?: string | null): string {
   const opt = currencyOption(currency);

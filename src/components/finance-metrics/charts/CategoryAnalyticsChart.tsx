@@ -4,7 +4,7 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { formatMoney, convertAmount } from '../../../utils/currency';
+import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
 import { useExchangeRates } from '../../../hooks/useExchangeRates';
 
 interface CategoryAnalyticsChartProps {
@@ -38,6 +38,20 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
         });
+
+        // Sem taxas não dá para somar moedas diferentes: mostrar um número
+        // errado é pior do que não mostrar nenhum (ver unconvertibleCurrencies).
+        const semTaxa = unconvertibleCurrencies(
+          transactions.map((t: any) => t.currency),
+          displayCurrency,
+          rates,
+        );
+        if (semTaxa.length) {
+          setError(
+            `Sem taxas de câmbio para ${semTaxa.join(', ')} — não é possível somar moedas diferentes. Recarregue a página daqui a pouco.`,
+          );
+          return;
+        }
 
         // Cores para categorias
         const categoryColors: Record<string, { color: string; icon: string }> = {

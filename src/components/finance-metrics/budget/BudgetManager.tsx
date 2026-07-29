@@ -8,7 +8,8 @@ import { Modal } from '../../ui/modal';
 import CategorySelect from '../../form/CategorySelect';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useExchangeRates } from '../../../hooks/useExchangeRates';
-import { formatMoney, currencyOption, convertAmount } from '../../../utils/currency';
+import MixedCurrencyWarning from '../../common/MixedCurrencyWarning';
+import { formatMoney, currencyOption, convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
 import Button from '../../ui/button/Button';
 
 const monthRange = () => {
@@ -62,6 +63,12 @@ const BudgetManager: React.FC = () => {
   // Gasto por categoria, convertido para a moeda de exibição antes de somar
   // (registros do casal podem estar em BRL e EUR misturados). Recalcula quando
   // as taxas de câmbio terminam de carregar.
+  // Sem taxas para alguma moeda presente, o gasto por categoria sairia errado.
+  const semTaxa = useMemo(
+    () => unconvertibleCurrencies(transactions.map((t) => t.currency), displayCurrency, rates),
+    [transactions, displayCurrency, rates],
+  );
+
   const spendByCategory = useMemo(() => {
     const spend: Record<number, number> = {};
     for (const tx of transactions) {
@@ -142,6 +149,8 @@ const BudgetManager: React.FC = () => {
 
   return (
     <div className="space-y-6 px-2 sm:px-0">
+      <MixedCurrencyWarning currencies={semTaxa} />
+
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -195,7 +204,7 @@ const BudgetManager: React.FC = () => {
       )}
 
       {/* Lista */}
-      {limits.length === 0 ? (
+      {semTaxa.length > 0 ? null : limits.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <i className="fas fa-wallet text-4xl mb-3 opacity-40"></i>
           <p>Nenhum limite definido. Crie o primeiro para acompanhar seus gastos.</p>

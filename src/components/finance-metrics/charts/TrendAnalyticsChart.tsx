@@ -4,7 +4,7 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { formatMoney, currencyOption, convertAmount } from '../../../utils/currency';
+import { formatMoney, currencyOption, convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
 import { useExchangeRates } from '../../../hooks/useExchangeRates';
 
 interface TrendAnalyticsChartProps {
@@ -38,6 +38,20 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
         });
+
+        // Sem taxas não dá para somar moedas diferentes: mostrar um número
+        // errado é pior do que não mostrar nenhum (ver unconvertibleCurrencies).
+        const semTaxa = unconvertibleCurrencies(
+          transactions.map((t: any) => t.currency),
+          displayCurrency,
+          rates,
+        );
+        if (semTaxa.length) {
+          setError(
+            `Sem taxas de câmbio para ${semTaxa.join(', ')} — não é possível somar moedas diferentes. Recarregue a página daqui a pouco.`,
+          );
+          return;
+        }
 
         // Ordenar pela data do movimento (a mesma que o período filtra),
         // não pela data em que foi digitado

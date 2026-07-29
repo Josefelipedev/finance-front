@@ -5,7 +5,8 @@ import { useFinance } from '../../hooks/useFinance';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useExchangeRates } from '../../hooks/useExchangeRates';
-import { formatMoney, convertAmount } from '../../utils/currency';
+import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
+import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import Button from '../ui/button/Button';
 
@@ -40,6 +41,9 @@ const MonthlyReport: React.FC = () => {
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [insight, setInsight] = useState<string | null>(null);
+  // Erro fica no ecrã: o toast desaparece em segundos e o que sobrava era um
+  // relatório vazio, indistinguível de "não houve movimento este mês".
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getProfile().catch(() => {});
@@ -53,12 +57,15 @@ const MonthlyReport: React.FC = () => {
 
   const load = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await getAllFinances(monthBounds(year, month));
       setRecords(data || []);
-    } catch {
+    } catch (err) {
       setRecords([]);
-      toast.error('Erro ao carregar o relatório.');
+      setError(
+        err instanceof Error ? err.message : 'Não foi possível carregar o relatório.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -83,6 +90,12 @@ const MonthlyReport: React.FC = () => {
   };
 
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+
+  // Moedas que não dá para converter: somar daria um total errado.
+  const semTaxa = useMemo(
+    () => unconvertibleCurrencies(records.map(recordCurrency), displayCurrency, rates),
+    [records, displayCurrency, rates],
+  );
 
   const { income, expense, balance, byCategory } = useMemo(() => {
     let inc = 0;
@@ -192,6 +205,21 @@ const MonthlyReport: React.FC = () => {
         <div className="flex justify-center items-center py-12">
           <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-brand-500" />
         </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-error-50 dark:bg-error-500/15 mb-4">
+            <i className="fas fa-exclamation-triangle text-2xl text-error-500"></i>
+          </div>
+          <p className="font-medium text-gray-800 dark:text-white">
+            Erro ao carregar o relatório
+          </p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{error}</p>
+          <Button variant="outline" size="sm" className="mt-4" onClick={load}>
+            Tentar novamente
+          </Button>
+        </div>
+      ) : semTaxa.length > 0 ? (
+        <MixedCurrencyWarning currencies={semTaxa} />
       ) : (
         <>
           {/* Resumo do mês */}

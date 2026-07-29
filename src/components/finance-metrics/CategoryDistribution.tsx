@@ -4,8 +4,9 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../hooks/useFinance';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { formatMoney, convertAmount } from '../../utils/currency';
+import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
 import { useExchangeRates } from '../../hooks/useExchangeRates';
+import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 
 interface CategoryDistributionProps {
   dateRange: { startDate: string; endDate: string };
@@ -51,6 +52,9 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
   const { profile, getProfile } = useUserProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // Moedas dos registos que não deu para converter: com algo aqui, somar
+  // produziria um total errado (ver unconvertibleCurrencies).
+  const [semTaxa, setSemTaxa] = useState<string[]>([]);
   const displayCurrency = profile?.currency;
   const rates = useExchangeRates();
 
@@ -75,6 +79,19 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
         setCategoryData([]);
         return;
       }
+
+      // Antes de somar: dá para converter tudo para a moeda de exibição?
+      const faltam = unconvertibleCurrencies(
+        records.map((r) => r.currency),
+        displayCurrency,
+        rates,
+      );
+      setSemTaxa(faltam);
+      if (faltam.length) {
+        setCategoryData([]);
+        return;
+      }
+
       //Agrupamento por categoria
       const categories = records.reduce((acc: any, record) => {
         // Determina o nome da categoria
@@ -189,6 +206,8 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
         <div className="h-64 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
+      ) : semTaxa.length > 0 ? (
+        <MixedCurrencyWarning currencies={semTaxa} />
       ) : error ? (
         <div className="h-64 flex flex-col items-center justify-center text-error-500 dark:text-red-400">
           <i className="fas fa-exclamation-triangle text-4xl mb-2"></i>

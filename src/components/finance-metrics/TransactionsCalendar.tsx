@@ -10,7 +10,8 @@ import { toast } from 'sonner';
 import { useFinance } from '../../hooks/useFinance';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useExchangeRates } from '../../hooks/useExchangeRates';
-import { formatMoney, convertAmount } from '../../utils/currency';
+import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
+import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import { Modal } from '../ui/modal';
 
@@ -58,6 +59,12 @@ const TransactionsCalendar: React.FC = () => {
     []
   );
 
+  // Sem taxas para alguma moeda presente, o saldo diário sairia errado.
+  const semTaxa = useMemo(
+    () => unconvertibleCurrencies(records.map(recordCurrency), displayCurrency, rates),
+    [records, displayCurrency, rates],
+  );
+
   // Saldo diário (receita - despesa) por dia, como no app Android
   const dailyBalances = useMemo(() => {
     const map: Record<string, number> = {};
@@ -74,13 +81,15 @@ const TransactionsCalendar: React.FC = () => {
 
   const events = useMemo(
     () =>
-      Object.entries(dailyBalances).map(([date, balance]) => ({
+      // Sem taxas, os saldos diários sairiam da soma de moedas diferentes:
+      // melhor não mostrar badge nenhum (o aviso no topo explica).
+      (semTaxa.length ? [] : Object.entries(dailyBalances)).map(([date, balance]) => ({
         start: date,
         allDay: true,
         title: formatCurrency(balance),
         color: balance >= 0 ? '#10b981' : '#f43f5e',
       })),
-    [dailyBalances]
+    [dailyBalances, semTaxa]
   );
 
   const handleDateClick = (arg: DateClickArg) => {
@@ -106,6 +115,8 @@ const TransactionsCalendar: React.FC = () => {
 
   return (
     <div className="space-y-4 px-2 sm:px-0">
+      <MixedCurrencyWarning currencies={semTaxa} />
+
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Calendário</h2>
