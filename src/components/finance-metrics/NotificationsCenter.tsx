@@ -1,61 +1,23 @@
 // src/components/finance-metrics/NotificationsCenter.tsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { useRecurringFinance, RecurringTransaction } from '../../hooks/useRecurringFinance';
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+import { useBills, BillItem } from '../../hooks/useBills';
+import { formatMoney } from '../../utils/currency';
 
 const HORIZON_DAYS = 30; // janela de "contas a vencer"
 
-// Próxima ocorrência (em dias a partir de hoje) fiel ao app Android:
-// para mensais, vence neste mês se o dia ainda não passou; senão no próximo.
-function daysUntilDue(tx: RecurringTransaction): number | null {
-  const now = new Date();
-  const today = now.getDate();
-  const dow = now.getDay();
-
-  switch (tx.frequency) {
-    case 'daily':
-      return 0;
-
-    case 'weekly': {
-      if (tx.weekDay == null) return null;
-      return (tx.weekDay - dow + 7) % 7;
-    }
-
-    case 'monthly': {
-      if (tx.dueDay == null || tx.dueDay <= 0) return null;
-      if (tx.dueDay >= today) {
-        return tx.dueDay - today;
-      }
-      // próximo mês
-      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-      const dueNext = Math.min(
-        tx.dueDay,
-        new Date(now.getFullYear(), now.getMonth() + 2, 0).getDate()
-      );
-      return daysInMonth - today + dueNext;
-    }
-
-    case 'yearly':
-      return null; // sem mês definido no modelo — não estimável
-
-    default:
-      return null;
-  }
-}
-
-const dueLabel = (days: number) => {
-  if (days === 0) return 'Vence hoje';
-  if (days === 1) return 'Vence amanhã';
-  return `Vence em ${days} dias`;
-};
-
+/**
+ * A lista vem de `GET /bills`, que é quem gera as ocorrências do mês, sabe o
+ * que está em atraso e devolve a moeda de cada conta.
+ *
+ * Antes isto recalculava o vencimento a partir das recorrentes no browser:
+ * ignorava contas avulsas, não sabia o que já tinha sido pago, não estimava
+ * anuais e formatava tudo em BRL — um vencimento de 40 € aparecia como R$ 40,00.
+ */
 const NotificationsCenter: React.FC = () => {
-  const { getAllRecurringTransactions, isTransactionActive } = useRecurringFinance();
+  const { getBills } = useBills();
 
-  const [transactions, setTransactions] = useState<RecurringTransaction[]>([]);
+  const [items, setItems] = useState<BillItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -68,27 +30,56 @@ const NotificationsCenter: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await getAllRecurringTransactions();
-      setTransactions(data || []);
+      const now = new Date();
+      const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const nextMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+
+      // Dois meses: uma janela de 30 dias a meio do mês atravessa o mês seguinte.
+      const [current, upcoming] = await Promise.all([
+        getBills(thisMonth),
+        getBills(nextMonth),
+      ]);
+      setItems([...(current?.items ?? []), ...(upcoming?.items ?? [])]);
     } catch (err) {
-      setError(err as Error);
+      const e = err instanceof Error ? err : new Error(String(err));
+      setError(e);
       toast.error('Erro ao carregar notificações.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const upcoming = useMemo(() => {
-    return transactions
-      .filter((tx) => isTransactionActive(tx))
-      .map((tx) => ({ tx, days: daysUntilDue(tx) }))
-      .filter(
-        (item): item is { tx: RecurringTransaction; days: number } =>
-          item.days != null && item.days <= HORIZON_DAYS
-      )
+  /** Dias até o vencimento; negativo quando já venceu. */
+  const daysUntil = (dueDate: string): number => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    return Math.round((due.getTime() - today.getTime()) / 86_400_000);
+  };
+
+  const pending = useMemo(() => {
+    const seen = new Set<number>();
+    return items
+      .filter((item) => item.status === 'pending')
+      .filter((item) => {
+        if (seen.has(item.id)) return false; // o mês seguinte repete atrasadas
+        seen.add(item.id);
+        return true;
+      })
+      .map((item) => ({ item, days: daysUntil(item.dueDate) }))
+      .filter(({ days }) => days <= HORIZON_DAYS)
       .sort((a, b) => a.days - b.days);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transactions]);
+  }, [items]);
+
+  const dueLabel = (days: number) => {
+    if (days < -1) return `Venceu há ${Math.abs(days)} dias`;
+    if (days === -1) return 'Venceu ontem';
+    if (days === 0) return 'Vence hoje';
+    if (days === 1) return 'Vence amanhã';
+    return `Vence em ${days} dias`;
+  };
 
   if (isLoading) {
     return (
@@ -103,11 +94,17 @@ const NotificationsCenter: React.FC = () => {
       <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 sm:p-6">
         <div className="flex gap-3">
           <i className="fas fa-exclamation-circle text-error-500 text-xl mt-0.5"></i>
-          <div>
+          <div className="min-w-0">
             <h3 className="font-semibold text-red-800 dark:text-red-300 text-sm sm:text-base">
               Erro ao carregar notificações
             </h3>
             <p className="text-error-600 dark:text-red-400 text-xs sm:text-sm mt-1">{error.message}</p>
+            <button
+              onClick={load}
+              className="mt-3 text-sm font-medium text-brand-600 hover:text-brand-500"
+            >
+              Tentar novamente
+            </button>
           </div>
         </div>
       </div>
@@ -116,37 +113,36 @@ const NotificationsCenter: React.FC = () => {
 
   return (
     <div className="space-y-6 px-2 sm:px-0">
-      {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
             Notificações
           </h2>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            Contas e lançamentos recorrentes a vencer nos próximos {HORIZON_DAYS} dias
+            Contas em atraso e a vencer nos próximos {HORIZON_DAYS} dias
           </p>
         </div>
-        {upcoming.length > 0 && (
+        {pending.length > 0 && (
           <span className="shrink-0 text-sm px-3 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-full font-medium">
-            {upcoming.length}
+            {pending.length}
           </span>
         )}
       </div>
 
-      {/* Lista */}
-      {upcoming.length === 0 ? (
+      {pending.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <i className="far fa-bell-slash text-4xl mb-3 opacity-40"></i>
           <p>Nenhuma conta a vencer nos próximos dias. Tudo em dia!</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {upcoming.map(({ tx, days }) => {
+          {pending.map(({ item, days }) => {
+            const late = days < 0;
             const urgent = days <= 1;
             const soon = days <= 7;
             return (
               <div
-                key={tx.id}
+                key={item.id}
                 className={`flex items-center gap-4 bg-white dark:bg-gray-800 border rounded-xl p-4 shadow-sm ${
                   urgent
                     ? 'border-rose-300 dark:border-rose-700'
@@ -155,36 +151,36 @@ const NotificationsCenter: React.FC = () => {
               >
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                    tx.type === 'income'
+                    item.type === 'income'
                       ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                       : 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
                   }`}
                 >
-                  <i className={`fas ${tx.type === 'income' ? 'fa-arrow-down' : 'fa-arrow-up'}`}></i>
+                  <i className={`fas ${item.type === 'income' ? 'fa-arrow-down' : 'fa-arrow-up'}`}></i>
                 </div>
 
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold text-gray-800 dark:text-white truncate">
-                    {tx.description}
+                    {item.description}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                    {tx.category?.name || 'Sem categoria'}
+                    {item.categoryName || 'Sem categoria'}
                   </p>
                 </div>
 
                 <div className="text-right shrink-0">
                   <p
                     className={`font-bold ${
-                      tx.type === 'income'
+                      item.type === 'income'
                         ? 'text-emerald-600 dark:text-emerald-400'
                         : 'text-gray-800 dark:text-white'
                     }`}
                   >
-                    {formatCurrency(tx.amount)}
+                    {formatMoney(item.amount, item.currency)}
                   </p>
                   <span
                     className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full ${
-                      urgent
+                      late || urgent
                         ? 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
                         : soon
                           ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
