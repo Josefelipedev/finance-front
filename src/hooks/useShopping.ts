@@ -9,6 +9,10 @@ export interface ShoppingList {
   userId: number;
   createdAt?: string;
   updatedAt?: string;
+  /** Compra fechada (virou despesa). Null/ausente = ainda aberta. */
+  closedAt?: string | null;
+  /** Lançamento criado ao fechar a compra. */
+  financeId?: number | null;
   items: ShoppingItem[];
 }
 
@@ -383,6 +387,42 @@ export function useShopping() {
     }
   };
 
+  /**
+   * Fecha a compra: os itens marcados como comprados viram uma despesa.
+   * O valor é somado no servidor — o cliente só escolhe categoria e data.
+   */
+  const closePurchase = async (
+    listId: number,
+    payload?: { categoryId?: number; referenceDate?: string },
+  ) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      return await api.post<ShoppingList>(`/shopping/list/${listId}/close`, payload ?? {});
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /** Reabre a compra e apaga a despesa criada. */
+  const reopenPurchase = async (listId: number) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      return await api.post<ShoppingList>(`/shopping/list/${listId}/reopen`, {});
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // ===================== UTILITIES =====================
 
   const calculateListTotal = (list: ShoppingList): number =>
@@ -443,6 +483,10 @@ export function useShopping() {
     generateWithAI,
     enrichPrices,
     getPricesByStore,
+
+    // Fecho do ciclo (compra -> despesa)
+    closePurchase,
+    reopenPurchase,
 
     // Utilidades
     calculateListTotal,

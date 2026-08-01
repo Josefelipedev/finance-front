@@ -1,9 +1,12 @@
 import React from 'react';
 import { ShoppingList, ShoppingItem } from '../../../hooks/useShopping';
+import { formatMoney } from '../../../utils/currency';
 import ShoppingListItem from './ShoppingListItem';
 
 interface ShoppingListCardProps {
   list: ShoppingList;
+  /** Moeda do perfil — a mesma em que a despesa da compra é criada. */
+  currency?: string | null;
   onEditList: (list: ShoppingList) => void;
   onDeleteList: (listId: number) => void;
   onToggleItemStatus: (itemId: number, purchased: boolean) => void;
@@ -14,10 +17,13 @@ interface ShoppingListCardProps {
   onEnrichPrices?: (listId: number) => void;
   isEnriching?: boolean;
   onShowStorePrices?: (itemName: string) => void;
+  onClosePurchase?: (list: ShoppingList) => void;
+  onReopenPurchase?: (list: ShoppingList) => void;
 }
 
 const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   list,
+  currency,
   onEditList,
   onDeleteList,
   onToggleItemStatus,
@@ -28,15 +34,19 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   onEnrichPrices,
   isEnriching = false,
   onShowStorePrices,
+  onClosePurchase,
+  onReopenPurchase,
 }) => {
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('pt-PT', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
+  // A moeda vem do perfil: estava fixa em EUR, o que mostrava contas em reais
+  // com símbolo de euro — e agora este total tem de bater certo com o valor da
+  // despesa que o fecho da compra cria.
+  const formatCurrency = (amount: number) => formatMoney(amount, currency);
 
   const calculateTotal = () =>
     list.items.reduce((total, item) => total + (item.scrapedPrice ?? item.price), 0);
+
+  /** Fechada = já virou despesa; a lista passa a ser histórico. */
+  const isClosed = !!list.closedAt;
 
   const hasScrapedPrices = list.items.some((i) => i.scrapedPrice != null && i.scrapedPrice > 0);
 
@@ -48,6 +58,11 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
 
   const purchasedItems = list.items.filter((item) => item.purchased);
   const pendingItems = list.items.filter((item) => !item.purchased);
+  // Mesma regra do servidor: é este o valor que vira despesa ao fechar.
+  const purchasedTotal = purchasedItems.reduce(
+    (total, item) => total + (item.scrapedPrice ?? item.price ?? 0),
+    0,
+  );
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
@@ -66,47 +81,84 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => onAddItem(list.id)}
-              className="w-full sm:w-auto px-4 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors text-sm flex items-center justify-center gap-2"
-            >
-              <i className="fas fa-plus" />
-              Adicionar Item
-            </button>
+            {isClosed ? (
+              onReopenPurchase && (
+                <button
+                  onClick={() => onReopenPurchase(list)}
+                  className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm flex items-center justify-center gap-2"
+                  title="Reabrir a compra e apagar a despesa criada"
+                >
+                  <i className="fas fa-rotate-left" />
+                  Reabrir compra
+                </button>
+              )
+            ) : (
+              <>
+                <button
+                  onClick={() => onAddItem(list.id)}
+                  className="w-full sm:w-auto px-4 py-2.5 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors text-sm flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-plus" />
+                  Adicionar Item
+                </button>
 
-            {onEnrichPrices && (
-              <button
-                onClick={() => onEnrichPrices(list.id)}
-                disabled={isEnriching}
-                className="w-full sm:w-auto px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm flex items-center justify-center gap-2 disabled:opacity-50"
-                title="Buscar melhores preços nos supermercados"
-              >
-                {isEnriching ? (
-                  <><i className="fas fa-spinner fa-spin" /> A actualizar...</>
-                ) : (
-                  <><i className="fas fa-tags" /> Actualizar preços</>
+                {onEnrichPrices && (
+                  <button
+                    onClick={() => onEnrichPrices(list.id)}
+                    disabled={isEnriching}
+                    className="w-full sm:w-auto px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                    title="Buscar melhores preços nos supermercados"
+                  >
+                    {isEnriching ? (
+                      <><i className="fas fa-spinner fa-spin" /> A actualizar...</>
+                    ) : (
+                      <><i className="fas fa-tags" /> Actualizar preços</>
+                    )}
+                  </button>
                 )}
-              </button>
-            )}
 
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => onEditList(list)}
-                className="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                title="Editar lista"
-              >
-                <i className="fas fa-edit" />
-              </button>
-              <button
-                onClick={() => onDeleteList(list.id)}
-                className="p-2.5 border border-red-300 dark:border-red-700 rounded-lg text-error-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                title="Excluir lista"
-              >
-                <i className="fas fa-trash" />
-              </button>
-            </div>
+                {onClosePurchase && purchasedItems.length > 0 && (
+                  <button
+                    onClick={() => onClosePurchase(list)}
+                    className="w-full sm:w-auto px-4 py-2.5 bg-brand-400 text-gray-950 rounded-lg hover:bg-brand-500 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                    title="Lançar os itens comprados como despesa"
+                  >
+                    <i className="fas fa-receipt" />
+                    Fechar compra
+                  </button>
+                )}
+
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => onEditList(list)}
+                    className="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    title="Editar lista"
+                  >
+                    <i className="fas fa-edit" />
+                  </button>
+                  <button
+                    onClick={() => onDeleteList(list.id)}
+                    className="p-2.5 border border-red-300 dark:border-red-700 rounded-lg text-error-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    title="Excluir lista"
+                  >
+                    <i className="fas fa-trash" />
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
+
+        {isClosed && (
+          <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-success-500/30 bg-success-50 dark:bg-success-500/10 px-4 py-3">
+            <i className="fas fa-circle-check text-success-600 dark:text-success-400" />
+            <span className="text-sm text-success-700 dark:text-success-400">
+              Compra fechada em{' '}
+              {new Date(list.closedAt as string).toLocaleDateString('pt-BR')} —{' '}
+              {formatCurrency(purchasedTotal)} lançados como despesa.
+            </span>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-6">
@@ -154,6 +206,8 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
                   <ShoppingListItem
                     key={item.id}
                     item={item}
+                    currency={currency}
+                    readOnly={isClosed}
                     onToggleStatus={onToggleItemStatus}
                     onEdit={onEditItem}
                     onDelete={onDeleteItem}
@@ -170,6 +224,8 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
                   <ShoppingListItem
                     key={item.id}
                     item={item}
+                    currency={currency}
+                    readOnly={isClosed}
                     onToggleStatus={onToggleItemStatus}
                     onEdit={onEditItem}
                     onDelete={onDeleteItem}

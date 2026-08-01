@@ -8,7 +8,9 @@ import ShoppingListCard from './ShoppingListCard.tsx';
 import AIShoppingModal from './AIShoppingModal';
 import AIResultModal from './AIResultModal';
 import StorePricesModal from './StorePricesModal';
+import ClosePurchaseModal from './ClosePurchaseModal';
 import { useConfirm } from '../../ui/confirm/useConfirm';
+import { useUserProfile } from '../../../hooks/useUserProfile';
 
 const ShoppingManager: React.FC = () => {
   const {
@@ -18,11 +20,14 @@ const ShoppingManager: React.FC = () => {
     updateItemStatus,
     enrichPrices,
     getPricesByStore,
+    closePurchase,
+    reopenPurchase,
     data: lists,
     isLoading,
     error,
   } = useShopping();
   const { confirm, dialog } = useConfirm();
+  const { profile, getProfile } = useUserProfile();
 
   const [isListFormOpen, setIsListFormOpen] = useState(false);
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
@@ -37,9 +42,13 @@ const ShoppingManager: React.FC = () => {
   const [storePricesItem, setStorePricesItem] = useState<string | null>(null);
   const [storePrices, setStorePrices] = useState<{ supermarket: string; name: string; price: number; brand?: string }[]>([]);
   const [loadingStorePrices, setLoadingStorePrices] = useState(false);
+  const [closingList, setClosingList] = useState<ShoppingList | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     loadLists();
+    getProfile().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadLists = async () => {
@@ -98,6 +107,46 @@ const ShoppingManager: React.FC = () => {
       toast.error('Erro ao actualizar preços. Verifique se o serviço está disponível.');
     } finally {
       setEnrichingListId(null);
+    }
+  };
+
+  const handleClosePurchase = async (payload: {
+    categoryId?: number;
+    referenceDate: string;
+  }) => {
+    if (!closingList) return;
+    setIsClosing(true);
+    try {
+      await closePurchase(closingList.id, payload);
+      toast.success('Compra fechada. A despesa já está nas suas transações.');
+      setClosingList(null);
+      loadLists();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Não foi possível fechar a compra.',
+      );
+    } finally {
+      setIsClosing(false);
+    }
+  };
+
+  const handleReopenPurchase = async (list: ShoppingList) => {
+    const ok = await confirm({
+      title: 'Reabrir compra',
+      message:
+        'A despesa criada por esta compra vai ser apagada e a lista volta a ficar editável.',
+      confirmText: 'Reabrir',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await reopenPurchase(list.id);
+      toast.success('Compra reaberta e despesa apagada.');
+      loadLists();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'Não foi possível reabrir a compra.',
+      );
     }
   };
 
@@ -242,6 +291,9 @@ const ShoppingManager: React.FC = () => {
             <ShoppingListCard
               key={list.id}
               list={list}
+              currency={profile?.currency}
+              onClosePurchase={setClosingList}
+              onReopenPurchase={handleReopenPurchase}
               onEditList={handleEditList}
               onDeleteList={handleDeleteList}
               onToggleItemStatus={handleToggleItemStatus}
@@ -302,6 +354,16 @@ const ShoppingManager: React.FC = () => {
         <AIResultModal
           result={aiResult}
           onClose={() => setAiResult(null)}
+        />
+      )}
+
+      {closingList && (
+        <ClosePurchaseModal
+          list={closingList}
+          currency={profile?.currency}
+          isSaving={isClosing}
+          onConfirm={handleClosePurchase}
+          onCancel={() => setClosingList(null)}
         />
       )}
 

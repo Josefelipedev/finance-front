@@ -1,8 +1,13 @@
 import React from 'react';
 import { ShoppingItem } from '../../../hooks/useShopping';
+import { formatMoney } from '../../../utils/currency';
 
 interface ShoppingListItemProps {
   item: ShoppingItem;
+  /** Moeda do perfil (o preço estava fixo em EUR para toda a gente). */
+  currency?: string | null;
+  /** Compra fechada: os itens são histórico, sem marcar nem editar. */
+  readOnly?: boolean;
   onToggleStatus: (itemId: number, purchased: boolean) => void;
   onEdit: (item: ShoppingItem) => void;
   onDelete: (itemId: number) => void;
@@ -12,17 +17,15 @@ interface ShoppingListItemProps {
 
 const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
   item,
+  currency,
+  readOnly = false,
   onToggleStatus,
   onEdit,
   onDelete,
   onViewHistory,
   onShowStorePrices,
 }) => {
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('pt-PT', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
+  const formatCurrency = (amount: number) => formatMoney(amount, currency);
 
   const getUnitLabel = (unit: string) => {
     const units: Record<string, string> = {
@@ -54,7 +57,8 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
           {/* Checkbox */}
           <button
             onClick={() => onToggleStatus(item.id, !item.purchased)}
-            className={`w-5 h-5 shrink-0 rounded border flex items-center justify-center
+            disabled={readOnly}
+            className={`w-5 h-5 shrink-0 rounded border flex items-center justify-center disabled:cursor-not-allowed
               ${
                 item.purchased
                   ? 'bg-green-500 border-green-500'
@@ -113,21 +117,25 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
             <i className="fas fa-chart-line" />
           </button>
 
-          <button
-            onClick={() => onEdit(item)}
-            className="p-1.5 rounded text-brand-500 hover:bg-brand-500/10"
-            title="Editar"
-          >
-            <i className="fas fa-edit" />
-          </button>
+          {!readOnly && (
+            <>
+              <button
+                onClick={() => onEdit(item)}
+                className="p-1.5 rounded text-brand-500 hover:bg-brand-500/10"
+                title="Editar"
+              >
+                <i className="fas fa-edit" />
+              </button>
 
-          <button
-            onClick={() => onDelete(item.id)}
-            className="p-1.5 rounded text-error-500 hover:bg-error-500/10"
-            title="Excluir"
-          >
-            <i className="fas fa-trash" />
-          </button>
+              <button
+                onClick={() => onDelete(item.id)}
+                className="p-1.5 rounded text-error-500 hover:bg-error-500/10"
+                title="Excluir"
+              >
+                <i className="fas fa-trash" />
+              </button>
+            </>
+          )}
         </div>
       </div>
 
