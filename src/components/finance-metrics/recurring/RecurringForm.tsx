@@ -36,6 +36,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     startDate: '',
     endDate: '',
     occurrences: undefined,
+    totalAmount: undefined,
   });
   const currencySymbol = currencyOption(formData.currency ?? profile?.currency).symbol;
 
@@ -74,6 +75,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
         startDate: transaction.startDate ? transaction.startDate.slice(0, 10) : '',
         endDate: transaction.endDate ? transaction.endDate.slice(0, 10) : '',
         occurrences: transaction.occurrences,
+        totalAmount: transaction.totalAmount ?? undefined,
       });
     }
   }, [transaction]);
@@ -109,6 +111,8 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
       ...formData,
       startDate: formData.startDate || undefined,
       endDate: formData.endDate || undefined,
+      // Só faz sentido com parcelas contratadas.
+      totalAmount: formData.occurrences ? formData.totalAmount : undefined,
     };
 
     try {
@@ -131,6 +135,59 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
+  };
+
+  const round2 = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
+
+  /**
+   * Total e parcela são a mesma coisa vista de dois lados, ligados pelo número
+   * de parcelas. Escrever num deles recalcula o outro — em vez de deixar dois
+   * campos a discordarem em silêncio, que é como se perde dinheiro de vista.
+   *
+   * Manda sempre o último que se escreveu. A divisão aqui é só para se ver o
+   * número enquanto se escreve: quem reparte o resto do arredondamento pela
+   * última parcela é o servidor.
+   */
+  const handleTotalChange = (total: number) => {
+    setSubmitError(null);
+    setFormData((prev) => {
+      const n = prev.occurrences ?? 0;
+      return {
+        ...prev,
+        totalAmount: total || undefined,
+        amount: n > 0 ? round2(total / n) : prev.amount,
+      };
+    });
+  };
+
+  const handleInstallmentChange = (installment: number) => {
+    setSubmitError(null);
+    setFormData((prev) => {
+      const n = prev.occurrences ?? 0;
+      return {
+        ...prev,
+        amount: installment,
+        totalAmount: n > 0 ? round2(installment * n) : undefined,
+      };
+    });
+    if (errors.amount) setErrors((prev) => ({ ...prev, amount: '' }));
+  };
+
+  /** Mudar o número de parcelas mantém o TOTAL e refaz a parcela. */
+  const handleOccurrencesChange = (n?: number) => {
+    setSubmitError(null);
+    setFormData((prev) => {
+      if (!n || n <= 0) {
+        return { ...prev, occurrences: n, totalAmount: undefined };
+      }
+      const total = prev.totalAmount ?? round2(prev.amount * (prev.occurrences ?? 1));
+      return {
+        ...prev,
+        occurrences: n,
+        totalAmount: total || undefined,
+        amount: total ? round2(total / n) : prev.amount,
+      };
+    });
   };
 
   return (
@@ -193,11 +250,11 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Valor *
+                {formData.occurrences ? 'Valor da parcela *' : 'Valor *'}
               </label>
               <MoneyInput
                 value={formData.amount}
-                onChange={(v) => handleChange('amount', v)}
+                onChange={handleInstallmentChange}
                 currencySymbol={currencySymbol}
                 error={!!errors.amount}
               />
@@ -343,22 +400,44 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
             />
           </div>
 
-          {/* Número de Ocorrências */}
+          {/* Parcelas */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Número de Ocorrências (opcional)
+              Número de Parcelas (opcional)
             </label>
             <input
               type="number"
               min="1"
               value={formData.occurrences || ''}
               onChange={(e) =>
-                handleChange('occurrences', e.target.value ? parseInt(e.target.value) : undefined)
+                handleOccurrencesChange(e.target.value ? parseInt(e.target.value) : undefined)
               }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
               placeholder="Deixe vazio para repetir indefinidamente"
             />
           </div>
+
+          {/* Valor total — só existe quando há parcelas contratadas */}
+          {formData.occurrences ? (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Valor total
+              </label>
+              <MoneyInput
+                value={formData.totalAmount ?? 0}
+                onChange={handleTotalChange}
+                currencySymbol={currencySymbol}
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {formData.occurrences}× de {currencySymbol}{' '}
+                {formData.amount.toLocaleString('pt-BR', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+                {' — '}escreva no total ou na parcela, o outro acompanha.
+              </p>
+            </div>
+          ) : null}
 
           {/* Notificação */}
           <div className="flex items-center">

@@ -122,7 +122,9 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
           {/* Details */}
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Valor</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {transaction.occurrences ? 'Parcela' : 'Valor'}
+              </p>
               <p
                 className={`font-semibold ${
                   transaction.type === 'income' ? 'text-green-600' : 'text-error-600'
@@ -140,7 +142,10 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
             </div>
 
             <div>
-              <p className="text-xs text-gray-500 dark:text-gray-400" title="Contas geradas por esta recorrente e marcadas como pagas">
+              <p
+                className="text-xs text-gray-500 dark:text-gray-400"
+                title="Contas geradas por esta recorrente e marcadas como pagas"
+              >
                 Pagamentos
               </p>
               <p className="font-medium text-gray-800 dark:text-white">
@@ -154,6 +159,14 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
               <p className="font-medium text-gray-800 dark:text-white">
                 {formatMoney(transaction.amount * transaction.executedCount, transaction.currency)}
               </p>
+              {/* O contratado ao lado do pago: sem ele, "Total pago R$ 0,00"
+                  não diz de quanto estamos a falar. Vem calculado do servidor
+                  (as recorrentes antigas não têm total gravado). */}
+              {transaction.contractedTotal != null && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  de {formatMoney(transaction.contractedTotal, transaction.currency)}
+                </p>
+              )}
             </div>
           </div>
 

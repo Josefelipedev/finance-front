@@ -19,6 +19,10 @@ export interface RecurringTransaction {
   userId: number;
   /** Mês em que a recorrente começa a gerar contas. Nulo = mês de criação. */
   startDate?: string | null;
+  /** Total contratado, quando é um parcelamento. */
+  totalAmount?: number | null;
+  /** Total já calculado pelo servidor (`totalAmount` ou parcela × parcelas). */
+  contractedTotal?: number | null;
   endDate?: string;
   occurrences?: number;
   executedCount: number;
@@ -44,6 +48,7 @@ export interface CreateRecurringTransactionDto {
   startDate?: string;
   endDate?: string;
   occurrences?: number;
+  totalAmount?: number;
 }
 
 export interface UpdateRecurringTransactionDto {
@@ -59,6 +64,7 @@ export interface UpdateRecurringTransactionDto {
   startDate?: string;
   endDate?: string;
   occurrences?: number;
+  totalAmount?: number;
 }
 
 // ===================== HOOK =====================
@@ -225,7 +231,8 @@ export function useRecurringFinance() {
     return true;
   };
 
-  const calculateTotalAmount = (transaction: RecurringTransaction): number => {
+  /** O que já foi pago desta recorrente (não confundir com o total contratado). */
+  const calculateTotalPaid = (transaction: RecurringTransaction): number => {
     return transaction.amount * transaction.executedCount;
   };
 
@@ -245,7 +252,7 @@ export function useRecurringFinance() {
     // Utilities
     calculateNextDueDate,
     isTransactionActive,
-    calculateTotalAmount,
+    calculateTotalPaid,
 
     // Estado
     isLoading,
