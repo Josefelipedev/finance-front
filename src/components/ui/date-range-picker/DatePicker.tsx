@@ -1,7 +1,8 @@
 // src/components/ui/DatePicker.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useId } from 'react';
 import { format, parseISO, isValid } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import DateField from '../../form/DateField';
 
 export interface DatePickerProps {
   value: string; // ISO string
@@ -23,6 +24,19 @@ export interface DatePickerProps {
   endOfDay?: boolean;
 }
 
+/**
+ * O picker partilhado (o `DateRangePicker` é dois destes lado a lado).
+ *
+ * Por dentro era um `<input type="date">`, portanto tinha o mesmo problema dos
+ * outros campos de data: a ordem que se vê e se escreve é a do locale do
+ * BROWSER, e num Chrome em inglês 11/04 é 4 de novembro. A linha de ajuda por
+ * baixo (`dd/MM/yyyy`) ajudava a perceber depois de escolher, mas não impedia
+ * escrever ao contrário.
+ *
+ * Passa a delegar no `DateField` (flatpickr em português). O contrato de fora
+ * fica igual — entra e sai uma ISO completa — para os quatro ecrãs que já o
+ * usam não mudarem nada.
+ */
 const DatePicker: React.FC<DatePickerProps> = ({
   value,
   onChange,
@@ -37,6 +51,8 @@ const DatePicker: React.FC<DatePickerProps> = ({
   showTime = false,
   endOfDay = false,
 }) => {
+  const fieldId = useId();
+
   // Converter ISO para yyyy-MM-dd ou yyyy-MM-ddThh:mm
   const formatForInput = (isoDate: string): string => {
     if (!isoDate) return '';
@@ -111,33 +127,37 @@ const DatePicker: React.FC<DatePickerProps> = ({
       )}
 
       <div className="relative">
-        <input
-          type={showTime ? 'datetime-local' : 'date'}
-          value={inputValue}
-          onChange={handleChange}
-          disabled={disabled}
-          required={required}
-          min={minDate ? formatForInput(minDate) : undefined}
-          max={maxDate ? formatForInput(maxDate) : undefined}
-          className={`
-            w-full px-3 py-2 border rounded-lg transition-colors
-            ${
-              error
-                ? 'border-rose-500 focus:ring-2 focus:ring-rose-500 focus:border-rose-500'
-                : 'border-gray-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500'
-            }
-            dark:bg-gray-700 dark:border-gray-600 dark:text-white
-            disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed
-            dark:disabled:bg-gray-800 dark:disabled:text-gray-400
-            ${className}
-          `}
-          placeholder={placeholder}
-        />
-
-        {!showTime && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <i className="fas fa-calendar text-gray-400"></i>
-          </div>
+        {showTime ? (
+          // Caminho com hora: continua nativo (nenhum ecrã o usa hoje).
+          <input
+            type="datetime-local"
+            value={inputValue}
+            onChange={handleChange}
+            disabled={disabled}
+            required={required}
+            min={minDate ? formatForInput(minDate) : undefined}
+            max={maxDate ? formatForInput(maxDate) : undefined}
+            className={`
+              w-full px-3 py-2 border rounded-lg transition-colors
+              ${
+                error
+                  ? 'border-rose-500 focus:ring-2 focus:ring-rose-500 focus:border-rose-500'
+                  : 'border-gray-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500'
+              }
+              dark:bg-gray-700 dark:border-gray-600 dark:text-white
+              disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed
+              dark:disabled:bg-gray-800 dark:disabled:text-gray-400
+              ${className}
+            `}
+            placeholder={placeholder}
+          />
+        ) : (
+          <DateField
+            id={fieldId}
+            value={inputValue}
+            onChange={(v) => onChange(parseFromInput(v))}
+            placeholder={placeholder}
+          />
         )}
       </div>
 
