@@ -3,6 +3,9 @@ import { toast } from 'sonner';
 import { useShopping, ShoppingItem } from '../../../hooks/useShopping';
 import { Modal } from '../../ui/modal';
 import Button from '../../ui/button/Button';
+import MoneyInput from '../../form/MoneyInput';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { currencyOption } from '../../../utils/currency';
 
 interface ShoppingItemFormProps {
   listId: number;
@@ -17,6 +20,8 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const { profile } = useUserProfile();
+  const currencySymbol = currencyOption(profile?.currency).symbol;
   const { createOrUpdateItem, updateItem, isLoading } = useShopping();
   const [formData, setFormData] = useState({
     name: '',
@@ -161,20 +166,11 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Preço Total
               </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                  €
-                </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) => handleChange('price', parseFloat(e.target.value) || 0)}
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
-                  placeholder="0,00"
-                />
-              </div>
+              <MoneyInput
+                value={formData.price || 0}
+                onChange={(v) => handleChange('price', v)}
+                currencySymbol={currencySymbol}
+              />
               <p className="text-xs text-gray-400 mt-1">Preço total para a quantidade indicada</p>
             </div>
 

@@ -8,6 +8,8 @@ import {
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { CURRENCY_OPTIONS, currencyOption } from '../../../utils/currency';
 import CategorySelect from '../../form/CategorySelect';
+import MoneyInput from '../../form/MoneyInput';
+import DateField from '../../form/DateField';
 import { Modal } from '../../ui/modal';
 import Button from '../../ui/button/Button';
 
@@ -183,22 +185,12 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Valor *
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    {currencySymbol}
-                  </span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.amount}
-                    onChange={(e) => handleChange('amount', parseFloat(e.target.value) || 0)}
-                    className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
-                      errors.amount ? 'border-error-500' : 'border-gray-300'
-                    }`}
-                    placeholder="0,00"
-                  />
-                </div>
+                <MoneyInput
+                  value={formData.amount}
+                  onChange={(v) => handleChange('amount', v)}
+                  currencySymbol={currencySymbol}
+                  error={!!errors.amount}
+                />
                 {errors.amount && <p className="text-error-500 text-sm mt-1">{errors.amount}</p>}
               </div>
             </div>
@@ -313,11 +305,12 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Mês de Início (opcional)
               </label>
-              <input
-                type="month"
+              <DateField
+                id="recurring-start"
+                mode="month"
                 value={formData.startDate || ''}
-                onChange={(e) => handleChange('startDate', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
+                onChange={(v) => handleChange('startDate', v)}
+                placeholder="Escolha o mês"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {formData.frequency === 'yearly'
@@ -331,11 +324,11 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Data de Término (opcional)
               </label>
-              <input
-                type="date"
+              <DateField
+                id="recurring-end"
                 value={formData.endDate || ''}
-                onChange={(e) => handleChange('endDate', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
+                onChange={(v) => handleChange('endDate', v)}
+                placeholder="dd/mm/aaaa"
               />
             </div>
 

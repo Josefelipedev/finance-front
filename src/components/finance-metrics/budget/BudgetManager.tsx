@@ -11,6 +11,7 @@ import { useExchangeRates } from '../../../hooks/useExchangeRates';
 import MixedCurrencyWarning from '../../common/MixedCurrencyWarning';
 import { formatMoney, currencyOption, convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
 import Button from '../../ui/button/Button';
+import MoneyInput from '../../form/MoneyInput';
 
 const monthRange = () => {
   const now = new Date();
@@ -314,14 +315,10 @@ const BudgetManager: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Limite mensal ({currencySymbol}) *
               </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formLimit}
-                onChange={(e) => setFormLimit(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-                placeholder="0,00"
+              <MoneyInput
+                value={Number(formLimit) || 0}
+                onChange={(v) => setFormLimit(v ? String(v) : '')}
+                currencySymbol={currencySymbol}
               />
             </div>
             <div>

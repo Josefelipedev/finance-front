@@ -5,6 +5,7 @@ import DateRangePicker from '../../ui/date-range-picker';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { currencyOption } from '../../../utils/currency';
 import Button from '../../ui/button/Button';
+import MoneyInput from '../../form/MoneyInput';
 
 interface GoalFormProps {
   initialData?: CreateGoalDto;
@@ -43,6 +44,12 @@ const GoalForm: React.FC<GoalFormProps> = ({
       setFormData(initialData);
     }
   }, [initialData]);
+
+  /** Campos que não vêm de um evento (dinheiro, que é `text` e não `number`). */
+  const setValue = (name: string, value: number) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -133,18 +140,11 @@ const GoalForm: React.FC<GoalFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Valor Alvo ({currencySymbol}) *
           </label>
-          <input
-            type="number"
-            name="targetValue"
-            value={formData.targetValue || ''}
-            onChange={handleChange}
-            required
-            min="0.01"
-            step="0.01"
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors ${
-              errors.targetValue ? 'border-rose-500' : 'border-gray-300'
-            }`}
-            placeholder="0,00"
+          <MoneyInput
+            value={formData.targetValue || 0}
+            onChange={(v) => setValue('targetValue', v)}
+            currencySymbol={currencySymbol}
+            error={!!errors.targetValue}
           />
           {errors.targetValue && <p className="text-xs text-rose-500 mt-1">{errors.targetValue}</p>}
         </div>
@@ -153,15 +153,10 @@ const GoalForm: React.FC<GoalFormProps> = ({
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Valor Atual ({currencySymbol})
           </label>
-          <input
-            type="number"
-            name="currentValue"
-            value={formData.currentValue || ''}
-            onChange={handleChange}
-            min="0"
-            step="0.01"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white transition-colors"
-            placeholder="0,00"
+          <MoneyInput
+            value={formData.currentValue || 0}
+            onChange={(v) => setValue('currentValue', v)}
+            currencySymbol={currencySymbol}
           />
         </div>
       </div>
