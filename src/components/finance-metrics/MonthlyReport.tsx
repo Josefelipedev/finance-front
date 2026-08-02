@@ -164,7 +164,7 @@ const MonthlyReport: React.FC = () => {
 
   const handleInsight = async () => {
     try {
-      const text = await getInsight();
+      const text = await getInsight(monthBounds(year, month));
       setInsight(text || 'Sem insight disponível no momento.');
     } catch {
       toast.error('Erro ao gerar insight.');

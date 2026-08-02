@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import FinanceMetrics from './FinanceMetrics';
+import MonthForecastCard from './MonthForecastCard';
 import { DashboardData, FinanceSummary, useFinance } from '../../hooks/useFinance.ts';
 import FinanceTable from './ui/FinanceTable.tsx';
 import { endOfDayISO, startOfDayISO } from '../../utils/date-range';
@@ -151,6 +152,9 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
           dateRange={dateRange}
         />
       )}
+
+      {/* O que ainda falta acontecer este mês (B6) */}
+      {summaryData && <MonthForecastCard />}
 
       {/* Gráfico e Tabela */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

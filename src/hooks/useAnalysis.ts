@@ -15,12 +15,21 @@ export function useAnalysis() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const getInsight = async () => {
+  /**
+   * O comentário da IA sobre um período.
+   *
+   * Sem o período, o servidor guardava um insight por utilizador **por dia** e
+   * devolvia sempre o mesmo — trocar o mês no ecrã dava um texto sobre números
+   * que já não estavam à vista.
+   */
+  const getInsight = async (period?: { startDate?: string; endDate?: string }) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const res = await api.get<InsightResponse>('/analysis/insight');
+      const res = await api.get<InsightResponse>('/analysis/insight', {
+        params: { startDate: period?.startDate, endDate: period?.endDate },
+      });
       return res?.insight ?? '';
     } catch (err) {
       setError(err as Error);
