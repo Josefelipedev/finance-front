@@ -30,6 +30,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     type: 'expense',
     frequency: 'monthly',
     dueDay: 1,
+    businessDay: undefined,
     weekDay: 0,
     notification: false,
     categoryId: 0,
@@ -65,6 +66,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
         type: transaction.type,
         frequency: transaction.frequency,
         dueDay: transaction.dueDay || 1,
+        businessDay: transaction.businessDay ?? undefined,
         weekDay: transaction.weekDay || 0,
         notification: transaction.notification,
         categoryId: transaction.categoryId ?? transaction.category?.id ?? 0,
@@ -111,6 +113,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
       ...formData,
       startDate: formData.startDate || undefined,
       endDate: formData.endDate || undefined,
+      businessDay: formData.businessDay ?? null,
       // Só faz sentido com parcelas contratadas.
       totalAmount: formData.occurrences ? formData.totalAmount : undefined,
     };
@@ -312,20 +315,53 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
             </select>
           </div>
 
-          {/* Dia do Vencimento (para mensal) */}
+          {/* Vencimento (para mensal): dia fixo ou N-ésimo dia útil */}
           {formData.frequency === 'monthly' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Dia do Vencimento (1-31)
+                Vencimento
               </label>
-              <input
-                type="number"
-                min="1"
-                max="31"
-                value={formData.dueDay || 1}
-                onChange={(e) => handleChange('dueDay', parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={formData.businessDay ? 'business' : 'fixed'}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      businessDay: e.target.value === 'business' ? (prev.businessDay || 5) : undefined,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="fixed">Dia fixo do mês</option>
+                  <option value="business">Dia útil do mês</option>
+                </select>
+                {formData.businessDay ? (
+                  <input
+                    type="number"
+                    min="1"
+                    max="23"
+                    value={formData.businessDay}
+                    onChange={(e) =>
+                      handleChange('businessDay', parseInt(e.target.value) || 1)
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
+                  />
+                ) : (
+                  <input
+                    type="number"
+                    min="1"
+                    max="31"
+                    value={formData.dueDay || 1}
+                    onChange={(e) => handleChange('dueDay', parseInt(e.target.value) || 1)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
+                  />
+                )}
+              </div>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {formData.businessDay
+                  ? `Vence no ${formData.businessDay}.º dia útil (só fins de semana contam — feriados não).`
+                  : 'Vence sempre no mesmo dia; meses curtos usam o último dia.'}
+              </p>
             </div>
           )}
 

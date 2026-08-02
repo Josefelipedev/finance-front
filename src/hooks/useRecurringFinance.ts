@@ -13,6 +13,8 @@ export interface RecurringTransaction {
   type: 'income' | 'expense';
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
   dueDay?: number;
+  /** N-ésimo dia útil do mês; manda sobre o `dueDay`. */
+  businessDay?: number | null;
   weekDay?: number;
   notification: boolean;
   categoryId: number;
@@ -42,6 +44,7 @@ export interface CreateRecurringTransactionDto {
   type: 'income' | 'expense';
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
   dueDay?: number;
+  businessDay?: number | null;
   weekDay?: number;
   notification?: boolean;
   categoryId: number;
@@ -58,6 +61,7 @@ export interface UpdateRecurringTransactionDto {
   type?: 'income' | 'expense';
   frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly';
   dueDay?: number;
+  businessDay?: number | null;
   weekDay?: number;
   notification?: boolean;
   categoryId?: number;
