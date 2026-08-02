@@ -145,12 +145,10 @@ function BillFormModal({
         <div className="mt-5">
           <span className={labelClass}>Tipo</span>
           <div className="grid grid-cols-2 gap-2">
-            {(
-              [
-                { value: 'expense' as BillType, label: 'A pagar', icon: 'fa-arrow-up' },
-                { value: 'income' as BillType, label: 'A receber', icon: 'fa-arrow-down' },
-              ]
-            ).map((opt) => {
+            {[
+              { value: 'expense' as BillType, label: 'A pagar', icon: 'fa-arrow-up' },
+              { value: 'income' as BillType, label: 'A receber', icon: 'fa-arrow-down' },
+            ].map((opt) => {
               const active = type === opt.value;
               return (
                 <button
@@ -241,8 +239,7 @@ function BillFormModal({
         <Button type="button" variant="primary" size="sm" disabled={isSaving} onClick={submit}>
           {isSaving ? (
             <>
-              <i className="fas fa-spinner fa-spin text-xs"></i>
-              A guardar…
+              <i className="fas fa-spinner fa-spin text-xs"></i>A guardar…
             </>
           ) : mode === 'edit' ? (
             'Guardar alterações'
@@ -275,6 +272,14 @@ export default function BillsPage() {
   const [payAmount, setPayAmount] = useState('');
 
   // Modal de criação / edição.
+  // Filtros do ecrã. Vivem no cliente: a lista do mês já vem toda, e filtrar
+  // no servidor obrigaria a ir buscá-la outra vez a cada clique.
+  const [showCarriedOver, setShowCarriedOver] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'paid'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | string>('all');
+  const [ownerFilter, setOwnerFilter] = useState<'all' | 'mine'>('all');
+
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [editingItem, setEditingItem] = useState<BillItem | null>(null);
@@ -306,7 +311,7 @@ export default function BillsPage() {
         setIsFetching(false);
       }
     },
-    [getBills],
+    [getBills]
   );
 
   useEffect(() => {
@@ -330,7 +335,9 @@ export default function BillsPage() {
     try {
       await unpayBill(item.id);
       toast.success(
-        item.type === 'income' ? 'Recebimento marcado como pendente.' : 'Conta marcada como pendente.',
+        item.type === 'income'
+          ? 'Recebimento marcado como pendente.'
+          : 'Conta marcada como pendente.'
       );
       await load(month);
     } catch (err) {
@@ -351,7 +358,9 @@ export default function BillsPage() {
     setTogglingId(item.id);
     try {
       await payBill(item.id, amountValue);
-      toast.success(item.type === 'income' ? 'Recebimento registrado!' : 'Conta marcada como paga!');
+      toast.success(
+        item.type === 'income' ? 'Recebimento registrado!' : 'Conta marcada como paga!'
+      );
       setPayingItem(null);
       await load(month);
     } catch (err) {
@@ -447,11 +456,7 @@ export default function BillsPage() {
           onClick={() => handleToggle(item)}
           disabled={isToggling}
           aria-label={
-            isPaid
-              ? 'Marcar como pendente'
-              : isIncome
-                ? 'Marcar como recebido'
-                : 'Marcar como pago'
+            isPaid ? 'Marcar como pendente' : isIncome ? 'Marcar como recebido' : 'Marcar como pago'
           }
           aria-pressed={isPaid}
           className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -527,7 +532,8 @@ export default function BillsPage() {
             // Conta paga → mostra o valor efetivamente pago/recebido em destaque.
             // Se diferir do previsto, exibe o previsto em miúdo abaixo.
             const paidValue = isPaid && item.paidAmount != null ? item.paidAmount : item.amount;
-            const showPrevisto = isPaid && item.paidAmount != null && item.paidAmount !== item.amount;
+            const showPrevisto =
+              isPaid && item.paidAmount != null && item.paidAmount !== item.amount;
             return (
               <>
                 <p
@@ -588,8 +594,54 @@ export default function BillsPage() {
   const sortOverdueFirst = (list: BillItem[]) =>
     [...list].sort((a, b) => Number(b.overdue) - Number(a.overdue));
 
-  const expenseItems = sortOverdueFirst(items.filter((i) => i.type === 'expense'));
-  const incomeItems = sortOverdueFirst(items.filter((i) => i.type === 'income'));
+  const visibleItems = items.filter((i) => {
+    if (!showCarriedOver && i.carriedOver) return false;
+    if (statusFilter !== 'all' && i.status !== statusFilter) return false;
+    if (typeFilter !== 'all' && i.type !== typeFilter) return false;
+    if (categoryFilter !== 'all' && (i.categoryName ?? 'Sem categoria') !== categoryFilter)
+      return false;
+    if (ownerFilter === 'mine' && profile?.id != null && i.userId !== profile.id) return false;
+    return true;
+  });
+
+  const categoriesInMonth = [...new Set(items.map((i) => i.categoryName ?? 'Sem categoria'))].sort(
+    (a, b) => a.localeCompare(b, 'pt')
+  );
+
+  const carriedOverCount = items.filter((i) => i.carriedOver).length;
+  const filtersActive =
+    !showCarriedOver ||
+    statusFilter !== 'all' ||
+    typeFilter !== 'all' ||
+    categoryFilter !== 'all' ||
+    ownerFilter !== 'all';
+
+  const clearFilters = () => {
+    setShowCarriedOver(true);
+    setStatusFilter('all');
+    setTypeFilter('all');
+    setCategoryFilter('all');
+    setOwnerFilter('all');
+  };
+
+  /**
+   * Subtotal do que está à vista.
+   *
+   * Só sai quando todas as linhas filtradas estão na mesma moeda — somar 100
+   * BRL com 100 EUR e escrever 200 é o erro que os totais do servidor existem
+   * para evitar, e aqui não há taxas de câmbio à mão.
+   */
+  const visibleCurrencies = [...new Set(visibleItems.map((i) => i.currency))];
+  const visibleTotal =
+    visibleCurrencies.length === 1
+      ? visibleItems.reduce(
+          (sum, i) => sum + (i.status === 'paid' ? (i.paidAmount ?? i.amount) : i.amount),
+          0
+        )
+      : null;
+
+  const expenseItems = sortOverdueFirst(visibleItems.filter((i) => i.type === 'expense'));
+  const incomeItems = sortOverdueFirst(visibleItems.filter((i) => i.type === 'income'));
 
   const renderSection = (title: string, icon: string, list: BillItem[]) => {
     if (list.length === 0) return null;
@@ -598,7 +650,9 @@ export default function BillsPage() {
         <h2 className="mb-2 flex items-center gap-2 px-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
           <i className={`fas ${icon} text-xs text-gray-400 dark:text-gray-500`}></i>
           {title}
-          <span className="text-xs font-normal text-gray-400 dark:text-gray-500">({list.length})</span>
+          <span className="text-xs font-normal text-gray-400 dark:text-gray-500">
+            ({list.length})
+          </span>
         </h2>
         <Surface className="divide-y divide-gray-100 dark:divide-white/[0.06]">
           {list.map(renderRow)}
@@ -674,7 +728,9 @@ export default function BillsPage() {
           <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
             Saldo Previsto
           </p>
-          <p className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(projectedBalance)}`}>
+          <p
+            className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(projectedBalance)}`}
+          >
             {formatMoney(projectedBalance, displayCurrency)}
           </p>
         </Surface>
@@ -682,7 +738,9 @@ export default function BillsPage() {
           <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
             Saldo Realizado
           </p>
-          <p className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(realizedBalance)}`}>
+          <p
+            className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(realizedBalance)}`}
+          >
             {formatMoney(realizedBalance, displayCurrency)}
           </p>
         </Surface>
@@ -723,9 +781,106 @@ export default function BillsPage() {
           </div>
         </Surface>
       ) : (
-        <div className="space-y-6">
-          {renderSection('A Pagar', 'fa-arrow-up', expenseItems)}
-          {renderSection('A Receber', 'fa-arrow-down', incomeItems)}
+        <div className="space-y-4">
+          <Surface className="flex flex-wrap items-center gap-2 p-3">
+            {carriedOverCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowCarriedOver((v) => !v)}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                  showCarriedOver
+                    ? 'border-warning-500 bg-warning-50 text-warning-600 dark:bg-warning-500/10'
+                    : 'border-gray-300 text-gray-500 dark:border-gray-700 dark:text-gray-400'
+                }`}
+                title="Contas pendentes que vieram de meses anteriores"
+              >
+                <i className={`fas ${showCarriedOver ? 'fa-eye' : 'fa-eye-slash'} text-[10px]`}></i>
+                Atrasadas de meses anteriores ({carriedOverCount})
+              </button>
+            )}
+
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
+              className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
+            >
+              <option value="all">A pagar e a receber</option>
+              <option value="expense">Só a pagar</option>
+              <option value="income">Só a receber</option>
+            </select>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+              className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
+            >
+              <option value="all">Pendentes e pagas</option>
+              <option value="pending">Só pendentes</option>
+              <option value="paid">Só pagas</option>
+            </select>
+
+            {categoriesInMonth.length > 1 && (
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
+              >
+                <option value="all">Todas as categorias</option>
+                {categoriesInMonth.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {profile?.id != null && new Set(items.map((i) => i.userId)).size > 1 && (
+              <select
+                value={ownerFilter}
+                onChange={(e) => setOwnerFilter(e.target.value as typeof ownerFilter)}
+                className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
+              >
+                <option value="all">Do casal</option>
+                <option value="mine">Só minhas</option>
+              </select>
+            )}
+
+            <span className="ml-auto flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <span>
+                {visibleItems.length} de {items.length}
+                {visibleTotal != null && visibleItems.length > 0 && (
+                  <> · {formatMoney(visibleTotal, visibleCurrencies[0])}</>
+                )}
+              </span>
+              {filtersActive && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="text-brand-600 hover:underline dark:text-brand-400"
+                >
+                  Limpar filtros
+                </button>
+              )}
+            </span>
+          </Surface>
+
+          {visibleItems.length === 0 ? (
+            <Surface className="p-8 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Nenhuma conta com estes filtros.
+              </p>
+              <div className="mt-4 flex justify-center">
+                <Button size="sm" variant="outline" type="button" onClick={clearFilters}>
+                  Limpar filtros
+                </Button>
+              </div>
+            </Surface>
+          ) : (
+            <div className="space-y-6">
+              {renderSection('A Pagar', 'fa-arrow-up', expenseItems)}
+              {renderSection('A Receber', 'fa-arrow-down', incomeItems)}
+            </div>
+          )}
         </div>
       )}
 
@@ -804,8 +959,7 @@ export default function BillsPage() {
                   >
                     {togglingId != null ? (
                       <>
-                        <i className="fas fa-spinner fa-spin text-xs"></i>
-                        A guardar…
+                        <i className="fas fa-spinner fa-spin text-xs"></i>A guardar…
                       </>
                     ) : isIncome ? (
                       'Confirmar recebimento'

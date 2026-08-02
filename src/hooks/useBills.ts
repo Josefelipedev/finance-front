@@ -6,6 +6,8 @@ export type BillType = 'expense' | 'income';
 
 export interface BillItem {
   id: number;
+  /** Dono da conta — o workspace é do casal, e há ecrãs que filtram por pessoa. */
+  userId: number;
   /** id da recorrente que gerou a conta; null = conta avulsa */
   recurringId: number | null;
   type: BillType; // 'expense' (a pagar) | 'income' (a receber)
