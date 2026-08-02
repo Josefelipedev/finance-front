@@ -61,7 +61,7 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   // Mesma regra do servidor: é este o valor que vira despesa ao fechar.
   const purchasedTotal = purchasedItems.reduce(
     (total, item) => total + (item.scrapedPrice ?? item.price ?? 0),
-    0,
+    0
   );
 
   return (
@@ -110,9 +110,13 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
                     title="Buscar melhores preços nos supermercados"
                   >
                     {isEnriching ? (
-                      <><i className="fas fa-spinner fa-spin" /> A actualizar...</>
+                      <>
+                        <i className="fas fa-spinner fa-spin" /> A actualizar...
+                      </>
                     ) : (
-                      <><i className="fas fa-tags" /> Actualizar preços</>
+                      <>
+                        <i className="fas fa-tags" /> Actualizar preços
+                      </>
                     )}
                   </button>
                 )}
@@ -153,8 +157,7 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
           <div className="mt-4 flex flex-wrap items-center gap-2 rounded-lg border border-success-500/30 bg-success-50 dark:bg-success-500/10 px-4 py-3">
             <i className="fas fa-circle-check text-success-600 dark:text-success-400" />
             <span className="text-sm text-success-700 dark:text-success-400">
-              Compra fechada em{' '}
-              {new Date(list.closedAt as string).toLocaleDateString('pt-BR')} —{' '}
+              Compra fechada em {new Date(list.closedAt as string).toLocaleDateString('pt-BR')} —{' '}
               {formatCurrency(purchasedTotal)} lançados como despesa.
             </span>
           </div>

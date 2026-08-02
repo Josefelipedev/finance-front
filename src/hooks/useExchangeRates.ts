@@ -24,8 +24,26 @@ const RETRY_DELAYS = [800, 2500];
  * Tenta de novo em caso de falha: antes era uma única busca ao montar, e uma
  * falha de rede nesse instante estragava os números até recarregar a página.
  */
-export function useExchangeRates(): ExchangeRates | null {
-  const [rates, setRates] = useState<ExchangeRates | null>(null);
+/**
+ * `loading` enquanto a resposta não chega, `failed` quando desistiu.
+ *
+ * A diferença importa: quem só via `null` tratava "ainda não chegaram" como
+ * "não há taxas" e mostrava, no primeiro instante do ecrã, um erro a dizer
+ * que não dava para somar moedas — que desaparecia sozinho a seguir. Um aviso
+ * que aparece e some sem nada ter mudado ensina a ignorar os avisos.
+ */
+export type ExchangeRatesState = {
+  rates: ExchangeRates | null;
+  status: 'loading' | 'ready' | 'failed';
+};
+
+export function useExchangeRatesState(): ExchangeRatesState {
+  const [state, setState] = useState<ExchangeRatesState>({
+    rates: null,
+    status: 'loading',
+  });
+  const setRates = (r: ExchangeRates | null) =>
+    setState(r ? { rates: r, status: 'ready' } : { rates: null, status: 'failed' });
 
   useEffect(() => {
     const signal = { alive: true };
@@ -55,5 +73,10 @@ export function useExchangeRates(): ExchangeRates | null {
     };
   }, []);
 
-  return rates;
+  return state;
+}
+
+/** Só as taxas, para quem não precisa de distinguir "a carregar" de "falhou". */
+export function useExchangeRates(): ExchangeRates | null {
+  return useExchangeRatesState().rates;
 }

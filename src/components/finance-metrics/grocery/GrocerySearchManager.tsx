@@ -1,11 +1,7 @@
 // src/components/finance-metrics/grocery/GrocerySearchManager.tsx
 import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import {
-  useGrocerySearch,
-  GROCERY_CHAINS,
-  GroceryProduct,
-} from '../../../hooks/useGrocerySearch';
+import { useGrocerySearch, GROCERY_CHAINS, GroceryProduct } from '../../../hooks/useGrocerySearch';
 
 const formatPrice = (value?: number, currency = 'EUR') => {
   if (value == null) return '—';
@@ -28,9 +24,7 @@ const GrocerySearchManager: React.FC = () => {
   const [storeFilter, setStoreFilter] = useState<string>('all');
 
   const toggleChain = (id: string) => {
-    setSelectedChains((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    );
+    setSelectedChains((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
   };
 
   const handleSearch = async (e?: React.FormEvent) => {

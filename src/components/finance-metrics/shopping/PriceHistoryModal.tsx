@@ -67,79 +67,76 @@ const PriceHistoryModal: React.FC<PriceHistoryModalProps> = ({ itemId, onClose }
         </div>
 
         {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
-            </div>
-          ) : priceHistory.length === 0 ? (
-            <div className="text-center py-8">
-              <i className="fas fa-chart-line text-4xl text-gray-300 dark:text-gray-600 mb-3"></i>
-              <p className="text-gray-600 dark:text-gray-400">
-                Nenhum histórico de preços encontrado
-              </p>
-            </div>
-          ) : (
-            <>
-              {/* Estatísticas */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                  <p className="text-sm text-green-600 dark:text-green-400">Menor Preço</p>
-                  <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                    {formatCurrency(findLowestPrice(priceHistory))}
-                  </p>
-                </div>
-                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-                  <p className="text-sm text-error-600 dark:text-red-400">Maior Preço</p>
-                  <p className="text-xl font-bold text-error-600 dark:text-red-400">
-                    {formatCurrency(findHighestPrice(priceHistory))}
-                  </p>
-                </div>
-                <div className="bg-brand-50 dark:bg-brand-900/20 rounded-lg p-4">
-                  <p className="text-sm text-brand-600 dark:text-brand-400">Preço Médio</p>
-                  <p className="text-xl font-bold text-brand-600 dark:text-brand-400">
-                    {formatCurrency(calculateAveragePrice(priceHistory))}
-                  </p>
-                </div>
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+          </div>
+        ) : priceHistory.length === 0 ? (
+          <div className="text-center py-8">
+            <i className="fas fa-chart-line text-4xl text-gray-300 dark:text-gray-600 mb-3"></i>
+            <p className="text-gray-600 dark:text-gray-400">
+              Nenhum histórico de preços encontrado
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Estatísticas */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                <p className="text-sm text-green-600 dark:text-green-400">Menor Preço</p>
+                <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                  {formatCurrency(findLowestPrice(priceHistory))}
+                </p>
               </div>
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
+                <p className="text-sm text-error-600 dark:text-red-400">Maior Preço</p>
+                <p className="text-xl font-bold text-error-600 dark:text-red-400">
+                  {formatCurrency(findHighestPrice(priceHistory))}
+                </p>
+              </div>
+              <div className="bg-brand-50 dark:bg-brand-900/20 rounded-lg p-4">
+                <p className="text-sm text-brand-600 dark:text-brand-400">Preço Médio</p>
+                <p className="text-xl font-bold text-brand-600 dark:text-brand-400">
+                  {formatCurrency(calculateAveragePrice(priceHistory))}
+                </p>
+              </div>
+            </div>
 
-              {/* Lista de Histórico */}
-              <div className="space-y-3">
-                {priceHistory.map((history, index) => (
-                  <div
-                    key={history.id}
-                    className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-800 dark:text-white">
-                        {formatCurrency(history.price)}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatDate(history.createdAt)}
-                      </p>
-                    </div>
-                    {index > 0 && (
-                      <div
-                        className={`flex items-center gap-2 ${getPriceChangeColor(
-                          history.price,
-                          priceHistory[index - 1].price
-                        )}`}
-                      >
-                        <i
-                          className={getPriceChangeIcon(
-                            history.price,
-                            priceHistory[index - 1].price
-                          )}
-                        ></i>
-                        <span className="text-sm">
-                          {formatCurrency(Math.abs(history.price - priceHistory[index - 1].price))}
-                        </span>
-                      </div>
-                    )}
+            {/* Lista de Histórico */}
+            <div className="space-y-3">
+              {priceHistory.map((history, index) => (
+                <div
+                  key={history.id}
+                  className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium text-gray-800 dark:text-white">
+                      {formatCurrency(history.price)}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {formatDate(history.createdAt)}
+                    </p>
                   </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+                  {index > 0 && (
+                    <div
+                      className={`flex items-center gap-2 ${getPriceChangeColor(
+                        history.price,
+                        priceHistory[index - 1].price
+                      )}`}
+                    >
+                      <i
+                        className={getPriceChangeIcon(history.price, priceHistory[index - 1].price)}
+                      ></i>
+                      <span className="text-sm">
+                        {formatCurrency(Math.abs(history.price - priceHistory[index - 1].price))}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </Modal>
   );
 };

@@ -79,17 +79,22 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
               {item.name}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {item.quantity} {getUnitLabel(item.unit)} ·{' '}
-              {formatCurrency(item.price)}
+              {item.quantity} {getUnitLabel(item.unit)} · {formatCurrency(item.price)}
             </p>
             {item.scrapedPrice != null && item.scrapedPrice > 0 && (
               <div className="flex items-center gap-1 mt-1">
                 <span className="inline-flex items-center gap-1 text-xs bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full border border-green-200 dark:border-green-800">
-                  {item.supermarket === 'continente' ? '🏪' :
-                   item.supermarket === 'auchan' ? '🟠' :
-                   item.supermarket === 'pingodoce' ? '🟡' :
-                   item.supermarket === 'mercadona' ? '🟢' : '🏷️'}
-                  {' '}{item.supermarket && item.supermarket.charAt(0).toUpperCase() + item.supermarket.slice(1)}{' '}
+                  {item.supermarket === 'continente'
+                    ? '🏪'
+                    : item.supermarket === 'auchan'
+                      ? '🟠'
+                      : item.supermarket === 'pingodoce'
+                        ? '🟡'
+                        : item.supermarket === 'mercadona'
+                          ? '🟢'
+                          : '🏷️'}{' '}
+                  {item.supermarket &&
+                    item.supermarket.charAt(0).toUpperCase() + item.supermarket.slice(1)}{' '}
                   {formatCurrency(item.scrapedPrice)}
                 </span>
               </div>
@@ -138,7 +143,6 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
           )}
         </div>
       </div>
-
     </div>
   );
 };

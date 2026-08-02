@@ -3,6 +3,18 @@ import MonthlyComparisonChart from './charts/MonthlyComparisonChart.tsx';
 import CategoryAnalyticsChart from './charts/CategoryAnalyticsChart.tsx';
 import TrendAnalyticsChart from './charts/TrendAnalyticsChart.tsx';
 
+/**
+ * As datas do período chegam como ISO completo ("2026-08-02T22:59:59.999Z"),
+ * porque é assim que o seletor as manda para a API. Mostrar isso ao
+ * utilizador é mostrar-lhe a mecânica interna — e ainda por cima com a hora
+ * do fuso, que faz o dia parecer o anterior.
+ */
+const formatPeriodDate = (value?: string) => {
+  if (!value) return '—';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR');
+};
+
 const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string } }> = ({
   dateRange,
 }) => {
@@ -56,7 +68,8 @@ const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string 
                 Receitas vs Despesas - Comparação Mensal
               </h3>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Período: {dateRange.startDate} à {dateRange.endDate}
+                Período: {formatPeriodDate(dateRange.startDate)} à{' '}
+                {formatPeriodDate(dateRange.endDate)}
               </span>
             </div>
             <MonthlyComparisonChart dateRange={dateRange} />

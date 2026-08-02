@@ -73,7 +73,9 @@ const GlobalSearch: React.FC = () => {
   return (
     <div className="space-y-5 px-2 sm:px-0">
       <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Busca Global</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+          Busca Global
+        </h2>
         <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
           Pesquise em transações, metas e listas de compras
         </p>

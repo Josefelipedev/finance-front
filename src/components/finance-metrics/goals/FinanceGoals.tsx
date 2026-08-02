@@ -224,9 +224,7 @@ const FinanceGoals: React.FC = () => {
     <>
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-            Metas Financeiras
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Metas Financeiras</h3>
           <Button
             variant="primary"
             type="button"
@@ -393,7 +391,8 @@ const FinanceGoals: React.FC = () => {
                       <div className="flex items-center space-x-4">
                         <span className="font-medium">{percentage.toFixed(1)}% concluído</span>
                         <span>
-                          Falta: {formatMoney(goal.targetValue - goal.currentValue, displayCurrency)}
+                          Falta:{' '}
+                          {formatMoney(goal.targetValue - goal.currentValue, displayCurrency)}
                         </span>
                       </div>
                       {isOverdue && goal.status === 'ACTIVE' && (

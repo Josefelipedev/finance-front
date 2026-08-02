@@ -58,9 +58,7 @@ const ReceiptScanModal: React.FC<ReceiptScanModalProps> = ({ isOpen, onClose, on
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-md">
       <div className="p-6 space-y-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-            Escanear Recibo
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Escanear Recibo</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Envie uma foto do recibo. A IA detecta valor, estabelecimento e categoria
             automaticamente.

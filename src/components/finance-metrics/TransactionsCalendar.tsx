@@ -9,14 +9,13 @@ import type { DatesSetArg } from '@fullcalendar/core';
 import { toast } from 'sonner';
 import { useFinance } from '../../hooks/useFinance';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { useExchangeRates } from '../../hooks/useExchangeRates';
+import { useExchangeRatesState } from '../../hooks/useExchangeRates';
 import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import { Modal } from '../ui/modal';
 
-const recordCurrency = (record: FinanceRecord) =>
-  (record as { currency?: string }).currency;
+const recordCurrency = (record: FinanceRecord) => (record as { currency?: string }).currency;
 
 const dayKey = (record: FinanceRecord) =>
   new Date(record.referenceDate || record.createdAt).toISOString().split('T')[0];
@@ -25,7 +24,7 @@ const TransactionsCalendar: React.FC = () => {
   const { getAllFinances } = useFinance();
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
-  const rates = useExchangeRates();
+  const { rates, status: ratesStatus } = useExchangeRatesState();
 
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,8 +60,13 @@ const TransactionsCalendar: React.FC = () => {
 
   // Sem taxas para alguma moeda presente, o saldo diário sairia errado.
   const semTaxa = useMemo(
-    () => unconvertibleCurrencies(records.map(recordCurrency), displayCurrency, rates),
-    [records, displayCurrency, rates],
+    // Enquanto as taxas não chegam não há nada a avisar: tratar "a carregar"
+    // como "não há taxas" mostrava um erro no primeiro instante do ecrã.
+    () =>
+      ratesStatus === 'loading'
+        ? []
+        : unconvertibleCurrencies(records.map(recordCurrency), displayCurrency, rates),
+    [records, displayCurrency, rates, ratesStatus]
   );
 
   // Saldo diário (receita - despesa) por dia, como no app Android
@@ -83,13 +87,15 @@ const TransactionsCalendar: React.FC = () => {
     () =>
       // Sem taxas, os saldos diários sairiam da soma de moedas diferentes:
       // melhor não mostrar badge nenhum (o aviso no topo explica).
-      (semTaxa.length ? [] : Object.entries(dailyBalances)).map(([date, balance]) => ({
-        start: date,
-        allDay: true,
-        title: formatCurrency(balance),
-        color: balance >= 0 ? '#10b981' : '#f43f5e',
-      })),
-    [dailyBalances, semTaxa]
+      (semTaxa.length || ratesStatus === 'loading' ? [] : Object.entries(dailyBalances)).map(
+        ([date, balance]) => ({
+          start: date,
+          allDay: true,
+          title: formatCurrency(balance),
+          color: balance >= 0 ? '#10b981' : '#f43f5e',
+        })
+      ),
+    [dailyBalances, semTaxa, ratesStatus]
   );
 
   const handleDateClick = (arg: DateClickArg) => {
@@ -119,7 +125,9 @@ const TransactionsCalendar: React.FC = () => {
 
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">Calendário</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+            Calendário
+          </h2>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             Visualize o saldo diário e clique em um dia para ver as transações
           </p>
@@ -144,15 +152,20 @@ const TransactionsCalendar: React.FC = () => {
       </div>
 
       {/* Detalhe do dia */}
-      <Modal isOpen={Boolean(selectedDay)} onClose={() => setSelectedDay(null)} className="max-w-lg">
+      <Modal
+        isOpen={Boolean(selectedDay)}
+        onClose={() => setSelectedDay(null)}
+        className="max-w-lg"
+      >
         <div className="p-6">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-1">
-            {selectedDay && new Date(selectedDay + 'T00:00:00').toLocaleDateString('pt-BR', {
-              weekday: 'long',
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
-            })}
+            {selectedDay &&
+              new Date(selectedDay + 'T00:00:00').toLocaleDateString('pt-BR', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+              })}
           </h2>
           <div className="flex gap-4 text-sm mb-4">
             <span className="text-emerald-600 dark:text-emerald-400">

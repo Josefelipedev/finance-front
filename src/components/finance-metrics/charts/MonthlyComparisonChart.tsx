@@ -4,8 +4,13 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { formatMoney, currencyOption, convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
-import { useExchangeRates } from '../../../hooks/useExchangeRates';
+import {
+  formatMoney,
+  currencyOption,
+  convertAmount,
+  unconvertibleCurrencies,
+} from '../../../utils/currency';
+import { useExchangeRatesState } from '../../../hooks/useExchangeRates';
 
 interface MonthlyComparisonChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -16,7 +21,7 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
   const currencySymbol = currencyOption(displayCurrency).symbol;
-  const rates = useExchangeRates();
+  const { rates, status: ratesStatus } = useExchangeRatesState();
   const [chartData, setChartData] = useState<{
     months: string[];
     income: number[];
@@ -39,14 +44,15 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
 
         // Sem taxas não dá para somar moedas diferentes: mostrar um número
         // errado é pior do que não mostrar nenhum (ver unconvertibleCurrencies).
+        if (ratesStatus === 'loading') return;
         const semTaxa = unconvertibleCurrencies(
           transactions.map((t: any) => t.currency),
           displayCurrency,
-          rates,
+          rates
         );
         if (semTaxa.length) {
           setError(
-            `Sem taxas de câmbio para ${semTaxa.join(', ')} — não é possível somar moedas diferentes. Recarregue a página daqui a pouco.`,
+            `Sem taxas de câmbio para ${semTaxa.join(', ')} — não é possível somar moedas diferentes. Recarregue a página daqui a pouco.`
           );
           return;
         }
@@ -67,7 +73,7 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
               transaction.amount,
               transaction.currency,
               displayCurrency,
-              rates,
+              rates
             );
 
             if (transaction.type === 'income') {
@@ -95,15 +101,13 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
         setChartData({ months, income, expense });
       } catch (err) {
         console.error('Erro ao carregar dados do gráfico:', err);
-        setError(
-          err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.',
-        );
+        setError(err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.');
         setChartData({ months: [], income: [], expense: [] });
       }
     };
 
     loadChartData();
-  }, [dateRange, rates, displayCurrency]);
+  }, [dateRange, rates, displayCurrency, ratesStatus]);
 
   const options: ApexOptions = {
     chart: {

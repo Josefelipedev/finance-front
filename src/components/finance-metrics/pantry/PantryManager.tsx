@@ -58,7 +58,8 @@ const PantryManager: React.FC = () => {
 
     const payload: UpsertPantryDto = {
       name: form.name.trim(),
-      quantity: form.quantity != null && !Number.isNaN(form.quantity) ? Number(form.quantity) : undefined,
+      quantity:
+        form.quantity != null && !Number.isNaN(form.quantity) ? Number(form.quantity) : undefined,
       unit: form.unit?.trim() || undefined,
       category: form.category?.trim() || undefined,
       expiresAt: form.expiresAt ? new Date(form.expiresAt).toISOString() : undefined,
@@ -119,7 +120,9 @@ const PantryManager: React.FC = () => {
             <h3 className="font-semibold text-red-800 dark:text-red-300 text-sm sm:text-base">
               Erro ao carregar a despensa
             </h3>
-            <p className="text-error-600 dark:text-red-400 text-xs sm:text-sm mt-1">{error.message}</p>
+            <p className="text-error-600 dark:text-red-400 text-xs sm:text-sm mt-1">
+              {error.message}
+            </p>
           </div>
         </div>
       </div>
@@ -174,7 +177,9 @@ const PantryManager: React.FC = () => {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-gray-800 dark:text-white truncate">{item.name}</h3>
+                  <h3 className="font-semibold text-gray-800 dark:text-white truncate">
+                    {item.name}
+                  </h3>
                   {item.category && (
                     <span className="inline-block mt-1 text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full">
                       {item.category}
@@ -308,12 +313,7 @@ const PantryManager: React.FC = () => {
             >
               Cancelar
             </Button>
-            <Button
-              variant="primary"
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
+            <Button variant="primary" type="button" onClick={handleSave} disabled={isSaving}>
               {isSaving ? (
                 <span className="flex items-center gap-2">
                   <i className="fas fa-spinner fa-spin"></i>

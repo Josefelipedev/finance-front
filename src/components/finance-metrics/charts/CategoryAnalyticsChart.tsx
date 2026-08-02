@@ -44,11 +44,11 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
         const semTaxa = unconvertibleCurrencies(
           transactions.map((t: any) => t.currency),
           displayCurrency,
-          rates,
+          rates
         );
         if (semTaxa.length) {
           setError(
-            `Sem taxas de câmbio para ${semTaxa.join(', ')} — não é possível somar moedas diferentes. Recarregue a página daqui a pouco.`,
+            `Sem taxas de câmbio para ${semTaxa.join(', ')} — não é possível somar moedas diferentes. Recarregue a página daqui a pouco.`
           );
           return;
         }
@@ -78,7 +78,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
           // Converte o valor para a moeda de exibição antes de somar
           // (registros do casal podem estar em BRL e EUR misturados)
           categoryTotals[categoryName] += Math.abs(
-            convertAmount(transaction.amount, transaction.currency, displayCurrency, rates),
+            convertAmount(transaction.amount, transaction.currency, displayCurrency, rates)
           );
         });
 
@@ -96,9 +96,7 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
         setCategoryData(dataArray);
       } catch (err) {
         console.error('Erro ao carregar dados de categoria:', err);
-        setError(
-          err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.',
-        );
+        setError(err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.');
         setCategoryData([]);
       }
     };

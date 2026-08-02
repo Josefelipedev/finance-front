@@ -36,10 +36,7 @@ const NotificationsCenter: React.FC = () => {
       const nextMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
 
       // Dois meses: uma janela de 30 dias a meio do mês atravessa o mês seguinte.
-      const [current, upcoming] = await Promise.all([
-        getBills(thisMonth),
-        getBills(nextMonth),
-      ]);
+      const [current, upcoming] = await Promise.all([getBills(thisMonth), getBills(nextMonth)]);
       setItems([...(current?.items ?? []), ...(upcoming?.items ?? [])]);
     } catch (err) {
       const e = err instanceof Error ? err : new Error(String(err));
@@ -98,7 +95,9 @@ const NotificationsCenter: React.FC = () => {
             <h3 className="font-semibold text-red-800 dark:text-red-300 text-sm sm:text-base">
               Erro ao carregar notificações
             </h3>
-            <p className="text-error-600 dark:text-red-400 text-xs sm:text-sm mt-1">{error.message}</p>
+            <p className="text-error-600 dark:text-red-400 text-xs sm:text-sm mt-1">
+              {error.message}
+            </p>
             <button
               onClick={load}
               className="mt-3 text-sm font-medium text-brand-600 hover:text-brand-500"
@@ -156,7 +155,9 @@ const NotificationsCenter: React.FC = () => {
                       : 'bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400'
                   }`}
                 >
-                  <i className={`fas ${item.type === 'income' ? 'fa-arrow-down' : 'fa-arrow-up'}`}></i>
+                  <i
+                    className={`fas ${item.type === 'income' ? 'fa-arrow-down' : 'fa-arrow-up'}`}
+                  ></i>
                 </div>
 
                 <div className="min-w-0 flex-1">

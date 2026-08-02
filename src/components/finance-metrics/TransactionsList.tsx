@@ -137,7 +137,8 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {transaction.description || 'Sem descrição'}
                       </div>
-                      {myUserId != null && transaction.userId != null &&
+                      {myUserId != null &&
+                        transaction.userId != null &&
                         transaction.userId !== myUserId && (
                           <span className="inline-flex items-center gap-1 mt-0.5 text-[11px] px-1.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400">
                             <i className="fas fa-heart text-[9px]"></i>
@@ -153,9 +154,9 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(
-                    transaction.referenceDate || transaction.createdAt
-                  ).toLocaleDateString('pt-BR')}
+                  {new Date(transaction.referenceDate || transaction.createdAt).toLocaleDateString(
+                    'pt-BR'
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
@@ -228,10 +229,8 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
               <p className="text-gray-600 dark:text-gray-400">
                 Tem certeza que deseja excluir a transação{' '}
                 <strong>"{deletingRecord.description || 'sem descrição'}"</strong> de{' '}
-                <strong>
-                  {formatMoney(deletingRecord.amount, deletingRecord.currency)}
-                </strong>
-                ? Esta ação não pode ser desfeita.
+                <strong>{formatMoney(deletingRecord.amount, deletingRecord.currency)}</strong>? Esta
+                ação não pode ser desfeita.
               </p>
 
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">

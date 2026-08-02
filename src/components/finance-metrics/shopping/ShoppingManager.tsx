@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { useShopping, ShoppingList, ShoppingItem, AiGenerateResult } from '../../../hooks/useShopping';
+import {
+  useShopping,
+  ShoppingList,
+  ShoppingItem,
+  AiGenerateResult,
+} from '../../../hooks/useShopping';
 import ShoppingListForm from './ShoppingListForm';
 import ShoppingItemForm from './ShoppingItemForm';
 import PriceHistoryModal from './PriceHistoryModal';
@@ -40,7 +45,9 @@ const ShoppingManager: React.FC = () => {
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [enrichingListId, setEnrichingListId] = useState<number | null>(null);
   const [storePricesItem, setStorePricesItem] = useState<string | null>(null);
-  const [storePrices, setStorePrices] = useState<{ supermarket: string; name: string; price: number; brand?: string }[]>([]);
+  const [storePrices, setStorePrices] = useState<
+    { supermarket: string; name: string; price: number; brand?: string }[]
+  >([]);
   const [loadingStorePrices, setLoadingStorePrices] = useState(false);
   const [closingList, setClosingList] = useState<ShoppingList | null>(null);
   const [isClosing, setIsClosing] = useState(false);
@@ -101,7 +108,9 @@ const ShoppingManager: React.FC = () => {
     try {
       const result = await enrichPrices(listId);
       if (result) {
-        toast.success(`Preços actualizados: ${result.enriched} itens${result.failed.length ? ` (${result.failed.length} sem resultado)` : ''}`);
+        toast.success(
+          `Preços actualizados: ${result.enriched} itens${result.failed.length ? ` (${result.failed.length} sem resultado)` : ''}`
+        );
       }
     } catch {
       toast.error('Erro ao actualizar preços. Verifique se o serviço está disponível.');
@@ -110,10 +119,7 @@ const ShoppingManager: React.FC = () => {
     }
   };
 
-  const handleClosePurchase = async (payload: {
-    categoryId?: number;
-    referenceDate: string;
-  }) => {
+  const handleClosePurchase = async (payload: { categoryId?: number; referenceDate: string }) => {
     if (!closingList) return;
     setIsClosing(true);
     try {
@@ -122,9 +128,7 @@ const ShoppingManager: React.FC = () => {
       setClosingList(null);
       loadLists();
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Não foi possível fechar a compra.',
-      );
+      toast.error(err instanceof Error ? err.message : 'Não foi possível fechar a compra.');
     } finally {
       setIsClosing(false);
     }
@@ -133,8 +137,7 @@ const ShoppingManager: React.FC = () => {
   const handleReopenPurchase = async (list: ShoppingList) => {
     const ok = await confirm({
       title: 'Reabrir compra',
-      message:
-        'A despesa criada por esta compra vai ser apagada e a lista volta a ficar editável.',
+      message: 'A despesa criada por esta compra vai ser apagada e a lista volta a ficar editável.',
       confirmText: 'Reabrir',
       danger: true,
     });
@@ -144,9 +147,7 @@ const ShoppingManager: React.FC = () => {
       toast.success('Compra reaberta e despesa apagada.');
       loadLists();
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Não foi possível reabrir a compra.',
-      );
+      toast.error(err instanceof Error ? err.message : 'Não foi possível reabrir a compra.');
     }
   };
 
@@ -344,18 +345,10 @@ const ShoppingManager: React.FC = () => {
       )}
 
       {isAIModalOpen && (
-        <AIShoppingModal
-          onSuccess={handleAISuccess}
-          onCancel={() => setIsAIModalOpen(false)}
-        />
+        <AIShoppingModal onSuccess={handleAISuccess} onCancel={() => setIsAIModalOpen(false)} />
       )}
 
-      {aiResult && (
-        <AIResultModal
-          result={aiResult}
-          onClose={() => setAiResult(null)}
-        />
-      )}
+      {aiResult && <AIResultModal result={aiResult} onClose={() => setAiResult(null)} />}
 
       {closingList && (
         <ClosePurchaseModal
@@ -372,7 +365,10 @@ const ShoppingManager: React.FC = () => {
           itemName={storePricesItem}
           prices={storePrices}
           isLoading={loadingStorePrices}
-          onClose={() => { setStorePricesItem(null); setStorePrices([]); }}
+          onClose={() => {
+            setStorePricesItem(null);
+            setStorePrices([]);
+          }}
         />
       )}
       {dialog}

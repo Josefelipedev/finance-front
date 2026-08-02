@@ -4,19 +4,28 @@ import { toast } from 'sonner';
 import { useFinance } from '../../hooks/useFinance';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { useExchangeRates } from '../../hooks/useExchangeRates';
+import { useExchangeRatesState } from '../../hooks/useExchangeRates';
 import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import Button from '../ui/button/Button';
 
 const MONTH_NAMES = [
-  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
 ];
 
-const recordCurrency = (record: FinanceRecord) =>
-  (record as { currency?: string }).currency;
+const recordCurrency = (record: FinanceRecord) => (record as { currency?: string }).currency;
 
 const monthBounds = (year: number, month: number) => {
   const start = new Date(year, month, 1);
@@ -29,7 +38,7 @@ const MonthlyReport: React.FC = () => {
   const { getInsight, isLoading: insightLoading } = useAnalysis();
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
-  const rates = useExchangeRates();
+  const { rates, status: ratesStatus } = useExchangeRatesState();
 
   // Totais agregados são formatados na moeda de exibição do usuário
   const formatCurrency = (value: number) => formatMoney(value, displayCurrency);
@@ -63,9 +72,7 @@ const MonthlyReport: React.FC = () => {
       setRecords(data || []);
     } catch (err) {
       setRecords([]);
-      setError(
-        err instanceof Error ? err.message : 'Não foi possível carregar o relatório.',
-      );
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar o relatório.');
     } finally {
       setIsLoading(false);
     }
@@ -93,8 +100,13 @@ const MonthlyReport: React.FC = () => {
 
   // Moedas que não dá para converter: somar daria um total errado.
   const semTaxa = useMemo(
-    () => unconvertibleCurrencies(records.map(recordCurrency), displayCurrency, rates),
-    [records, displayCurrency, rates],
+    // Enquanto as taxas não chegam não há nada a avisar: tratar "a carregar"
+    // como "não há taxas" mostrava um erro no primeiro instante do ecrã.
+    () =>
+      ratesStatus === 'loading'
+        ? []
+        : unconvertibleCurrencies(records.map(recordCurrency), displayCurrency, rates),
+    [records, displayCurrency, rates, ratesStatus]
   );
 
   const { income, expense, balance, byCategory } = useMemo(() => {
@@ -210,13 +222,17 @@ const MonthlyReport: React.FC = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-error-50 dark:bg-error-500/15 mb-4">
             <i className="fas fa-exclamation-triangle text-2xl text-error-500"></i>
           </div>
-          <p className="font-medium text-gray-800 dark:text-white">
-            Erro ao carregar o relatório
-          </p>
+          <p className="font-medium text-gray-800 dark:text-white">Erro ao carregar o relatório</p>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{error}</p>
           <Button variant="outline" size="sm" className="mt-4" onClick={load}>
             Tentar novamente
           </Button>
+        </div>
+      ) : ratesStatus === 'loading' ? (
+        // A carregar as taxas: mostrar números por converter seria mostrar
+        // reais somados com euros durante um instante.
+        <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
+          A carregar as taxas de câmbio…
         </div>
       ) : semTaxa.length > 0 ? (
         <MixedCurrencyWarning currencies={semTaxa} />
@@ -240,9 +256,7 @@ const MonthlyReport: React.FC = () => {
               <p className="text-xs text-gray-500 dark:text-gray-400">Balanço</p>
               <p
                 className={`text-xl font-bold mt-1 ${
-                  balance < 0
-                    ? 'text-rose-600 dark:text-rose-400'
-                    : 'text-gray-800 dark:text-white'
+                  balance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-gray-800 dark:text-white'
                 }`}
               >
                 {formatCurrency(balance)}

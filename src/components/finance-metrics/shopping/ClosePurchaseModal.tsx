@@ -37,7 +37,7 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
   const purchased = useMemo(() => list.items.filter((i) => i.purchased), [list.items]);
   const total = useMemo(
     () => purchased.reduce((sum, i) => sum + (i.scrapedPrice ?? i.price ?? 0), 0),
-    [purchased],
+    [purchased]
   );
 
   const semItens = purchased.length === 0;
@@ -54,15 +54,15 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
         {semItens ? (
           <div className="mt-5 rounded-lg border border-warning-500/30 bg-warning-50 dark:bg-warning-500/10 p-4">
             <p className="text-sm text-warning-700 dark:text-warning-400">
-              Nenhum item está marcado como comprado. Marque o que levou para casa antes de
-              fechar a compra.
+              Nenhum item está marcado como comprado. Marque o que levou para casa antes de fechar a
+              compra.
             </p>
           </div>
         ) : semPreco ? (
           <div className="mt-5 rounded-lg border border-warning-500/30 bg-warning-50 dark:bg-warning-500/10 p-4">
             <p className="text-sm text-warning-700 dark:text-warning-400">
-              Os itens comprados não têm preço. Preencha os preços (ou actualize-os) antes de
-              fechar a compra.
+              Os itens comprados não têm preço. Preencha os preços (ou actualize-os) antes de fechar
+              a compra.
             </p>
           </div>
         ) : (

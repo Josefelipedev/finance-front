@@ -111,95 +111,95 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Nome do Item */}
+          {/* Nome do Item */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Nome do Item *
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Ex: Arroz, Leite, Pão"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {/* Quantidade */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nome do Item *
+                Quantidade
               </label>
               <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
+                type="number"
+                min="0.1"
+                step="0.1"
+                value={formData.quantity}
+                onChange={(e) => handleChange('quantity', parseFloat(e.target.value) || 1)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
-                placeholder="Ex: Arroz, Leite, Pão"
-                required
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {/* Quantidade */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Quantidade
-                </label>
-                <input
-                  type="number"
-                  min="0.1"
-                  step="0.1"
-                  value={formData.quantity}
-                  onChange={(e) => handleChange('quantity', parseFloat(e.target.value) || 1)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              {/* Unidade */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Unidade
-                </label>
-                <select
-                  value={formData.unit}
-                  onChange={(e) => handleChange('unit', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
-                >
-                  {availableUnits.map((unit) => (
-                    <option key={unit.value} value={unit.value}>
-                      {unit.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Preço */}
+            {/* Unidade */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Preço Total
+                Unidade
               </label>
-              <MoneyInput
-                value={formData.price || 0}
-                onChange={(v) => handleChange('price', v)}
-                currencySymbol={currencySymbol}
-              />
-              <p className="text-xs text-gray-400 mt-1">Preço total para a quantidade indicada</p>
-            </div>
-
-            {formError && <div className="text-error-500 text-sm">{formError}</div>}
-
-            {/* Botões */}
-            <div className="flex justify-end gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onCancel}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                disabled={isLoading}
+              <select
+                value={formData.unit}
+                onChange={(e) => handleChange('unit', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
               >
-                Cancelar
-              </button>
-              <Button variant="primary" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin"></i>
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <i className="fas fa-save"></i>
-                    {item ? 'Salvar Alterações' : 'Adicionar Item'}
-                  </>
-                )}
-              </Button>
+                {availableUnits.map((unit) => (
+                  <option key={unit.value} value={unit.value}>
+                    {unit.label}
+                  </option>
+                ))}
+              </select>
             </div>
+          </div>
+
+          {/* Preço */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Preço Total
+            </label>
+            <MoneyInput
+              value={formData.price || 0}
+              onChange={(v) => handleChange('price', v)}
+              currencySymbol={currencySymbol}
+            />
+            <p className="text-xs text-gray-400 mt-1">Preço total para a quantidade indicada</p>
+          </div>
+
+          {formError && <div className="text-error-500 text-sm">{formError}</div>}
+
+          {/* Botões */}
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              disabled={isLoading}
+            >
+              Cancelar
+            </button>
+            <Button variant="primary" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i>
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-save"></i>
+                  {item ? 'Salvar Alterações' : 'Adicionar Item'}
+                </>
+              )}
+            </Button>
+          </div>
         </form>
       </div>
     </Modal>

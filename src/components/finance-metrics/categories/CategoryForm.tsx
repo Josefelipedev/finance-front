@@ -115,162 +115,158 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onSuccess, onCanc
           </h3>
         </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-            {/* Nome da Categoria */}
-            <div>
-              <label
-                htmlFor="category-name"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Nome da Categoria *
-              </label>
-              <input
-                id="category-name"
-                type="text"
-                {...register('name')}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 ${
-                  errors.name ? 'border-error-500 dark:border-error-500' : 'border-gray-300'
-                }`}
-                placeholder="Ex: Alimentação, Salário, Transporte..."
-                maxLength={50}
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-error-600 dark:text-red-400">{errors.name.message}</p>
-              )}
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Insira um nome descritivo para a categoria
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+          {/* Nome da Categoria */}
+          <div>
+            <label
+              htmlFor="category-name"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Nome da Categoria *
+            </label>
+            <input
+              id="category-name"
+              type="text"
+              {...register('name')}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 ${
+                errors.name ? 'border-error-500 dark:border-error-500' : 'border-gray-300'
+              }`}
+              placeholder="Ex: Alimentação, Salário, Transporte..."
+              maxLength={50}
+            />
+            {errors.name && (
+              <p className="mt-1 text-sm text-error-600 dark:text-red-400">{errors.name.message}</p>
+            )}
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Insira um nome descritivo para a categoria
+            </p>
+          </div>
+
+          {/* Seletor de Ícones */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Escolha um Ícone *
+            </label>
+            <IconPicker
+              selectedIcon={getIconName(iconName)}
+              onIconChange={handleIconSelect}
+              className="border rounded-lg p-4 dark:border-gray-700"
+            />
+            <input type="hidden" {...register('iconName')} />
+            {errors.iconName && (
+              <p className="mt-1 text-sm text-error-600 dark:text-red-400">
+                {errors.iconName.message}
               </p>
-            </div>
+            )}
+          </div>
 
-            {/* Seletor de Ícones */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Escolha um Ícone *
-              </label>
-              <IconPicker
-                selectedIcon={getIconName(iconName)}
-                onIconChange={handleIconSelect}
-                className="border rounded-lg p-4 dark:border-gray-700"
-              />
-              <input type="hidden" {...register('iconName')} />
-              {errors.iconName && (
-                <p className="mt-1 text-sm text-error-600 dark:text-red-400">
-                  {errors.iconName.message}
-                </p>
-              )}
-            </div>
+          {/* Cor e Pré-visualização */}
+          <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              {/* Pré-visualização */}
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-16 h-16 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: color + '20' }}
+                >
+                  <i className={`${iconName} text-2xl`} style={{ color }}></i>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-800 dark:text-white">
+                    {name || 'Nome da Categoria'}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Visualização da categoria
+                  </p>
+                </div>
+              </div>
 
-            {/* Cor e Pré-visualização */}
-            <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                {/* Pré-visualização */}
-                <div className="flex items-center gap-4">
-                  <div
-                    className="w-16 h-16 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: color + '20' }}
+              {/* Seletor de Cor */}
+              <div className="flex items-center gap-3">
+                <div>
+                  <label
+                    htmlFor="category-color"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                   >
-                    <i className={`${iconName} text-2xl`} style={{ color }}></i>
+                    Cor *
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="category-color"
+                      type="color"
+                      {...register('color')}
+                      className={`w-10 h-10 cursor-pointer bg-transparent ${
+                        errors.color ? 'border border-error-500 rounded' : ''
+                      }`}
+                      title="Escolher cor"
+                    />
+                    <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
+                      {color}
+                    </span>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800 dark:text-white">
-                      {name || 'Nome da Categoria'}
+                  {errors.color && (
+                    <p className="mt-1 text-sm text-error-600 dark:text-red-400">
+                      {errors.color.message}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Visualização da categoria
-                    </p>
-                  </div>
-                </div>
-
-                {/* Seletor de Cor */}
-                <div className="flex items-center gap-3">
-                  <div>
-                    <label
-                      htmlFor="category-color"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      Cor *
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        id="category-color"
-                        type="color"
-                        {...register('color')}
-                        className={`w-10 h-10 cursor-pointer bg-transparent ${
-                          errors.color ? 'border border-error-500 rounded' : ''
-                        }`}
-                        title="Escolher cor"
-                      />
-                      <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
-                        {color}
-                      </span>
-                    </div>
-                    {errors.color && (
-                      <p className="mt-1 text-sm text-error-600 dark:text-red-400">
-                        {errors.color.message}
-                      </p>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Descrição */}
-            <div>
-              <label
-                htmlFor="category-description"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Descrição (opcional)
-              </label>
-              <textarea
-                id="category-description"
-                {...register('description')}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 ${
-                  errors.description ? 'border-error-500 dark:border-error-500' : 'border-gray-300'
-                }`}
-                placeholder="Descrição da categoria..."
-                rows={3}
-                maxLength={200}
-              />
-              {errors.description && (
-                <p className="mt-1 text-sm text-error-600 dark:text-red-400">
-                  {errors.description.message}
-                </p>
+          {/* Descrição */}
+          <div>
+            <label
+              htmlFor="category-description"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Descrição (opcional)
+            </label>
+            <textarea
+              id="category-description"
+              {...register('description')}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 dark:bg-gray-700 dark:border-gray-600 ${
+                errors.description ? 'border-error-500 dark:border-error-500' : 'border-gray-300'
+              }`}
+              placeholder="Descrição da categoria..."
+              rows={3}
+              maxLength={200}
+            />
+            {errors.description && (
+              <p className="mt-1 text-sm text-error-600 dark:text-red-400">
+                {errors.description.message}
+              </p>
+            )}
+            <div className="flex justify-between mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Máximo de 200 caracteres</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{description.length}/200</p>
+            </div>
+          </div>
+
+          {/* Botões */}
+          <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
+            <Button variant="outline" type="button" onClick={onCancel} disabled={isSubmitting}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={isSubmitting || isLoading}
+              className="min-w-[140px]"
+            >
+              {isSubmitting || isLoading ? (
+                <>
+                  <i className="fas fa-spinner fa-spin mr-2"></i>
+                  Salvando...
+                </>
+              ) : category ? (
+                'Salvar Alterações'
+              ) : (
+                'Criar Categoria'
               )}
-              <div className="flex justify-between mt-1">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Máximo de 200 caracteres
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {description.length}/200
-                </p>
-              </div>
-            </div>
-
-            {/* Botões */}
-            <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">
-              <Button variant="outline" type="button" onClick={onCancel} disabled={isSubmitting}>
-                Cancelar
-              </Button>
-              <Button
-                variant="primary"
-                type="submit"
-                disabled={isSubmitting || isLoading}
-                className="min-w-[140px]"
-              >
-                {isSubmitting || isLoading ? (
-                  <>
-                    <i className="fas fa-spinner fa-spin mr-2"></i>
-                    Salvando...
-                  </>
-                ) : category ? (
-                  'Salvar Alterações'
-                ) : (
-                  'Criar Categoria'
-                )}
-              </Button>
-            </div>
-          </form>
+            </Button>
+          </div>
+        </form>
       </div>
     </Modal>
   );

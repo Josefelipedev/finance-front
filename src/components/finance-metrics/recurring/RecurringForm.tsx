@@ -327,7 +327,8 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      businessDay: e.target.value === 'business' ? (prev.businessDay || 5) : undefined,
+                      businessDay:
+                        e.target.value === 'business' ? prev.businessDay || 5 : undefined,
                     }))
                   }
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
@@ -341,9 +342,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                     min="1"
                     max="23"
                     value={formData.businessDay}
-                    onChange={(e) =>
-                      handleChange('businessDay', parseInt(e.target.value) || 1)
-                    }
+                    onChange={(e) => handleChange('businessDay', parseInt(e.target.value) || 1)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
                   />
                 ) : (

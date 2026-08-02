@@ -254,9 +254,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
           </button>
 
           {isExpanded && (
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              {category.description}
-            </p>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{category.description}</p>
           )}
         </>
       )}

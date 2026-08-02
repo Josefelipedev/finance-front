@@ -9,7 +9,12 @@ import CategorySelect from '../../form/CategorySelect';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useExchangeRates } from '../../../hooks/useExchangeRates';
 import MixedCurrencyWarning from '../../common/MixedCurrencyWarning';
-import { formatMoney, currencyOption, convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
+import {
+  formatMoney,
+  currencyOption,
+  convertAmount,
+  unconvertibleCurrencies,
+} from '../../../utils/currency';
 import Button from '../../ui/button/Button';
 import MoneyInput from '../../form/MoneyInput';
 
@@ -66,8 +71,13 @@ const BudgetManager: React.FC = () => {
   // as taxas de câmbio terminam de carregar.
   // Sem taxas para alguma moeda presente, o gasto por categoria sairia errado.
   const semTaxa = useMemo(
-    () => unconvertibleCurrencies(transactions.map((t) => t.currency), displayCurrency, rates),
-    [transactions, displayCurrency, rates],
+    () =>
+      unconvertibleCurrencies(
+        transactions.map((t) => t.currency),
+        displayCurrency,
+        rates
+      ),
+    [transactions, displayCurrency, rates]
   );
 
   const spendByCategory = useMemo(() => {
@@ -77,8 +87,7 @@ const BudgetManager: React.FC = () => {
       const catId = tx.categoryId ?? tx.category?.id;
       if (catId == null) continue;
       spend[catId] =
-        (spend[catId] || 0) +
-        convertAmount(tx.amount || 0, tx.currency, displayCurrency, rates);
+        (spend[catId] || 0) + convertAmount(tx.amount || 0, tx.currency, displayCurrency, rates);
     }
     return spend;
   }, [transactions, rates, displayCurrency]);
@@ -217,11 +226,7 @@ const BudgetManager: React.FC = () => {
             const pct = limit.monthlyLimit > 0 ? (spent / limit.monthlyLimit) * 100 : 0;
             const over = pct >= 100;
             const alerting = pct >= limit.alertAt;
-            const barColor = over
-              ? 'bg-rose-500'
-              : alerting
-                ? 'bg-amber-500'
-                : 'bg-emerald-500';
+            const barColor = over ? 'bg-rose-500' : alerting ? 'bg-amber-500' : 'bg-emerald-500';
 
             return (
               <div

@@ -201,7 +201,9 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
                     key={c.currency}
                     className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-1.5 text-xs font-medium tabular-nums text-gray-600 dark:border-white/[0.08] dark:text-gray-300"
                   >
-                    <span>{opt.flag} {c.currency}</span>
+                    <span>
+                      {opt.flag} {c.currency}
+                    </span>
                     <span className="text-green-600 dark:text-green-400">
                       +{formatMoney(c.ganhos, c.currency)}
                     </span>
@@ -214,8 +216,8 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
             </div>
             {rateDate && (
               <span className="text-xs text-gray-400 dark:text-gray-500">
-                Totais convertidos p/ {currencyOption(displayCurrency).flag} {displayCurrency} · câmbio BCE de{' '}
-                {new Date(rateDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+                Totais convertidos p/ {currencyOption(displayCurrency).flag} {displayCurrency} ·
+                câmbio BCE de {new Date(rateDate + 'T00:00:00').toLocaleDateString('pt-BR')}
               </span>
             )}
           </div>

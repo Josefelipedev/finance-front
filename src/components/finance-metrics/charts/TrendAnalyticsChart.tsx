@@ -4,8 +4,13 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../../hooks/useFinance';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { formatMoney, currencyOption, convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
-import { useExchangeRates } from '../../../hooks/useExchangeRates';
+import {
+  formatMoney,
+  currencyOption,
+  convertAmount,
+  unconvertibleCurrencies,
+} from '../../../utils/currency';
+import { useExchangeRatesState } from '../../../hooks/useExchangeRates';
 
 interface TrendAnalyticsChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -16,7 +21,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
   const currencySymbol = currencyOption(displayCurrency).symbol;
-  const rates = useExchangeRates();
+  const { rates, status: ratesStatus } = useExchangeRatesState();
   const [trendData, setTrendData] = useState<{
     dates: string[];
     balance: number[];
@@ -33,6 +38,9 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
   useEffect(() => {
     const loadTrendData = async () => {
       setError(null);
+      // Enquanto as taxas não chegam não se decide nada: dizer "não é possível
+      // somar moedas" antes de saber se há taxas é assustar por nada.
+      if (ratesStatus === 'loading') return;
       try {
         const transactions = await getAllFinances({
           startDate: dateRange.startDate,
@@ -44,11 +52,13 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
         const semTaxa = unconvertibleCurrencies(
           transactions.map((t: any) => t.currency),
           displayCurrency,
-          rates,
+          rates
         );
         if (semTaxa.length) {
           setError(
-            `Sem taxas de câmbio para ${semTaxa.join(', ')} — não é possível somar moedas diferentes. Recarregue a página daqui a pouco.`,
+            ratesStatus === 'failed'
+              ? `Não foi possível obter as taxas de câmbio, por isso não dá para somar ${semTaxa.join(', ')} com ${displayCurrency}. Tente recarregar daqui a pouco.`
+              : `Sem taxa de câmbio para ${semTaxa.join(', ')} — estas moedas não podem ser somadas com ${displayCurrency}.`
           );
           return;
         }
@@ -77,7 +87,7 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
             transaction.amount,
             transaction.currency,
             displayCurrency,
-            rates,
+            rates
           );
 
           if (transaction.type === 'income') {
@@ -107,15 +117,13 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
         setTrendData({ dates, balance, income, expense, cumulativeBalance });
       } catch (err) {
         console.error('Erro ao carregar dados de tendência:', err);
-        setError(
-          err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.',
-        );
+        setError(err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.');
         setTrendData({ dates: [], balance: [], income: [], expense: [], cumulativeBalance: [] });
       }
     };
 
     loadTrendData();
-  }, [dateRange, rates, displayCurrency]);
+  }, [dateRange, rates, ratesStatus, displayCurrency]);
 
   const options: ApexOptions = {
     chart: {
