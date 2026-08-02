@@ -157,7 +157,10 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400">Total pago</p>
               <p className="font-medium text-gray-800 dark:text-white">
-                {formatMoney(transaction.amount * transaction.executedCount, transaction.currency)}
+                {formatMoney(
+                  transaction.paidTotal ?? transaction.amount * transaction.executedCount,
+                  transaction.currency
+                )}
               </p>
               {/* O contratado ao lado do pago: sem ele, "Total pago R$ 0,00"
                   não diz de quanto estamos a falar. Vem calculado do servidor

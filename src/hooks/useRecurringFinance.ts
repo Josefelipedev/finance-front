@@ -25,6 +25,8 @@ export interface RecurringTransaction {
   totalAmount?: number | null;
   /** Total já calculado pelo servidor (`totalAmount` ou parcela × parcelas). */
   contractedTotal?: number | null;
+  /** Somatório do que foi mesmo pago (não é parcela × pagamentos). */
+  paidTotal?: number | null;
   endDate?: string;
   occurrences?: number;
   executedCount: number;
@@ -235,10 +237,15 @@ export function useRecurringFinance() {
     return true;
   };
 
-  /** O que já foi pago desta recorrente (não confundir com o total contratado). */
-  const calculateTotalPaid = (transaction: RecurringTransaction): number => {
-    return transaction.amount * transaction.executedCount;
-  };
+  /**
+   * O que já foi pago desta recorrente (não confundir com o total contratado).
+   *
+   * Vem somado do servidor: `parcela × nº de pagamentos` só está certo enquanto
+   * todas as parcelas valerem o mesmo, e deixa de estar quando a última absorve
+   * o resto do arredondamento ou quando se paga um valor diferente do previsto.
+   */
+  const calculateTotalPaid = (transaction: RecurringTransaction): number =>
+    transaction.paidTotal ?? transaction.amount * transaction.executedCount;
 
   // ===================== PUBLIC API =====================
 
