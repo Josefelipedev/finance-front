@@ -1,108 +1,52 @@
 // src/components/finance-metrics/charts/CategoryAnalyticsChart.tsx
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
-import { useFinance } from '../../../hooks/useFinance';
-import { useUserProfile } from '../../../hooks/useUserProfile';
-import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
-import { useExchangeRates } from '../../../hooks/useExchangeRates';
+import { formatMoney } from '../../../utils/currency';
+import type { CategorySummaryItem } from '../../../hooks/useAnalysisData';
 
+/**
+ * Só desenha. As somas por categoria vêm de `GET /analysis`.
+ *
+ * A versão anterior somava no cliente e tinha dois defeitos que ninguém via:
+ * rotulava tudo como **"Categoria 5"** (usava o `categoryId`, nunca ia buscar o
+ * nome) e somava receitas e despesas no mesmo balde, com `Math.abs()` — um
+ * salário e uma renda entravam os dois como "gasto".
+ */
 interface CategoryAnalyticsChartProps {
-  dateRange: { startDate: string; endDate: string };
+  categories: CategorySummaryItem[];
+  displayCurrency?: string;
 }
 
-const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRange }) => {
-  const { getAllFinances, isLoading } = useFinance();
-  const { profile, getProfile } = useUserProfile();
-  const displayCurrency = profile?.currency;
-  const rates = useExchangeRates();
-  const [categoryData, setCategoryData] = useState<
-    Array<{
-      name: string;
-      value: number;
-      color: string;
-      icon: string;
-    }>
-  >([]);
-  const [error, setError] = useState<string | null>(null);
+const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({
+  categories,
+  displayCurrency,
+}) => {
+  // Cores fixas para as categorias mais comuns; o resto fica cinzento.
+  const categoryColors: Record<string, { color: string; icon: string }> = {
+    Alimentação: { color: '#10B981', icon: 'utensils' },
+    Transporte: { color: '#3B82F6', icon: 'car' },
+    Moradia: { color: '#8B5CF6', icon: 'home' },
+    Lazer: { color: '#F59E0B', icon: 'film' },
+    Saúde: { color: '#EF4444', icon: 'heart' },
+    Educação: { color: '#06B6D4', icon: 'graduation-cap' },
+    Salário: { color: '#10B981', icon: 'money-bill' },
+    Investimentos: { color: '#8B5CF6', icon: 'chart-line' },
+  };
 
-  useEffect(() => {
-    getProfile().catch(() => {});
-  }, [getProfile]);
-
-  useEffect(() => {
-    const loadCategoryData = async () => {
-      setError(null);
-      try {
-        const transactions = await getAllFinances({
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-        });
-
-        // Sem taxas não dá para somar moedas diferentes: mostrar um número
-        // errado é pior do que não mostrar nenhum (ver unconvertibleCurrencies).
-        const semTaxa = unconvertibleCurrencies(
-          transactions.map((t: any) => t.currency),
-          displayCurrency,
-          rates
-        );
-        if (semTaxa.length) {
-          setError(
-            `Sem taxas de câmbio para ${semTaxa.join(', ')} — não é possível somar moedas diferentes. Recarregue a página daqui a pouco.`
-          );
-          return;
-        }
-
-        // Cores para categorias
-        const categoryColors: Record<string, { color: string; icon: string }> = {
-          Alimentação: { color: '#10B981', icon: 'utensils' },
-          Transporte: { color: '#3B82F6', icon: 'car' },
-          Moradia: { color: '#8B5CF6', icon: 'home' },
-          Lazer: { color: '#F59E0B', icon: 'film' },
-          Saúde: { color: '#EF4444', icon: 'heart' },
-          Educação: { color: '#06B6D4', icon: 'graduation-cap' },
-          Salário: { color: '#10B981', icon: 'money-bill' },
-          Investimentos: { color: '#8B5CF6', icon: 'chart-line' },
-        };
-
-        // Agrupar por categoria (simulação - você precisará adaptar com seus dados reais)
-        const categoryTotals: Record<string, number> = {};
-
-        transactions.forEach((transaction: any) => {
-          const categoryName = transaction.categoryId
-            ? `Categoria ${transaction.categoryId}`
-            : 'Sem categoria';
-          if (!categoryTotals[categoryName]) {
-            categoryTotals[categoryName] = 0;
-          }
-          // Converte o valor para a moeda de exibição antes de somar
-          // (registros do casal podem estar em BRL e EUR misturados)
-          categoryTotals[categoryName] += Math.abs(
-            convertAmount(transaction.amount, transaction.currency, displayCurrency, rates)
-          );
-        });
-
-        // Converter para array e mapear cores
-        const dataArray = Object.entries(categoryTotals)
-          .map(([name, value]) => ({
-            name,
-            value,
-            color: categoryColors[name]?.color || '#6B7280',
-            icon: categoryColors[name]?.icon || 'tag',
-          }))
-          .sort((a, b) => b.value - a.value)
-          .slice(0, 8); // Limitar às 8 principais categorias
-
-        setCategoryData(dataArray);
-      } catch (err) {
-        console.error('Erro ao carregar dados de categoria:', err);
-        setError(err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.');
-        setCategoryData([]);
-      }
-    };
-
-    loadCategoryData();
-  }, [dateRange, rates, displayCurrency]);
+  // Despesas, que é o que uma distribuição por categoria responde. As receitas
+  // vêm na mesma resposta e ficam de fora de propósito: misturá-las era o
+  // defeito anterior.
+  const categoryData = categories
+    .filter((c) => c.expense > 0)
+    .map((c) => ({
+      name: c.category,
+      value: c.expense,
+      color: categoryColors[c.category]?.color || '#6B7280',
+      icon: categoryColors[c.category]?.icon || 'tag',
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8);
 
   const options: ApexOptions = {
     chart: {
@@ -199,27 +143,6 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({ dateRan
   };
 
   const series = categoryData.map((item) => item.value);
-
-  if (isLoading) {
-    return (
-      <div className="h-80 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Carregando categorias...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-80 flex flex-col items-center justify-center text-error-500 dark:text-red-400">
-        <i className="fas fa-exclamation-triangle text-4xl mb-3"></i>
-        <p className="text-lg font-medium">Erro ao carregar o gráfico</p>
-        <p className="text-sm mt-1 text-center px-4">{error}</p>
-      </div>
-    );
-  }
 
   if (categoryData.length === 0) {
     return (

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAnalysis } from '../../hooks/useAnalysisData';
 import MonthlyComparisonChart from './charts/MonthlyComparisonChart.tsx';
 import CategoryAnalyticsChart from './charts/CategoryAnalyticsChart.tsx';
 import TrendAnalyticsChart from './charts/TrendAnalyticsChart.tsx';
@@ -19,6 +20,38 @@ const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string 
   dateRange,
 }) => {
   const [activeChart, setActiveChart] = useState<'monthly' | 'category' | 'trend'>('monthly');
+  // Um pedido para os três gráficos: as somas vêm do servidor, que é onde
+  // vivem — e onde já estavam a ser feitas para o Android.
+  const { data, isLoading, error } = useAnalysis(dateRange);
+
+  const vazio = (
+    <div className="flex h-80 flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+      <i className="fas fa-chart-bar mb-3 text-4xl"></i>
+      <p className="text-lg font-medium">Sem dados disponíveis</p>
+      <p className="mt-1 text-sm">Não há transações no período selecionado</p>
+    </div>
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex h-80 items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-brand-600"></div>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">A carregar…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-80 flex-col items-center justify-center text-error-500 dark:text-red-400">
+        <i className="fas fa-exclamation-triangle mb-3 text-4xl"></i>
+        <p className="text-lg font-medium">Erro ao carregar a análise</p>
+        <p className="mt-1 px-4 text-center text-sm">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -72,7 +105,14 @@ const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string 
                 {formatPeriodDate(dateRange.endDate)}
               </span>
             </div>
-            <MonthlyComparisonChart dateRange={dateRange} />
+            {data ? (
+              <MonthlyComparisonChart
+                timeSeries={data.Monthly}
+                displayCurrency={data.displayCurrency}
+              />
+            ) : (
+              vazio
+            )}
           </div>
         )}
 
@@ -86,7 +126,14 @@ const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string 
                 Análise de gastos por categoria
               </span>
             </div>
-            <CategoryAnalyticsChart dateRange={dateRange} />
+            {data ? (
+              <CategoryAnalyticsChart
+                categories={data.categorySummary}
+                displayCurrency={data.displayCurrency}
+              />
+            ) : (
+              vazio
+            )}
           </div>
         )}
 
@@ -100,7 +147,11 @@ const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string 
                 Evolução do saldo ao longo do tempo
               </span>
             </div>
-            <TrendAnalyticsChart dateRange={dateRange} />
+            {data ? (
+              <TrendAnalyticsChart daily={data.Daily} displayCurrency={data.displayCurrency} />
+            ) : (
+              vazio
+            )}
           </div>
         )}
       </div>

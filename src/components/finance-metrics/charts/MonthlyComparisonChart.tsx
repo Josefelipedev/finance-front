@@ -1,116 +1,31 @@
 // src/components/finance-metrics/charts/MonthlyComparisonChart.tsx
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
-import { useFinance } from '../../../hooks/useFinance';
-import { useUserProfile } from '../../../hooks/useUserProfile';
-import {
-  formatMoney,
-  currencyOption,
-  convertAmount,
-  unconvertibleCurrencies,
-} from '../../../utils/currency';
-import { useExchangeRatesState } from '../../../hooks/useExchangeRates';
-import { countableType } from '../../../utils/finance-type';
+import { formatMoney, currencyOption } from '../../../utils/currency';
+import type { TimeSeries } from '../../../hooks/useAnalysisData';
 
+/**
+ * Só desenha. As somas vêm de `GET /analysis`, feitas no servidor — este
+ * gráfico buscava a lista de transações e voltava a somá-la por si, o que era
+ * uma segunda implementação das mesmas contas à espera de discordar da
+ * primeira.
+ */
 interface MonthlyComparisonChartProps {
-  dateRange: { startDate: string; endDate: string };
+  timeSeries: TimeSeries;
+  displayCurrency?: string;
 }
 
-const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRange }) => {
-  const { getAllFinances, isLoading } = useFinance();
-  const { profile, getProfile } = useUserProfile();
-  const displayCurrency = profile?.currency;
+const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({
+  timeSeries,
+  displayCurrency,
+}) => {
   const currencySymbol = currencyOption(displayCurrency).symbol;
-  const { rates, status: ratesStatus } = useExchangeRatesState();
-  const [chartData, setChartData] = useState<{
-    months: string[];
-    income: number[];
-    expense: number[];
-  }>({ months: [], income: [], expense: [] });
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    getProfile().catch(() => {});
-  }, [getProfile]);
-
-  useEffect(() => {
-    const loadChartData = async () => {
-      setError(null);
-      try {
-        const transactions = await getAllFinances({
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-        });
-
-        // Sem taxas não dá para somar moedas diferentes: mostrar um número
-        // errado é pior do que não mostrar nenhum (ver unconvertibleCurrencies).
-        if (ratesStatus === 'loading') return;
-        const semTaxa = unconvertibleCurrencies(
-          transactions.map((t: any) => t.currency),
-          displayCurrency,
-          rates
-        );
-        if (semTaxa.length) {
-          setError(
-            `Sem taxas de câmbio para ${semTaxa.join(', ')} — não é possível somar moedas diferentes. Recarregue a página daqui a pouco.`
-          );
-          return;
-        }
-
-        // Agrupar por mês
-        const groupedByMonth = transactions.reduce(
-          (acc: any, transaction: any) => {
-            const date = new Date(transaction.createdAt);
-            const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
-
-            if (!acc[monthYear]) {
-              acc[monthYear] = { income: 0, expense: 0 };
-            }
-
-            // Converte para a moeda de exibição antes de somar
-            // (registros do casal podem estar em BRL e EUR misturados)
-            const value = convertAmount(
-              transaction.amount,
-              transaction.currency,
-              displayCurrency,
-              rates
-            );
-
-            const tipo = countableType(transaction.type);
-            if (!tipo) return acc; // tipo que não se sabe somar fica de fora
-            if (tipo === 'income') {
-              acc[monthYear].income += value;
-            } else {
-              acc[monthYear].expense += value;
-            }
-
-            return acc;
-          },
-          {} as Record<string, { income: number; expense: number }>
-        );
-
-        // Ordenar por data
-        const sortedMonths = Object.keys(groupedByMonth).sort((a, b) => {
-          const [monthA, yearA] = a.split('/').map(Number);
-          const [monthB, yearB] = b.split('/').map(Number);
-          return new Date(yearA, monthA - 1).getTime() - new Date(yearB, monthB - 1).getTime();
-        });
-
-        const months = sortedMonths;
-        const income = sortedMonths.map((month) => groupedByMonth[month].income);
-        const expense = sortedMonths.map((month) => groupedByMonth[month].expense);
-
-        setChartData({ months, income, expense });
-      } catch (err) {
-        console.error('Erro ao carregar dados do gráfico:', err);
-        setError(err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.');
-        setChartData({ months: [], income: [], expense: [] });
-      }
-    };
-
-    loadChartData();
-  }, [dateRange, rates, displayCurrency, ratesStatus]);
+  const chartData = {
+    months: timeSeries.labels,
+    income: timeSeries.datasets[0]?.data ?? [],
+    expense: timeSeries.datasets[1]?.data ?? [],
+  };
 
   const options: ApexOptions = {
     chart: {
@@ -231,27 +146,6 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
       data: chartData.expense,
     },
   ];
-
-  if (isLoading) {
-    return (
-      <div className="h-80 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Carregando dados...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-80 flex flex-col items-center justify-center text-error-500 dark:text-red-400">
-        <i className="fas fa-exclamation-triangle text-4xl mb-3"></i>
-        <p className="text-lg font-medium">Erro ao carregar o gráfico</p>
-        <p className="text-sm mt-1 text-center px-4">{error}</p>
-      </div>
-    );
-  }
 
   if (chartData.months.length === 0) {
     return (

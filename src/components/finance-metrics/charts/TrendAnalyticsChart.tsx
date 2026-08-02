@@ -1,132 +1,35 @@
 // src/components/finance-metrics/charts/TrendAnalyticsChart.tsx
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
-import { useFinance } from '../../../hooks/useFinance';
-import { useUserProfile } from '../../../hooks/useUserProfile';
-import {
-  formatMoney,
-  currencyOption,
-  convertAmount,
-  unconvertibleCurrencies,
-} from '../../../utils/currency';
-import { useExchangeRatesState } from '../../../hooks/useExchangeRates';
-import { countableType } from '../../../utils/finance-type';
+import { formatMoney, currencyOption } from '../../../utils/currency';
+import type { TimeSeries } from '../../../hooks/useAnalysisData';
 
+/**
+ * Só desenha. A série diária vem de `GET /analysis`, já convertida e somada no
+ * servidor; o saldo acumulado é derivado dela aqui, que é apresentação.
+ */
 interface TrendAnalyticsChartProps {
-  dateRange: { startDate: string; endDate: string };
+  daily: TimeSeries;
+  displayCurrency?: string;
 }
 
-const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) => {
-  const { getAllFinances, isLoading } = useFinance();
-  const { profile, getProfile } = useUserProfile();
-  const displayCurrency = profile?.currency;
+const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ daily, displayCurrency }) => {
   const currencySymbol = currencyOption(displayCurrency).symbol;
-  const { rates, status: ratesStatus } = useExchangeRatesState();
-  const [trendData, setTrendData] = useState<{
-    dates: string[];
-    balance: number[];
-    income: number[];
-    expense: number[];
-    cumulativeBalance: number[];
-  }>({ dates: [], balance: [], income: [], expense: [], cumulativeBalance: [] });
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    getProfile().catch(() => {});
-  }, [getProfile]);
+  const income = daily.datasets[0]?.data ?? [];
+  const expense = daily.datasets[1]?.data ?? [];
+  const balance = daily.labels.map((_, i) => (income[i] ?? 0) - (expense[i] ?? 0));
+  let corrente = 0;
+  const cumulativeBalance = balance.map((v) => (corrente += v));
 
-  useEffect(() => {
-    const loadTrendData = async () => {
-      setError(null);
-      // Enquanto as taxas não chegam não se decide nada: dizer "não é possível
-      // somar moedas" antes de saber se há taxas é assustar por nada.
-      if (ratesStatus === 'loading') return;
-      try {
-        const transactions = await getAllFinances({
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-        });
-
-        // Sem taxas não dá para somar moedas diferentes: mostrar um número
-        // errado é pior do que não mostrar nenhum (ver unconvertibleCurrencies).
-        const semTaxa = unconvertibleCurrencies(
-          transactions.map((t: any) => t.currency),
-          displayCurrency,
-          rates
-        );
-        if (semTaxa.length) {
-          setError(
-            ratesStatus === 'failed'
-              ? `Não foi possível obter as taxas de câmbio, por isso não dá para somar ${semTaxa.join(', ')} com ${displayCurrency}. Tente recarregar daqui a pouco.`
-              : `Sem taxa de câmbio para ${semTaxa.join(', ')} — estas moedas não podem ser somadas com ${displayCurrency}.`
-          );
-          return;
-        }
-
-        // Ordenar pela data do movimento (a mesma que o período filtra),
-        // não pela data em que foi digitado
-        const movementDate = (t: { referenceDate?: string | null; createdAt: string }) =>
-          new Date(t.referenceDate || t.createdAt);
-        const sortedTransactions = [...transactions].sort(
-          (a, b) => movementDate(a).getTime() - movementDate(b).getTime()
-        );
-
-        // Agrupar por dia e calcular saldo diário
-        const dailyData: Record<string, { income: number; expense: number; balance: number }> = {};
-
-        sortedTransactions.forEach((transaction) => {
-          const date = movementDate(transaction).toISOString().split('T')[0];
-
-          if (!dailyData[date]) {
-            dailyData[date] = { income: 0, expense: 0, balance: 0 };
-          }
-
-          // Converte para a moeda de exibição antes de agregar
-          // (registros do casal podem estar em BRL e EUR misturados)
-          const value = convertAmount(
-            transaction.amount,
-            transaction.currency,
-            displayCurrency,
-            rates
-          );
-
-          const tipo = countableType(transaction.type);
-          if (!tipo) return; // tipo que não se sabe somar fica de fora
-          if (tipo === 'income') {
-            dailyData[date].income += value;
-            dailyData[date].balance += value;
-          } else {
-            dailyData[date].expense += value;
-            dailyData[date].balance -= value;
-          }
-        });
-
-        // Converter para arrays e calcular saldo acumulado
-        const dates = Object.keys(dailyData).sort();
-        const income = dates.map((date) => dailyData[date].income);
-        const expense = dates.map((date) => dailyData[date].expense);
-        const balance = dates.map((date) => dailyData[date].balance);
-
-        // Calcular saldo acumulado
-        const cumulativeBalance: number[] = [];
-        let runningBalance = 0;
-
-        balance.forEach((dailyBalance, index) => {
-          runningBalance += dailyBalance;
-          cumulativeBalance.push(runningBalance);
-        });
-
-        setTrendData({ dates, balance, income, expense, cumulativeBalance });
-      } catch (err) {
-        console.error('Erro ao carregar dados de tendência:', err);
-        setError(err instanceof Error ? err.message : 'Não foi possível carregar o gráfico.');
-        setTrendData({ dates: [], balance: [], income: [], expense: [], cumulativeBalance: [] });
-      }
-    };
-
-    loadTrendData();
-  }, [dateRange, rates, ratesStatus, displayCurrency]);
+  const trendData = {
+    dates: daily.labels,
+    balance,
+    income,
+    expense,
+    cumulativeBalance,
+  };
 
   const options: ApexOptions = {
     chart: {
@@ -290,27 +193,6 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
       type: 'line',
     },
   ];
-
-  if (isLoading) {
-    return (
-      <div className="h-80 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">Carregando tendências...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-80 flex flex-col items-center justify-center text-error-500 dark:text-red-400">
-        <i className="fas fa-exclamation-triangle text-4xl mb-3"></i>
-        <p className="text-lg font-medium">Erro ao carregar o gráfico</p>
-        <p className="text-sm mt-1 text-center px-4">{error}</p>
-      </div>
-    );
-  }
 
   if (trendData.dates.length === 0) {
     return (
