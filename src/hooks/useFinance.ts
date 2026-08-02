@@ -121,25 +121,54 @@ export const useFinance = () => {
 
   // ===================== READ =====================
 
+  /**
+   * TODAS as transações do período — as páginas todas, não a primeira.
+   *
+   * Isto pedia `/finance` sem `limit`, e o servidor assume **50**
+   * (`finance.controller.ts`). Quem consome esta lista soma-a: gráfico de
+   * tendência, comparação mensal, relatório mensal, calendário e distribuição
+   * por categoria. Num mês com mais de 50 lançamentos, esses cinco passavam a
+   * mostrar **menos dinheiro do que existe**, enquanto os cartões do Dashboard
+   * — somados no servidor — mostravam o total certo. O mesmo ecrã a
+   * contradizer-se, sem aviso, com o número mais baixo a parecer o inofensivo.
+   *
+   * O `meta.totalPages` já vinha na resposta e era ignorado; agora percorre-se
+   * até ao fim, com o limite máximo que o servidor aceita (200) para fazer o
+   * menor número de pedidos possível.
+   */
   const getAllFinances = useCallback(async (params?: QueryParams) => {
     setError(null);
     return withLoading(async () => {
       try {
-        const res = await api.get<
-          FinanceRecord[] | { data: FinanceRecord[]; meta?: unknown }
-        >('/finance', {
-          params: {
-            startDate: params?.startDate,
-            endDate: params?.endDate,
-          },
-        });
-        // O endpoint é paginado e retorna { data, meta }; aceita também array cru.
-        const list = Array.isArray(res) ? res : res?.data;
-        if (Array.isArray(list)) {
-          setRecords(list);
-          return list;
-        }
-        throw new Error('Lista de finanças inválida');
+        const PAGE_SIZE = 200; // o teto do servidor
+        const MAX_PAGES = 50; // 10 000 lançamentos: rede contra um engano
+        const todos: FinanceRecord[] = [];
+        let page = 1;
+        let totalPages = 1;
+
+        do {
+          const res = await api.get<
+            FinanceRecord[] | { data: FinanceRecord[]; meta?: { totalPages?: number } }
+          >('/finance', {
+            params: {
+              startDate: params?.startDate,
+              endDate: params?.endDate,
+              page,
+              limit: PAGE_SIZE,
+            },
+          });
+
+          // O endpoint é paginado e retorna { data, meta }; aceita também array cru.
+          const list = Array.isArray(res) ? res : res?.data;
+          if (!Array.isArray(list)) throw new Error('Lista de finanças inválida');
+          todos.push(...list);
+
+          totalPages = Array.isArray(res) ? 1 : (res?.meta?.totalPages ?? 1);
+          page += 1;
+        } while (page <= totalPages && page <= MAX_PAGES);
+
+        setRecords(todos);
+        return todos;
       } catch (err) {
         setError(err as Error);
         throw err;
