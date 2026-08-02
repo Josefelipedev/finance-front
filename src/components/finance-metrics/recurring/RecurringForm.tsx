@@ -71,7 +71,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
         // <input type="date"> só aceita "AAAA-MM-DD" — com o ISO inteiro o
         // browser descarta o valor e mostra o campo VAZIO, que é o que fazia a
         // data de término parecer nunca gravada.
-        startDate: transaction.startDate ? transaction.startDate.slice(0, 7) : '',
+        startDate: transaction.startDate ? transaction.startDate.slice(0, 10) : '',
         endDate: transaction.endDate ? transaction.endDate.slice(0, 10) : '',
         occurrences: transaction.occurrences,
       });
@@ -105,10 +105,9 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
       return;
     }
 
-    // O mês escolhido vira o dia 1 desse mês, que é o que a API espera.
     const payload = {
       ...formData,
-      startDate: formData.startDate ? `${formData.startDate}-01` : undefined,
+      startDate: formData.startDate || undefined,
       endDate: formData.endDate || undefined,
     };
 
@@ -303,20 +302,19 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
             {/* Mês de Início */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Mês de Início (opcional)
+                Início (opcional)
               </label>
               <DateField
                 id="recurring-start"
-                mode="month"
                 value={formData.startDate || ''}
                 onChange={(v) => handleChange('startDate', v)}
-                placeholder="Escolha o mês"
+                placeholder="dd/mm/aaaa"
                 clearable
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {formData.frequency === 'yearly'
-                  ? 'O mês em que vence todos os anos. Vazio = o mês atual.'
-                  : 'Vazio = começa neste mês. Um mês passado gera as contas em atraso desde lá.'}
+                  ? 'O mês desta data é o mês em que vence todos os anos. Vazio = o mês atual.'
+                  : 'Conta a partir do mês desta data — o dia é o do vencimento acima. Vazio = começa neste mês; um mês passado gera as contas em atraso desde lá.'}
               </p>
             </div>
 

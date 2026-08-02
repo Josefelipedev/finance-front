@@ -1,13 +1,10 @@
 import React, { useEffect, useRef } from 'react';
 import flatpickr from 'flatpickr';
 import { Portuguese } from 'flatpickr/dist/l10n/pt';
-import monthSelectPlugin from 'flatpickr/dist/plugins/monthSelect';
 import 'flatpickr/dist/flatpickr.css';
-import 'flatpickr/dist/plugins/monthSelect/style.css';
 
 interface DateFieldProps {
-  /** `date` guarda "AAAA-MM-DD"; `month` guarda "AAAA-MM". */
-  mode?: 'date' | 'month';
+  /** Guarda sempre "AAAA-MM-DD". */
   value?: string;
   onChange: (value: string) => void;
   placeholder?: string;
@@ -17,7 +14,7 @@ interface DateFieldProps {
 }
 
 /**
- * Campo de data com calendário, em português.
+ * Campo de data com calendário, em português — o único do projeto.
  *
  * Os `<input type="date">` nativos mostram a ordem do **locale do browser**:
  * num Chrome em inglês aparecem como `mm/dd/yyyy`, e quem escreve 11/04/2027 a
@@ -28,9 +25,14 @@ interface DateFieldProps {
  * O flatpickr já era dependência do projeto: guarda-se sempre o formato ISO
  * (que é o que a API espera) e mostra-se `dd/mm/aaaa` — o `altInput` separa as
  * duas coisas, que é a razão de o campo nativo não servir.
+ *
+ * Houve aqui um modo `month` com o plugin `monthSelect`, para o mês de início
+ * da recorrente. Saiu: trazia folha de estilo própria, com largura própria, e
+ * ficava visivelmente diferente do campo de data ao lado — dois campos
+ * irmãos no mesmo formulário a comportarem-se de maneira diferente. Escolher
+ * o dia 1 num calendário normal diz a mesma coisa.
  */
 const DateField: React.FC<DateFieldProps> = ({
-  mode = 'date',
   value,
   onChange,
   placeholder,
@@ -47,18 +49,14 @@ const DateField: React.FC<DateFieldProps> = ({
   useEffect(() => {
     if (!inputRef.current) return;
 
-    const isMonth = mode === 'month';
     const picker = flatpickr(inputRef.current, {
       locale: Portuguese,
-      dateFormat: isMonth ? 'Y-m' : 'Y-m-d',
+      dateFormat: 'Y-m-d',
       altInput: true,
-      altFormat: isMonth ? 'F \\d\\e Y' : 'd/m/Y',
+      altFormat: 'd/m/Y',
       altInputClass:
         'w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white',
       allowInput: true,
-      plugins: isMonth
-        ? [monthSelectPlugin({ shorthand: false, dateFormat: 'Y-m', altFormat: 'F \\d\\e Y' })]
-        : [],
       onChange: (_dates, dateStr) => onChangeRef.current(dateStr),
     });
     // Com `altInput`, o campo que se vê é OUTRO elemento e o original fica
@@ -74,7 +72,7 @@ const DateField: React.FC<DateFieldProps> = ({
       picker.destroy();
       instanceRef.current = null;
     };
-  }, [mode, id]);
+  }, [id]);
 
   // Valor vindo de fora (abrir o modal para editar, ou limpar).
   useEffect(() => {
