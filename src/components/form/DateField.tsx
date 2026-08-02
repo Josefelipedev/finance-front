@@ -12,6 +12,8 @@ interface DateFieldProps {
   onChange: (value: string) => void;
   placeholder?: string;
   id: string;
+  /** Mostra o ✕ para esvaziar. Só para campos opcionais. */
+  clearable?: boolean;
 }
 
 /**
@@ -33,6 +35,7 @@ const DateField: React.FC<DateFieldProps> = ({
   onChange,
   placeholder,
   id,
+  clearable = false,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const instanceRef = useRef<flatpickr.Instance | null>(null);
@@ -58,13 +61,20 @@ const DateField: React.FC<DateFieldProps> = ({
         : [],
       onChange: (_dates, dateStr) => onChangeRef.current(dateStr),
     });
+    // Com `altInput`, o campo que se vê é OUTRO elemento e o original fica
+    // escondido. Sem passar o id para o visível, qualquer `<label htmlFor>`
+    // apontava para um input escondido — clicar no rótulo não abria nada.
+    if (picker.altInput && inputRef.current) {
+      inputRef.current.id = `${id}-iso`;
+      picker.altInput.id = id;
+    }
     instanceRef.current = picker;
 
     return () => {
       picker.destroy();
       instanceRef.current = null;
     };
-  }, [mode]);
+  }, [mode, id]);
 
   // Valor vindo de fora (abrir o modal para editar, ou limpar).
   useEffect(() => {
@@ -77,7 +87,7 @@ const DateField: React.FC<DateFieldProps> = ({
   return (
     <div className="relative">
       <input ref={inputRef} id={id} placeholder={placeholder} className="hidden" />
-      {value && (
+      {clearable && value && (
         <button
           type="button"
           onClick={() => onChange('')}

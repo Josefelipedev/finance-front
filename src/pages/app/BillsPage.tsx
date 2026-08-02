@@ -10,6 +10,7 @@ import CategorySelect from '../../components/form/CategorySelect';
 import { useBills, BillItem, BillType } from '../../hooks/useBills';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { currencyOption, formatMoney } from '../../utils/currency';
+import DateField from '../../components/form/DateField';
 
 // ===== Helpers de mês / data =====
 
@@ -216,13 +217,7 @@ function BillFormModal({
         <label htmlFor="bill-form-due" className={labelClass}>
           Vencimento
         </label>
-        <input
-          id="bill-form-due"
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-          className={`${inputClass} tabular-nums`}
-        />
+        <DateField id="bill-form-due" value={dueDate} onChange={setDueDate} />
       </div>
 
       {/* Categoria (opcional) */}

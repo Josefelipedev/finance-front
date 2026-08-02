@@ -311,6 +311,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                 value={formData.startDate || ''}
                 onChange={(v) => handleChange('startDate', v)}
                 placeholder="Escolha o mês"
+                clearable
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {formData.frequency === 'yearly'
@@ -329,6 +330,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                 value={formData.endDate || ''}
                 onChange={(v) => handleChange('endDate', v)}
                 placeholder="dd/mm/aaaa"
+                clearable
               />
             </div>
 

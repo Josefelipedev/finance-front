@@ -5,6 +5,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Button from '../../components/ui/button/Button';
 import { useFiscal, FiscalChatMessage, FiscalData, FiscalTag } from '../../hooks/useFiscal';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import DateField from '../../components/form/DateField';
 
 // ===== Assistente Fiscal — sugestões iniciais =====
 const FISCAL_SUGGESTIONS = [
@@ -338,12 +339,10 @@ export default function FiscalPage() {
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Data de início de atividade <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="date"
-                required
+              <DateField
+                id="fiscal-activity-start"
                 value={form.activityStartDate}
-                onChange={(e) => setForm({ ...form, activityStartDate: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
+                onChange={(v) => setForm({ ...form, activityStartDate: v })}
               />
               <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
                 Como consta no Comprovativo de Início de Atividade.

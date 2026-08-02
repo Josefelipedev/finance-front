@@ -10,6 +10,7 @@ import { CURRENCY_OPTIONS } from '../../utils/currency';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { useBankAccounts } from '../../hooks/useBankAccounts.ts';
 import Button from '../ui/button/Button';
+import DateField from '../form/DateField';
 
 export interface FinancePrefill {
   amount?: number;
@@ -336,10 +337,10 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
                 name="referenceDate"
                 control={control}
                 render={({ field }) => (
-                  <input
-                    type="date"
-                    {...field}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                  <DateField
+                    id="finance-reference-date"
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
                   />
                 )}
               />

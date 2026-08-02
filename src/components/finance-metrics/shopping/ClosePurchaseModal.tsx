@@ -4,6 +4,7 @@ import { formatMoney } from '../../../utils/currency';
 import CategorySelect from '../../form/CategorySelect';
 import { Modal } from '../../ui/modal';
 import Button from '../../ui/button/Button';
+import DateField from '../../form/DateField';
 
 interface ClosePurchaseModalProps {
   list: ShoppingList;
@@ -99,12 +100,10 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
                 >
                   Dia da compra
                 </label>
-                <input
+                <DateField
                   id="close-purchase-date"
-                  type="date"
                   value={referenceDate}
-                  onChange={(e) => setReferenceDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:border-brand-300 focus:ring-brand-500/10 focus:ring-2 dark:bg-gray-700 dark:text-white"
+                  onChange={setReferenceDate}
                 />
               </div>
             </div>
