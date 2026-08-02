@@ -142,7 +142,6 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
       {/* Métricas */}
       {summaryData && (
         <FinanceMetrics
-          totalBalance={dashboardData?.totalBalance || 0}
           totalIncome={summaryData.totalGanhos}
           totalExpense={summaryData.totalDespesas}
           netBalance={summaryData.saldo}

@@ -16,7 +16,6 @@ interface MetricItem {
   badgeColor: BadgeColor;
 }
 interface FinanceMetricsProps {
-  totalBalance: number;
   totalIncome: number;
   totalExpense: number;
   netBalance: number;
@@ -30,7 +29,6 @@ interface FinanceMetricsProps {
 }
 
 const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
-  totalBalance,
   totalIncome,
   totalExpense,
   netBalance,
@@ -40,7 +38,6 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
   dateRange,
 }) => {
   // Garantir que os valores não sejam undefined
-  const safeTotalBalance = totalBalance || 0;
   const safeTotalIncome = totalIncome || 0;
   const safeTotalExpense = totalExpense || 0;
   const safeNetBalance = netBalance || 0;
@@ -60,21 +57,13 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
   };
 
   const metrics: MetricItem[] = [
-    {
-      id: 1,
-      title: 'Saldo Total',
-      value: formatMoney(safeTotalBalance, displayCurrency),
-      change: safeTotalBalance >= 0 ? '+' : '-',
-      comparisonText: 'Disponível',
-      icon: 'wallet',
-      valueColor:
-        safeTotalBalance >= 0
-          ? 'text-brand-700 dark:text-brand-300'
-          : 'text-error-600 dark:text-red-400',
-      iconChip: 'bg-brand-100 text-brand-700 dark:bg-brand-400/15 dark:text-brand-300',
-      highlight: true,
-      badgeColor: safeTotalBalance >= 0 ? 'success' : 'error',
-    },
+    // Havia aqui um cartão "Saldo Total / Disponível" que mostrava
+    // `totalBalance` do `/finance/dashboard` — ganhos menos despesas do MESMO
+    // período que o "Saldo Líquido" logo ao lado, calculado por outro
+    // endpoint. Dois cartões, dois nomes, o mesmo número; e nenhum dos dois era
+    // "disponível", porque isso seria o saldo das contas bancárias, que hoje é
+    // um valor informado à mão (ponto 10 da revisão). Saiu o duplicado e ficou
+    // o que diz o que é.
     {
       id: 2,
       title: 'Total de Ganhos',
@@ -104,6 +93,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       change: safeNetBalance >= 0 ? '+' : '-',
       comparisonText: 'Ganhos - Despesas',
       icon: 'scale-balanced',
+      highlight: true,
       valueColor:
         safeNetBalance >= 0
           ? 'text-gray-900 dark:text-white'
@@ -127,7 +117,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
 
   return (
     <div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {metrics.map((item) => (
           <div
             key={item.id}
@@ -143,11 +133,9 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
               >
                 <i className={`fas fa-${item.icon} text-base`}></i>
               </div>
-              {(item.id !== 1 || safeTotalBalance !== 0) && (
-                <Badge color={item.badgeColor || 'light'}>
-                  <span className="text-xs font-medium">{item.change}</span>
-                </Badge>
-              )}
+              <Badge color={item.badgeColor || 'light'}>
+                <span className="text-xs font-medium">{item.change}</span>
+              </Badge>
             </div>
 
             <p className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
