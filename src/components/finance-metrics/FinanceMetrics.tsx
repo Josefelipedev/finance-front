@@ -8,8 +8,6 @@ interface MetricItem {
   title: string;
   value: string;
   change: string;
-  variation: number;
-  direction: string;
   comparisonText: string;
   icon: string;
   valueColor: string;
@@ -47,15 +45,12 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
   const safeTotalExpense = totalExpense || 0;
   const safeNetBalance = netBalance || 0;
 
-  // Calcular variações (simulado - você pode adaptar para dados reais)
-  const getVariation = (current: number, previous: number = current * 0.8) => {
-    if (previous === 0) return 0;
-    return ((current - previous) / previous) * 100;
-  };
-
-  const incomeVariation = getVariation(safeTotalIncome);
-  const expenseVariation = getVariation(safeTotalExpense);
-  const balanceVariation = getVariation(safeNetBalance, safeTotalIncome * 0.2);
+  // Havia aqui uma "variação vs período anterior" que era `atual × 0,8` por
+  // omissão — ou seja, **+25% sempre**, em qualquer conta e em qualquer mês,
+  // com o rótulo "vs período anterior" ao lado de dinheiro verdadeiro. O
+  // próprio código admitia: "(simulado - você pode adaptar para dados reais)".
+  // Saiu. Quando houver comparação a sério (a API já calcula o período
+  // anterior em `analyzeFinanceSummary`), volta com números que existem.
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', {
@@ -70,8 +65,6 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       title: 'Saldo Total',
       value: formatMoney(safeTotalBalance, displayCurrency),
       change: safeTotalBalance >= 0 ? '+' : '-',
-      variation: safeTotalBalance >= 0 ? balanceVariation : -balanceVariation,
-      direction: safeTotalBalance >= 0 ? 'up' : 'down',
       comparisonText: 'Disponível',
       icon: 'wallet',
       valueColor:
@@ -86,35 +79,29 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       id: 2,
       title: 'Total de Ganhos',
       value: formatMoney(safeTotalIncome, displayCurrency),
-      change: incomeVariation >= 0 ? '+' : '-',
-      variation: Math.abs(incomeVariation),
-      direction: incomeVariation >= 0 ? 'up' : 'down',
-      comparisonText: 'vs período anterior',
+      change: '+',
+      comparisonText: 'no período',
       icon: 'arrow-trend-up',
       valueColor: 'text-green-600 dark:text-green-400',
       iconChip: 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400',
-      badgeColor: incomeVariation >= 0 ? 'success' : 'error',
+      badgeColor: 'success',
     },
     {
       id: 3,
       title: 'Total de Despesas',
       value: formatMoney(safeTotalExpense, displayCurrency),
-      change: expenseVariation <= 0 ? '+' : '-',
-      variation: Math.abs(expenseVariation),
-      direction: expenseVariation <= 0 ? 'up' : 'down',
-      comparisonText: 'vs período anterior',
+      change: '-',
+      comparisonText: 'no período',
       icon: 'arrow-trend-down',
       valueColor: 'text-error-600 dark:text-red-400',
       iconChip: 'bg-red-50 text-error-600 dark:bg-error-500/10 dark:text-red-400',
-      badgeColor: expenseVariation <= 0 ? 'success' : 'error',
+      badgeColor: 'error',
     },
     {
       id: 4,
       title: 'Saldo Líquido',
       value: formatMoney(safeNetBalance, displayCurrency),
       change: safeNetBalance >= 0 ? '+' : '-',
-      variation: Math.abs(balanceVariation),
-      direction: safeNetBalance >= 0 ? 'up' : 'down',
       comparisonText: 'Ganhos - Despesas',
       icon: 'scale-balanced',
       valueColor:
@@ -156,16 +143,8 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
               >
                 <i className={`fas fa-${item.icon} text-base`}></i>
               </div>
-              {(item.id === 2 || item.id === 3 || item.id === 4) && (
+              {(item.id !== 1 || safeTotalBalance !== 0) && (
                 <Badge color={item.badgeColor || 'light'}>
-                  <span className="text-xs font-medium tabular-nums">
-                    {item.change}
-                    {item.variation.toFixed(1)}%
-                  </span>
-                </Badge>
-              )}
-              {item.id === 1 && safeTotalBalance !== 0 && (
-                <Badge color={item.badgeColor}>
                   <span className="text-xs font-medium">{item.change}</span>
                 </Badge>
               )}
