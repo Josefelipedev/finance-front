@@ -1,5 +1,5 @@
-import { useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ModalProps {
   isOpen: boolean;
@@ -8,6 +8,12 @@ interface ModalProps {
   children: React.ReactNode;
   showCloseButton?: boolean; // New prop to control close button visibility
   isFullscreen?: boolean; // Default to false for backwards compatibility
+  /**
+   * Classes do contentor interno que embrulha o conteúdo. Existe para um modal
+   * poder ser uma coluna flex (cabeçalho fixo · meio a rolar · rodapé fixo) —
+   * sem isto, este `div` corta a cadeia do flex e o miolo não sabe crescer.
+   */
+  bodyClassName?: string;
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -17,42 +23,43 @@ export const Modal: React.FC<ModalProps> = ({
   className,
   showCloseButton = true, // Default to true for backwards compatibility
   isFullscreen = false,
+  bodyClassName,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
+      document.addEventListener('keydown', handleEscape);
     }
 
     return () => {
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener('keydown', handleEscape);
     };
   }, [isOpen, onClose]);
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = 'unset';
     }
 
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
 
   if (!isOpen) return null;
 
   const contentClasses = isFullscreen
-    ? "w-full h-full"
-    : "relative w-full rounded-3xl bg-white  dark:bg-gray-900";
+    ? 'w-full h-full'
+    : 'relative w-full rounded-3xl bg-white  dark:bg-gray-900';
 
   return createPortal(
     <div className="fixed inset-0 flex items-center justify-center overflow-y-auto modal z-99999">
@@ -88,9 +95,9 @@ export const Modal: React.FC<ModalProps> = ({
             </svg>
           </button>
         )}
-        <div>{children}</div>
+        <div className={bodyClassName}>{children}</div>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 };

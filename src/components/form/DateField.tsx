@@ -68,7 +68,15 @@ const DateField: React.FC<DateFieldProps> = ({
     }
     instanceRef.current = picker;
 
+    // O calendário é montado no `body` e posicionado no momento em que abre.
+    // Dentro de um modal que rola, rolar o conteúdo deixava-o parado no ar,
+    // longe do campo. Fecha-se em vez de ficar à deriva.
+    const scroller = inputRef.current.closest('[data-modal-scroll]');
+    const closeOnScroll = () => picker.close();
+    scroller?.addEventListener('scroll', closeOnScroll);
+
     return () => {
+      scroller?.removeEventListener('scroll', closeOnScroll);
       picker.destroy();
       instanceRef.current = null;
     };
