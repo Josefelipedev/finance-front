@@ -11,6 +11,7 @@ import {
   unconvertibleCurrencies,
 } from '../../../utils/currency';
 import { useExchangeRatesState } from '../../../hooks/useExchangeRates';
+import { countableType } from '../../../utils/finance-type';
 
 interface TrendAnalyticsChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -90,7 +91,9 @@ const TrendAnalyticsChart: React.FC<TrendAnalyticsChartProps> = ({ dateRange }) 
             rates
           );
 
-          if (transaction.type === 'income') {
+          const tipo = countableType(transaction.type);
+          if (!tipo) return; // tipo que não se sabe somar fica de fora
+          if (tipo === 'income') {
             dailyData[date].income += value;
             dailyData[date].balance += value;
           } else {

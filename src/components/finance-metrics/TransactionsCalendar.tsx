@@ -14,6 +14,7 @@ import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import { Modal } from '../ui/modal';
+import { countableType } from '../../utils/finance-type';
 
 const recordCurrency = (record: FinanceRecord) => (record as { currency?: string }).currency;
 
@@ -76,9 +77,10 @@ const TransactionsCalendar: React.FC = () => {
       const key = dayKey(r);
       // Converte para a moeda de exibição antes de somar
       // (registros do casal podem estar em BRL e EUR misturados)
+      const tipo = countableType(r.type);
+      if (!tipo) continue; // tipo que não se sabe somar fica de fora
       const amount = convertAmount(r.amount, recordCurrency(r), displayCurrency, rates);
-      const delta = r.type === 'income' ? amount : -amount;
-      map[key] = (map[key] || 0) + delta;
+      map[key] = (map[key] || 0) + (tipo === 'income' ? amount : -amount);
     }
     return map;
   }, [records, rates, displayCurrency]);
@@ -112,8 +114,10 @@ const TransactionsCalendar: React.FC = () => {
     let expense = 0;
     for (const r of selectedTransactions) {
       // Converte para a moeda de exibição antes de somar
+      const tipo = countableType(r.type);
+      if (!tipo) continue;
       const amount = convertAmount(r.amount, recordCurrency(r), displayCurrency, rates);
-      if (r.type === 'income') income += amount;
+      if (tipo === 'income') income += amount;
       else expense += amount;
     }
     return { income, expense };

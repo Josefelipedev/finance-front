@@ -11,6 +11,7 @@ import {
   unconvertibleCurrencies,
 } from '../../../utils/currency';
 import { useExchangeRatesState } from '../../../hooks/useExchangeRates';
+import { countableType } from '../../../utils/finance-type';
 
 interface MonthlyComparisonChartProps {
   dateRange: { startDate: string; endDate: string };
@@ -76,7 +77,9 @@ const MonthlyComparisonChart: React.FC<MonthlyComparisonChartProps> = ({ dateRan
               rates
             );
 
-            if (transaction.type === 'income') {
+            const tipo = countableType(transaction.type);
+            if (!tipo) return acc; // tipo que não se sabe somar fica de fora
+            if (tipo === 'income') {
               acc[monthYear].income += value;
             } else {
               acc[monthYear].expense += value;

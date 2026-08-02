@@ -9,6 +9,7 @@ import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import Button from '../ui/button/Button';
+import { countableType } from '../../utils/finance-type';
 
 const MONTH_NAMES = [
   'Janeiro',
@@ -116,8 +117,10 @@ const MonthlyReport: React.FC = () => {
     for (const r of records) {
       // Converte para a moeda de exibição antes de somar
       // (registros do casal podem estar em BRL e EUR misturados)
+      const tipo = countableType(r.type);
+      if (!tipo) continue; // tipo que não se sabe somar fica de fora
       const amount = convertAmount(r.amount, recordCurrency(r), displayCurrency, rates);
-      if (r.type === 'income') {
+      if (tipo === 'income') {
         inc += amount;
       } else {
         exp += amount;
