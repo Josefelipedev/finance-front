@@ -31,12 +31,16 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     weekDay: 0,
     notification: false,
     categoryId: 0,
+    startDate: '',
     endDate: '',
     occurrences: undefined,
   });
   const currencySymbol = currencyOption(formData.currency ?? profile?.currency).symbol;
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Erro vindo do servidor. Sem isto, um 400 era só um console.error: o modal
+  // ficava aberto, o botão voltava ao normal e nada dizia que falhou.
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     getProfile().catch(() => {});
@@ -61,7 +65,12 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
         weekDay: transaction.weekDay || 0,
         notification: transaction.notification,
         categoryId: transaction.categoryId ?? transaction.category?.id ?? 0,
-        endDate: transaction.endDate || '',
+        // A API devolve a data completa ("2026-11-12T00:00:00.000Z") e um
+        // <input type="date"> só aceita "AAAA-MM-DD" — com o ISO inteiro o
+        // browser descarta o valor e mostra o campo VAZIO, que é o que fazia a
+        // data de término parecer nunca gravada.
+        startDate: transaction.startDate ? transaction.startDate.slice(0, 7) : '',
+        endDate: transaction.endDate ? transaction.endDate.slice(0, 10) : '',
         occurrences: transaction.occurrences,
       });
     }
@@ -88,24 +97,35 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
 
     if (!validateForm()) {
       return;
     }
 
+    // O mês escolhido vira o dia 1 desse mês, que é o que a API espera.
+    const payload = {
+      ...formData,
+      startDate: formData.startDate ? `${formData.startDate}-01` : undefined,
+      endDate: formData.endDate || undefined,
+    };
+
     try {
       if (transaction) {
-        await updateRecurringTransaction(transaction.id, formData);
+        await updateRecurringTransaction(transaction.id, payload);
       } else {
-        await createRecurringTransaction(formData);
+        await createRecurringTransaction(payload);
       }
       onSuccess();
     } catch (error) {
-      console.error('Erro ao salvar transação recorrente:', error);
+      setSubmitError(
+        error instanceof Error ? error.message : 'Não foi possível salvar. Tente novamente.'
+      );
     }
   };
 
   const handleChange = (field: keyof CreateRecurringTransactionDto, value: any) => {
+    setSubmitError(null);
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -288,6 +308,24 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
               )}
             </div>
 
+            {/* Mês de Início */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Mês de Início (opcional)
+              </label>
+              <input
+                type="month"
+                value={formData.startDate || ''}
+                onChange={(e) => handleChange('startDate', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {formData.frequency === 'yearly'
+                  ? 'O mês em que vence todos os anos. Vazio = o mês atual.'
+                  : 'Vazio = começa neste mês. Um mês passado gera as contas em atraso desde lá.'}
+              </p>
+            </div>
+
             {/* Data de Término */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -334,6 +372,12 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
                 Enviar notificação antes do vencimento
               </label>
             </div>
+
+            {submitError && (
+              <div className="rounded-lg border border-error-500 bg-error-50 px-3 py-2 dark:bg-error-500/10">
+                <p className="text-error-500 text-sm">{submitError}</p>
+              </div>
+            )}
 
             {/* Botões */}
             <div className="flex justify-end gap-3 pt-4">

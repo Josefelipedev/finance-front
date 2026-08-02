@@ -41,7 +41,14 @@ export class HttpClient {
         }
 
         const status = error.response.status;
-        const serverMessage = (error.response.data as any)?.message;
+        // O Nest devolve `message` como ARRAY quando é o ValidationPipe a
+        // recusar (um item por campo). Sem isto, o `new Error(array)` dava
+        // "a,b,c" colado — ou, pior, um formulário que não mostrava nada de
+        // útil ao utilizador.
+        const rawMessage = (error.response.data as any)?.message;
+        const serverMessage = Array.isArray(rawMessage)
+          ? rawMessage.join('. ')
+          : rawMessage;
         const message = serverMessage || 'Erro inesperado';
 
         const url = error.config?.url || '';

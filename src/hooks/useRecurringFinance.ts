@@ -17,6 +17,8 @@ export interface RecurringTransaction {
   notification: boolean;
   categoryId: number;
   userId: number;
+  /** Mês em que a recorrente começa a gerar contas. Nulo = mês de criação. */
+  startDate?: string | null;
   endDate?: string;
   occurrences?: number;
   executedCount: number;
@@ -39,6 +41,7 @@ export interface CreateRecurringTransactionDto {
   weekDay?: number;
   notification?: boolean;
   categoryId: number;
+  startDate?: string;
   endDate?: string;
   occurrences?: number;
 }
@@ -53,6 +56,7 @@ export interface UpdateRecurringTransactionDto {
   weekDay?: number;
   notification?: boolean;
   categoryId?: number;
+  startDate?: string;
   endDate?: string;
   occurrences?: number;
 }
