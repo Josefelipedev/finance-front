@@ -308,7 +308,9 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
               onChange={(e) => handleChange('frequency', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:text-white"
             >
-              <option value="daily">Diária</option>
+              {/* "Diária" saiu (C1): a geração de contas nunca a produziu — a
+                  recorrente era criada, aparecia na lista e não gerava conta
+                  nem aviso. O servidor deixou de a aceitar. */}
               <option value="weekly">Semanal</option>
               <option value="monthly">Mensal</option>
               <option value="yearly">Anual</option>
@@ -484,7 +486,11 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
               className="h-4 w-4 text-brand-500 rounded focus:ring-brand-500 border-gray-300 dark:border-gray-600"
             />
             <label htmlFor="notification" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              Enviar notificação antes do vencimento
+              {/* Dizia "antes do vencimento" e o serviço avisa no próprio dia
+                  (o cron das 08:00 lê o que vence hoje). O Android já dizia a
+                  verdade; era só a web a prometer uma antecipação que não
+                  existe (C3). */}
+              Avisar no dia do vencimento
             </label>
           </div>
         </div>
