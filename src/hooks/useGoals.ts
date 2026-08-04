@@ -10,6 +10,10 @@ export interface Goal {
   description?: string;
   targetValue: number;
   currentValue: number;
+  /** Ritmo mensal pretendido (planeamento de longo prazo). */
+  monthlyContribution?: number | null;
+  /** Ordem por que a meta é servida quando o excedente não chega para todas. */
+  priority?: number;
   startDate?: string;
   endDate?: string;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELED';
@@ -24,6 +28,8 @@ export interface CreateGoalDto {
   description?: string;
   targetValue: number;
   currentValue?: number;
+  monthlyContribution?: number | null;
+  priority?: number;
   startDate?: string;
   endDate?: string;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELED';

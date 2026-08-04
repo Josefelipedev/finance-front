@@ -34,6 +34,7 @@ const AccountsPage = lazy(() => import('./pages/app/AccountsPage'));
 const FiscalPage = lazy(() => import('./pages/app/FiscalPage'));
 const MealPlannerPage = lazy(() => import('./pages/MealPlanner/MealPlannerPage'));
 const GoalsPage = lazy(() => import('./pages/app/GoalsPage'));
+const PlanningPage = lazy(() => import('./pages/app/PlanningPage'));
 const UserProfiles = lazy(() => import('./pages/UserProfiles'));
 
 export default function App() {
@@ -73,6 +74,7 @@ export default function App() {
               <Route path="/fiscal" element={<FiscalPage />} />
               <Route path="/meal-planner" element={<MealPlannerPage />} />
               <Route path="/metas" element={<GoalsPage />} />
+              <Route path="/planejamento" element={<PlanningPage />} />
               <Route path="/profile" element={<UserProfiles />} />
             </Route>
           </Route>
