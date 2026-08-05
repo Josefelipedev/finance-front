@@ -8,6 +8,7 @@ import Input from '../../form/input/InputField';
 import MoneyInput from '../../form/MoneyInput';
 import CategorySelect from '../../form/CategorySelect';
 import { currencyOption, formatMoney } from '../../../utils/currency';
+import { monthLabel } from '../../../utils/month';
 import type {
   EventFrequency,
   EventInput,
@@ -209,8 +210,9 @@ export default function ScenariosTab({
       {scenarios.length === 0 && (
         <Surface className="p-6 text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Ainda não há cenários. A projeção que está a ver usa o rumo actual: a média
-            dos últimos 12 meses, 2% de inflação e 5 anos de horizonte.
+            Ainda não há cenários. A projeção que está a ver é o rumo actual: as
+            recorrentes que tem contratadas mais a média do que varia, com 2% de inflação
+            e 5 anos de horizonte.
           </p>
           <div className="mt-4 flex justify-center">
             <Button size="sm" type="button" onClick={openNewScenario}>
@@ -319,8 +321,9 @@ export default function ScenariosTab({
                             {event.name}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {frequencyLabel[event.frequency]} · desde {event.startMonth}
-                            {event.endMonth ? ` até ${event.endMonth}` : ''}
+                            {frequencyLabel[event.frequency]} · desde{' '}
+                            {monthLabel(event.startMonth)}
+                            {event.endMonth ? ` até ${monthLabel(event.endMonth)}` : ''}
                             {event.growsWithInflation ? ' · acompanha a inflação' : ''}
                           </p>
                         </div>

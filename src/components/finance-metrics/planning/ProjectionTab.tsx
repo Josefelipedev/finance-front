@@ -3,20 +3,12 @@ import { Surface } from '../../common/PageShell';
 import MixedCurrencyWarning from '../../common/MixedCurrencyWarning';
 import { formatMoney } from '../../../utils/currency';
 import ProjectionChart from './ProjectionChart';
+import { monthLabel } from '../../../utils/month';
 import type { Projection } from '../../../hooks/usePlanning';
 
 interface Props {
   projection: Projection;
 }
-
-const monthLabel = (key: string) => {
-  const [year, month] = key.split('-');
-  const nomes = [
-    'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
-    'jul', 'ago', 'set', 'out', 'nov', 'dez',
-  ];
-  return `${nomes[Number(month) - 1]}/${year}`;
-};
 
 function StatCard({
   label,

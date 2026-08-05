@@ -115,23 +115,27 @@ export default function PlanningView() {
 
       {overview.scenarios.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-gray-500 dark:text-gray-400">Cenário:</span>
-          <span className="font-medium text-gray-900 dark:text-white">
-            {overview.projection.scenario.name}
-          </span>
-          {overview.scenarios.length > 1 && (
-            <select
-              value={overview.projection.scenario.id ?? ''}
-              onChange={(e) => setScenarioId(e.target.value ? Number(e.target.value) : null)}
-              className="rounded-lg border border-gray-300 bg-transparent px-2 py-1 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-            >
-              {overview.scenarios.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          )}
+          <label htmlFor="scenario-picker" className="text-gray-500 dark:text-gray-400">
+            Cenário:
+          </label>
+          {/*
+            O "Rumo actual" tem de estar na lista. Sem ele, escolher um cenário
+            era uma porta de sentido único: a lista só tinha cenários gravados e
+            não havia como voltar à projeção sem cenário nenhum.
+          */}
+          <select
+            id="scenario-picker"
+            value={overview.projection.scenario.id ?? ''}
+            onChange={(e) => setScenarioId(e.target.value ? Number(e.target.value) : null)}
+            className="rounded-lg border border-gray-300 bg-transparent px-2 py-1 text-sm font-medium text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+          >
+            <option value="">Rumo actual (sem cenário)</option>
+            {overview.scenarios.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
           {isLoading && (
             <span className="text-xs text-gray-400 dark:text-gray-500">a actualizar...</span>
           )}
@@ -146,7 +150,12 @@ export default function PlanningView() {
           activeScenarioId={overview.projection.scenario.id}
           displayCurrency={overview.projection.displayCurrency}
           isSaving={isSaving}
-          onSelect={setScenarioId}
+          // O botão promete "Ver projeção": mostrá-la é ir para lá, não trocar
+          // o cenário em silêncio e deixar a pessoa na mesma lista.
+          onSelect={(id) => {
+            setScenarioId(id);
+            setTab('projection');
+          }}
           onCreateScenario={(input) => afterChange(createScenario(input))}
           onUpdateScenario={(id, input) => afterChange(updateScenario(id, input))}
           onDeleteScenario={async (id) => {
