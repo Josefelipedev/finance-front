@@ -19,6 +19,8 @@ export interface PlanEvent {
   startMonth: string;
   endMonth: string | null;
   categoryId: number | null;
+  /** Nome da categoria, resolvido pelo servidor. Nulo = sem categoria. */
+  categoryName?: string | null;
   isActive: boolean;
   growsWithInflation: boolean;
 }

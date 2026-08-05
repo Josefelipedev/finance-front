@@ -324,6 +324,7 @@ export default function ScenariosTab({
                             {frequencyLabel[event.frequency]} · desde{' '}
                             {monthLabel(event.startMonth)}
                             {event.endMonth ? ` até ${monthLabel(event.endMonth)}` : ''}
+                            {event.categoryName ? ` · ${event.categoryName}` : ''}
                             {event.growsWithInflation ? ' · acompanha a inflação' : ''}
                           </p>
                         </div>
@@ -553,6 +554,11 @@ export default function ScenariosTab({
                     setEventForm({ ...eventForm, categoryId: categoryId ?? null })
                   }
                 />
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Serve para arrumar o evento. Ele <strong>soma-se</strong> ao que já
+                  existe nessa categoria — inclusive ao plano anual, se lá tiver escrito
+                  um valor para o mesmo ano.
+                </p>
               </div>
 
               <div>
