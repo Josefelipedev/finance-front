@@ -6,6 +6,7 @@ import { useConfirm } from '../../ui/confirm/useConfirm';
 import Label from '../../form/Label';
 import Input from '../../form/input/InputField';
 import MoneyInput from '../../form/MoneyInput';
+import CategorySelect from '../../form/CategorySelect';
 import { currencyOption, formatMoney } from '../../../utils/currency';
 import type {
   EventFrequency,
@@ -30,7 +31,10 @@ interface Props {
   onDeleteEvent: (id: number) => Promise<unknown>;
 }
 
-const currentMonth = () => new Date().toISOString().slice(0, 7);
+const currentMonth = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+};
 
 const frequencyLabel: Record<EventFrequency, string> = {
   monthly: 'Todos os meses',
@@ -54,6 +58,7 @@ const emptyEvent: EventInput = {
   frequency: 'monthly',
   startMonth: currentMonth(),
   endMonth: null,
+  categoryId: null,
   growsWithInflation: false,
 };
 
@@ -149,6 +154,7 @@ export default function ScenariosTab({
       frequency: event.frequency,
       startMonth: event.startMonth,
       endMonth: event.endMonth,
+      categoryId: event.categoryId,
       growsWithInflation: event.growsWithInflation,
       isActive: event.isActive,
     });
@@ -530,6 +536,20 @@ export default function ScenariosTab({
                     onChange={(amount) => setEventForm({ ...eventForm, amount })}
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="event-category">Categoria</Label>
+                <CategorySelect
+                  id="event-category"
+                  value={eventForm.categoryId ?? undefined}
+                  type={eventForm.type}
+                  placeholder="Sem categoria"
+                  allowEmpty
+                  onChange={(categoryId) =>
+                    setEventForm({ ...eventForm, categoryId: categoryId ?? null })
+                  }
+                />
               </div>
 
               <div>

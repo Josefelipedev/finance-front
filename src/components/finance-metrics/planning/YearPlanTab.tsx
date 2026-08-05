@@ -4,6 +4,7 @@ import Button from '../../ui/button/Button';
 import { Modal } from '../../ui/modal';
 import { useConfirm } from '../../ui/confirm/useConfirm';
 import Label from '../../form/Label';
+import Input from '../../form/input/InputField';
 import CategorySelect from '../../form/CategorySelect';
 import MoneyInput from '../../form/MoneyInput';
 import MixedCurrencyWarning from '../../common/MixedCurrencyWarning';
@@ -18,7 +19,12 @@ interface Props {
   onChangeYear: (year: number) => void;
   onSave: (
     year: number,
-    items: { categoryId: number; type: FlowType; plannedAmount: number }[],
+    items: {
+      categoryId: number;
+      type: FlowType;
+      plannedAmount: number;
+      note?: string | null;
+    }[],
   ) => Promise<unknown>;
   onDeleteItem: (year: number, categoryId: number) => Promise<unknown>;
 }
@@ -44,13 +50,25 @@ export default function YearPlanTab({
   const [categoryId, setCategoryId] = useState<number | undefined>();
   const [type, setType] = useState<FlowType>('expense');
   const [amount, setAmount] = useState(0);
+  const [note, setNote] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  /**
+   * A categoria que se está a editar, ou `null` quando é uma linha nova.
+   *
+   * A linha do plano é identificada por ano+categoria: trocar a categoria a
+   * meio de uma edição não move a linha, cria outra e deixa a antiga no plano.
+   * Por isso o seletor fica fechado a editar — para mudar de categoria,
+   * remove-se e planeia-se de novo.
+   */
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
       setCategoryId(undefined);
       setAmount(0);
+      setNote('');
       setFormError(null);
+      setEditingCategoryId(null);
     }
   }, [isOpen]);
 
@@ -69,11 +87,33 @@ export default function YearPlanTab({
       return;
     }
     try {
-      await onSave(year, [{ categoryId, type, plannedAmount: amount }]);
+      await onSave(year, [
+        {
+          categoryId,
+          type,
+          plannedAmount: amount,
+          note: note.trim() || null,
+        },
+      ]);
       setIsOpen(false);
     } catch {
       setFormError('Não foi possível gravar o plano.');
     }
+  };
+
+  const edit = (item: {
+    categoryId: number;
+    type: FlowType;
+    plannedAmount: number | null;
+    note: string | null;
+  }) => {
+    setType(item.type);
+    setCategoryId(item.categoryId);
+    setAmount(item.plannedAmount ?? 0);
+    setNote(item.note ?? '');
+    setFormError(null);
+    setEditingCategoryId(item.categoryId);
+    setIsOpen(true);
   };
 
   const remove = async (item: { categoryId: number; categoryName: string }) => {
@@ -225,6 +265,11 @@ export default function YearPlanTab({
                         >
                           {item.type === 'income' ? 'receita' : 'despesa'}
                         </span>
+                        {item.note && (
+                          <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+                            {item.note}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
                         {money(item.plannedAmount ?? 0)}
@@ -250,6 +295,13 @@ export default function YearPlanTab({
                         {money(item.baselineAmount)}
                       </td>
                       <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => edit(item)}
+                          className="mr-3 text-xs text-gray-500 hover:text-brand-500 dark:text-gray-400"
+                        >
+                          Editar
+                        </button>
                         <button
                           type="button"
                           onClick={() => remove(item)}
@@ -296,7 +348,9 @@ export default function YearPlanTab({
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} className="max-w-md">
         <div className="p-6">
           <h3 className="font-display text-lg font-semibold text-gray-900 dark:text-white">
-            Planear categoria em {year}
+            {editingCategoryId !== null
+              ? `Editar o plano de ${year}`
+              : `Planear categoria em ${year}`}
           </h3>
 
           <div className="mt-4 space-y-4">
@@ -305,11 +359,12 @@ export default function YearPlanTab({
               <select
                 id="plan-type"
                 value={type}
+                disabled={editingCategoryId !== null}
                 onChange={(e) => {
                   setType(e.target.value as FlowType);
                   setCategoryId(undefined);
                 }}
-                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
               >
                 <option value="expense">Sai (despesa)</option>
                 <option value="income">Entra (receita)</option>
@@ -322,8 +377,14 @@ export default function YearPlanTab({
                 id="plan-category"
                 value={categoryId}
                 type={type}
+                disabled={editingCategoryId !== null}
                 onChange={setCategoryId}
               />
+              {editingCategoryId !== null && (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Para planear outra categoria, remova esta linha e crie uma nova.
+                </p>
+              )}
             </div>
 
             <div>
@@ -338,6 +399,16 @@ export default function YearPlanTab({
                 {amount > 0 && `${money(amount / 12)} por mês. `}
                 Este valor substitui a média histórica na projeção deste ano.
               </p>
+            </div>
+
+            <div>
+              <Label htmlFor="plan-note">Observação</Label>
+              <Input
+                id="plan-note"
+                value={note}
+                placeholder="Opcional"
+                onChange={(e) => setNote(e.target.value)}
+              />
             </div>
 
             {formError && (

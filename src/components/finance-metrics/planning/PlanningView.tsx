@@ -183,6 +183,7 @@ export default function PlanningView() {
           }}
           onDeleteItem={async (y, categoryId) => {
             await deleteYearPlanItem(y, categoryId);
+            await loadYearPlan(y);
             await refresh();
           }}
         />

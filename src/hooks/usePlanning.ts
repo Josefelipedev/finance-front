@@ -297,7 +297,12 @@ export function usePlanning() {
   const saveYearPlan = useCallback(
     async (
       year: number,
-      items: { categoryId: number; type: FlowType; plannedAmount: number; note?: string | null }[],
+      items: {
+        categoryId: number;
+        type: FlowType;
+        plannedAmount: number;
+        note?: string | null;
+      }[],
     ) => {
       setIsSaving(true);
       try {

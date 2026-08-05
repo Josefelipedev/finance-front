@@ -9,6 +9,7 @@ interface CategorySelectProps {
   /** Esconde estas categorias (ex.: as que já têm orçamento). */
   excludeIds?: number[];
   disabled?: boolean;
+  allowEmpty?: boolean;
   placeholder?: string;
   error?: string;
   className?: string;
@@ -26,6 +27,7 @@ export default function CategorySelect({
   type,
   excludeIds,
   disabled = false,
+  allowEmpty = false,
   placeholder = 'Selecione uma categoria',
   error,
   className = '',
@@ -61,7 +63,7 @@ export default function CategorySelect({
           : 'border-gray-300 focus:border-brand-300 dark:border-gray-700 dark:focus:border-brand-800'
       } ${value ? 'text-gray-800 dark:text-white/90' : 'text-gray-400'} ${className}`}
     >
-      <option value="" disabled>
+      <option value="" disabled={!allowEmpty}>
         {placeholder}
       </option>
       {visible.map((c) => (
