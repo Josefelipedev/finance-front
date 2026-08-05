@@ -59,6 +59,20 @@ export interface BaselineLine {
   monthlyAmount: number;
 }
 
+/**
+ * Um compromisso contratado: o salário, a renda, a prestação que acaba em
+ * junho. Conta para a frente pelo valor cheio — é o que a app sabe de certeza,
+ * ao contrário da média do histórico, que é uma inferência.
+ */
+export interface Commitment {
+  name: string;
+  type: FlowType;
+  monthlyAmount: number;
+  startsAt: string;
+  /** Nulo = sem fim conhecido. */
+  endsAfter: string | null;
+}
+
 export interface Projection {
   scenario: Omit<PlanScenario, 'events' | 'id'> & { id: number | null };
   months: ProjectionMonth[];
@@ -72,7 +86,11 @@ export interface Projection {
     monthlySurplus: number;
   };
   baseline: {
+    /** O que varia, já sem o que os contratos explicam. */
     lines: BaselineLine[];
+    /** Tudo o que está contratado — salário, renda, prestações. */
+    commitments: Commitment[];
+    /** Só os que acabam. Subconjunto de `commitments`. */
     endingCommitments: {
       name: string;
       type: FlowType;
@@ -82,6 +100,8 @@ export interface Projection {
     window: { start: string; end: string };
     monthsCovered: number;
     netWorth: number;
+    /** Falso = não há contas bancárias registadas; o património não é zero, é desconhecido. */
+    netWorthKnown: boolean;
   };
   displayCurrency: string;
   rateDate: string | null;

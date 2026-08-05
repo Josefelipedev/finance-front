@@ -65,6 +65,21 @@ export default function ProjectionTab({ projection }: Props) {
   const growth = summary.endBalance - summary.startBalance;
   const horizonEnd = months.length ? monthLabel(months[months.length - 1].month) : '—';
 
+  // Sem contas bancárias registadas o património de partida não é zero — é
+  // desconhecido, e dizer "0,00 €" faz a projeção parecer a de quem não tem
+  // nada. O que se projeta nesse caso é o que se acumula a partir de hoje.
+  const netWorthUnknown =
+    !baseline.netWorthKnown && projection.scenario.startingNetWorth == null;
+
+  // Um horizonte de 5 anos começa no mês seguinte, portanto o primeiro e o
+  // último ano da tabela são pedaços de ano. Sem o dizer, parecia que num ano
+  // se ganhava um terço do outro.
+  const monthsPerYear = new Map<number, number>();
+  for (const month of months) {
+    const year = Number(month.month.slice(0, 4));
+    monthsPerYear.set(year, (monthsPerYear.get(year) ?? 0) + 1);
+  }
+
   return (
     <div className="space-y-5">
       <MixedCurrencyWarning currencies={projection.unconvertedCurrencies} />
@@ -72,11 +87,17 @@ export default function ProjectionTab({ projection }: Props) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Património hoje"
-          value={money(summary.startBalance)}
-          hint="Soma das contas não arquivadas"
+          value={netWorthUnknown ? 'Por saber' : money(summary.startBalance)}
+          hint={
+            netWorthUnknown
+              ? 'Sem contas registadas — a projeção conta só o que se acumula a partir de hoje'
+              : 'Soma das contas não arquivadas'
+          }
         />
         <StatCard
-          label={`Património em ${horizonEnd}`}
+          label={
+            netWorthUnknown ? `Acumulado até ${horizonEnd}` : `Património em ${horizonEnd}`
+          }
           value={money(summary.endBalance)}
           tone={summary.endBalance >= summary.startBalance ? 'positive' : 'negative'}
           hint={`${growth >= 0 ? '+' : ''}${money(growth)} no horizonte`}
@@ -93,6 +114,20 @@ export default function ProjectionTab({ projection }: Props) {
           hint={`Receita ${projection.scenario.incomeGrowthPct >= 0 ? '+' : ''}${projection.scenario.incomeGrowthPct}% · Poupança ${projection.scenario.savingsReturnPct}%`}
         />
       </div>
+
+      {netWorthUnknown && (
+        <Surface className="p-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            <strong className="text-gray-900 dark:text-white">
+              A app não sabe com quanto é que se parte.
+            </strong>{' '}
+            Sem contas bancárias registadas, os saldos abaixo são o que se{' '}
+            <em>acumula</em> daqui para a frente, não o património real. Regista as
+            contas em Contas bancárias — ou escreve o valor de partida nas premissas do
+            cenário — e o número passa a ser o teu.
+          </p>
+        </Surface>
+      )}
 
       {summary.monthlySurplus < 0 && (
         <Surface className="border-error-300 p-4 dark:border-error-500/40">
@@ -133,6 +168,11 @@ export default function ProjectionTab({ projection }: Props) {
                 <tr key={year.year} className="text-gray-700 dark:text-gray-300">
                   <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">
                     {year.year}
+                    {(monthsPerYear.get(year.year) ?? 12) < 12 && (
+                      <span className="ml-2 text-xs font-normal text-gray-500 dark:text-gray-400">
+                        {monthsPerYear.get(year.year)} meses
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right">{money(year.income)}</td>
                   <td className="px-4 py-3 text-right">{money(year.expense)}</td>
@@ -166,8 +206,10 @@ export default function ProjectionTab({ projection }: Props) {
               De onde vêm estes números
             </span>
             <span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
-              Média de {baseline.monthsCovered}{' '}
-              {baseline.monthsCovered === 1 ? 'mês' : 'meses'} de histórico
+              {baseline.commitments.length}{' '}
+              {baseline.commitments.length === 1 ? 'contrato' : 'contratos'} + média de{' '}
+              {baseline.monthsCovered} {baseline.monthsCovered === 1 ? 'mês' : 'meses'} de
+              histórico
               {baseline.monthsCovered > 0 &&
                 ` (${monthLabel(baseline.window.start)} a ${monthLabel(baseline.window.end)})`}
             </span>
@@ -190,12 +232,56 @@ export default function ProjectionTab({ projection }: Props) {
           <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-2">
             <div>
               <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Média mensal por categoria
+                Contratado (recorrentes)
               </h4>
+              <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                O que se sabe de certeza. Conta pelo valor cheio enquanto durar.
+              </p>
+              <ul className="space-y-1.5">
+                {baseline.commitments.length === 0 && (
+                  <li className="text-sm text-gray-500 dark:text-gray-400">
+                    Nenhuma recorrente registada. Sem elas, a projeção só tem a média do
+                    histórico para adivinhar o futuro.
+                  </li>
+                )}
+                {baseline.commitments.map((c) => (
+                  <li
+                    key={`${c.name}-${c.startsAt}`}
+                    className="flex items-baseline justify-between gap-3 text-sm"
+                  >
+                    <span className="min-w-0 truncate text-gray-700 dark:text-gray-300">
+                      {c.name}
+                      <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
+                        {c.endsAfter ? `até ${monthLabel(c.endsAfter)}` : 'sem fim'}
+                      </span>
+                    </span>
+                    <span
+                      className={
+                        c.type === 'income'
+                          ? 'shrink-0 text-success-600 dark:text-success-400'
+                          : 'shrink-0 text-gray-600 dark:text-gray-400'
+                      }
+                    >
+                      {c.type === 'income' ? '+' : '−'}
+                      {money(c.monthlyAmount)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                O que varia (média do histórico)
+              </h4>
+              <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                Já sem o que os contratos acima explicam — assim a renda não conta duas
+                vezes.
+              </p>
               <ul className="space-y-1.5">
                 {baseline.lines.length === 0 && (
                   <li className="text-sm text-gray-500 dark:text-gray-400">
-                    Ainda não há histórico suficiente.
+                    Fora dos contratos, o histórico não mostra mais nada.
                   </li>
                 )}
                 {baseline.lines.map((line) => (
@@ -221,33 +307,6 @@ export default function ProjectionTab({ projection }: Props) {
               </ul>
             </div>
 
-            <div>
-              <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Encargos que acabam
-              </h4>
-              {baseline.endingCommitments.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Nenhuma recorrente tem fim marcado. Uma prestação com data de fim ou
-                  número de parcelas deixa de pesar na projeção a partir daí.
-                </p>
-              ) : (
-                <ul className="space-y-1.5">
-                  {baseline.endingCommitments.map((c) => (
-                    <li
-                      key={`${c.name}-${c.endsAfter}`}
-                      className="flex items-center justify-between gap-3 text-sm"
-                    >
-                      <span className="truncate text-gray-700 dark:text-gray-300">
-                        {c.name}
-                      </span>
-                      <span className="shrink-0 text-gray-500 dark:text-gray-400">
-                        {money(c.monthlyAmount)}/mês até {monthLabel(c.endsAfter)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
           </div>
         )}
       </Surface>
