@@ -1,9 +1,12 @@
 // src/components/finance-metrics/recurring/RecurringManager.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useRecurringFinance, RecurringTransaction } from '../../../hooks/useRecurringFinance';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { ownerNaming } from '../../../hooks/useOwner';
 import RecurringForm from './RecurringForm';
 import RecurringList from './RecurringList';
+import RecurringSummary from './RecurringSummary';
 import Button from '../../ui/button/Button';
 import { useConfirm } from '../../ui/confirm/useConfirm';
 
@@ -16,6 +19,11 @@ const RecurringManager: React.FC = () => {
     error,
   } = useRecurringFinance();
 
+  // O perfil serve a duas coisas nesta tela: a moeda em que os totais são
+  // somados e os nomes do casal, para dizer quem lançou cada recorrente.
+  const { profile, getProfile } = useUserProfile();
+  const naming = useMemo(() => ownerNaming(profile), [profile]);
+
   const { confirm, dialog } = useConfirm();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<RecurringTransaction | null>(null);
@@ -23,6 +31,10 @@ const RecurringManager: React.FC = () => {
   useEffect(() => {
     loadTransactions();
   }, []);
+
+  useEffect(() => {
+    getProfile().catch(() => {});
+  }, [getProfile]);
 
   const loadTransactions = async () => {
     await getAllRecurringTransactions();
@@ -109,9 +121,16 @@ const RecurringManager: React.FC = () => {
         </Button>
       </div>
 
+      {/* Quanto isto tudo custa por mês e quanto falta pagar até ao fim */}
+      <RecurringSummary
+        transactions={transactions || []}
+        displayCurrency={profile?.currency ?? 'BRL'}
+      />
+
       {/* List */}
       <RecurringList
         transactions={transactions || []}
+        naming={naming}
         onEdit={handleEdit}
         onDelete={handleDeleteRequest}
       />

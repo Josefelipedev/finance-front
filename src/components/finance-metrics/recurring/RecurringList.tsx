@@ -1,14 +1,24 @@
 import React from 'react';
 import { RecurringTransaction } from '../../../hooks/useRecurringFinance';
+import { OwnerNaming } from '../../../hooks/useOwner';
 import { formatMoney } from '../../../utils/currency';
+import { remainingTotal } from '../../../utils/recurring';
+import OwnerChip from '../../common/OwnerChip';
 
 interface RecurringListProps {
   transactions: RecurringTransaction[];
+  /** Quem é quem no workspace do casal; no individual não desenha nada. */
+  naming: OwnerNaming;
   onEdit: (transaction: RecurringTransaction) => void;
   onDelete: (id: number) => void;
 }
 
-const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onDelete }) => {
+const RecurringList: React.FC<RecurringListProps> = ({
+  transactions,
+  naming,
+  onEdit,
+  onDelete,
+}) => {
   if (transactions.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-center">
@@ -96,6 +106,12 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
                       Notificação
                     </span>
                   )}
+
+                  {/* Quem lançou — só aparece no workspace do casal */}
+                  <OwnerChip
+                    name={naming.ownerName(transaction.userId)}
+                    mine={naming.isMine(transaction.userId)}
+                  />
                 </div>
               </div>
             </div>
@@ -120,7 +136,7 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
           </div>
 
           {/* Details */}
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
             <div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {transaction.occurrences ? 'Parcela' : 'Valor'}
@@ -170,6 +186,43 @@ const RecurringList: React.FC<RecurringListProps> = ({ transactions, onEdit, onD
                   de {formatMoney(transaction.contractedTotal, transaction.currency)}
                 </p>
               )}
+            </div>
+
+            {/* O que ainda falta desembolsar. Sem isto, quem quer saber quanto
+                deve tinha de subtrair de cabeça o pago do contratado — e as
+                assinaturas sem fim não têm resposta nenhuma a dar aqui. */}
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {transaction.type === 'income' ? 'Falta receber' : 'Falta pagar'}
+              </p>
+              {(() => {
+                const falta = remainingTotal(transaction);
+                if (falta == null) {
+                  return (
+                    <p
+                      className="font-medium text-gray-500 dark:text-gray-400"
+                      title="Sem número de parcelas nem total contratado: não há um fim para somar"
+                    >
+                      Sem fim definido
+                    </p>
+                  );
+                }
+                return (
+                  <p
+                    className={`font-semibold ${
+                      falta > 0
+                        ? 'text-gray-800 dark:text-white'
+                        : 'text-success-600 dark:text-success-400'
+                    }`}
+                  >
+                    {falta > 0
+                      ? formatMoney(falta, transaction.currency)
+                      : transaction.type === 'income'
+                        ? 'Recebida'
+                        : 'Quitada'}
+                  </p>
+                );
+              })()}
             </div>
           </div>
 

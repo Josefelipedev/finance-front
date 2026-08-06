@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import OwnerChip from '../../components/common/OwnerChip';
 import Button from '../../components/ui/button/Button';
 import { Modal } from '../../components/ui/modal';
 import { useConfirm } from '../../components/ui/confirm/useConfirm';
 import CategorySelect from '../../components/form/CategorySelect';
 import { useBills, BillItem, BillType } from '../../hooks/useBills';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import { ownerNaming } from '../../hooks/useOwner';
 import { currencyOption, formatMoney } from '../../utils/currency';
 import DateField from '../../components/form/DateField';
 
@@ -287,6 +289,7 @@ export default function BillsPage() {
 
   const { getBills, createBill, updateBill, deleteBill, payBill, unpayBill } = useBills();
   const { profile, getProfile } = useUserProfile();
+  const naming = useMemo(() => ownerNaming(profile), [profile]);
   const { confirm, dialog } = useConfirm();
 
   useEffect(() => {
@@ -523,6 +526,8 @@ export default function BillsPage() {
                 {item.categoryName}
               </span>
             )}
+            {/* Quem lançou — só aparece no workspace do casal */}
+            <OwnerChip name={naming.ownerName(item.userId)} mine={naming.isMine(item.userId)} />
           </div>
         </div>
 

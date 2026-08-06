@@ -1,11 +1,12 @@
 // src/components/finance-metrics/TransactionsList.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useFinance, FinanceRecord } from '../../hooks/useFinance.ts';
 import { Modal } from '../ui/modal';
 import AddFinanceModal from './AddFinanceModal';
-import { useAuth } from '../../context/AuthContext.tsx';
+import { useOwnerNaming } from '../../hooks/useOwner';
 import { formatMoney } from '../../utils/currency';
+import OwnerChip from '../common/OwnerChip';
 import Button from '../ui/button/Button';
 
 interface TransactionsListProps {
@@ -14,8 +15,9 @@ interface TransactionsListProps {
 
 const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
   const { getAllFinances, deleteFinanceRecord, isLoading, error, records: data } = useFinance();
-  const { user } = useAuth();
-  const myUserId = user?.id;
+  // Antes marcava-se só "Parceiro(a)" a partir do id do token. Com dois nomes
+  // no workspace, dizer qual deles lançou custa o mesmo e responde à pergunta.
+  const naming = useOwnerNaming();
 
   const [editingRecord, setEditingRecord] = useState<FinanceRecord | null>(null);
   const [deletingRecord, setDeletingRecord] = useState<FinanceRecord | null>(null);
@@ -137,14 +139,11 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {transaction.description || 'Sem descrição'}
                       </div>
-                      {myUserId != null &&
-                        transaction.userId != null &&
-                        transaction.userId !== myUserId && (
-                          <span className="inline-flex items-center gap-1 mt-0.5 text-[11px] px-1.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400">
-                            <i className="fas fa-heart text-[9px]"></i>
-                            Parceiro(a)
-                          </span>
-                        )}
+                      <OwnerChip
+                        name={naming.ownerName(transaction.userId)}
+                        mine={naming.isMine(transaction.userId)}
+                        className="mt-0.5"
+                      />
                     </div>
                   </div>
                 </td>
