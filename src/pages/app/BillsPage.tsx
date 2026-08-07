@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -257,7 +257,14 @@ function BillFormModal({
 // ===== Página =====
 
 export default function BillsPage() {
-  const [month, setMonth] = useState<string>(currentMonth());
+  // `?mes=AAAA-MM` abre o ecrã no mês pedido: é por aí que o crachá "Conta" das
+  // Transações chega cá (B5). Sem isto o link caía sempre no mês corrente e a
+  // conta que se queria ver podia nem estar na lista.
+  const [searchParams] = useSearchParams();
+  const [month, setMonth] = useState<string>(() => {
+    const pedido = searchParams.get('mes');
+    return pedido && /^\d{4}-\d{2}$/.test(pedido) ? pedido : currentMonth();
+  });
   const [items, setItems] = useState<BillItem[]>([]);
   // Totais JÁ convertidos pelo servidor para a moeda de exibição do usuário.
   const [expense, setExpense] = useState({ pending: 0, paid: 0 });

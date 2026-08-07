@@ -7,6 +7,8 @@ import AddFinanceModal from './AddFinanceModal';
 import { useOwnerNaming } from '../../hooks/useOwner';
 import { formatMoney } from '../../utils/currency';
 import OwnerChip from '../common/OwnerChip';
+import BillLinkBadge from '../common/BillLinkBadge';
+import { billDueLabel } from '../../utils/bill';
 import Button from '../ui/button/Button';
 
 interface TransactionsListProps {
@@ -139,11 +141,13 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {transaction.description || 'Sem descrição'}
                       </div>
-                      <OwnerChip
-                        name={naming.ownerName(transaction.userId)}
-                        mine={naming.isMine(transaction.userId)}
-                        className="mt-0.5"
-                      />
+                      <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                        <OwnerChip
+                          name={naming.ownerName(transaction.userId)}
+                          mine={naming.isMine(transaction.userId)}
+                        />
+                        {transaction.bill && <BillLinkBadge bill={transaction.bill} />}
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -240,6 +244,16 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                 <p className="text-sm text-error-600 dark:text-red-400 mt-1">
                   O registro será permanentemente removido.
                 </p>
+                {/* Apagar um lançamento vinculado reverte a conta para pendente
+                    — o servidor já o faz, mas até aqui fazia-o em silêncio. */}
+                {deletingRecord.bill && (
+                  <p className="text-sm text-error-600 dark:text-red-400 mt-2">
+                    Este lançamento quita a conta{' '}
+                    <strong>"{deletingRecord.bill.description}"</strong> de{' '}
+                    {billDueLabel(deletingRecord.bill.dueDate)}: ela volta a ficar{' '}
+                    <strong>pendente</strong>.
+                  </p>
+                )}
               </div>
 
               <div className="flex justify-end space-x-3 pt-2">

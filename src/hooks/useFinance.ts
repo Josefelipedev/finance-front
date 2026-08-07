@@ -32,6 +32,22 @@ export interface FinanceRecord {
     color?: string;
     icon?: string;
   };
+  /** Conta a pagar/receber que este lançamento quita (null = lançamento solto). */
+  billOccurrenceId?: number | null;
+  bill?: LinkedBill | null;
+}
+
+/**
+ * A conta que um lançamento quita. Vem resolvida do servidor porque o vínculo
+ * é por id solto (sem relação no schema) e o cliente não tem por onde a ir
+ * buscar sozinho.
+ */
+export interface LinkedBill {
+  id: number;
+  description: string;
+  dueDate: string;
+  status: string;
+  recurringId: number | null;
 }
 
 export interface CurrencyBreakdown {
