@@ -108,7 +108,7 @@ const BudgetManager: React.FC = () => {
     setIsFormOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (formCategoryId === '') {
       toast.error('Selecione uma categoria.');
       return;
@@ -121,22 +121,32 @@ const BudgetManager: React.FC = () => {
     const alertValue = Math.min(100, Math.max(1, Number(formAlertAt) || 80));
     const category = categories.find((c) => c.id === formCategoryId);
 
-    upsert({
-      categoryId: Number(formCategoryId),
-      categoryName: category?.name ?? editing?.categoryName ?? 'Categoria',
-      monthlyLimit: limitValue,
-      alertAt: alertValue,
-    });
-    toast.success(editing ? 'Limite atualizado!' : 'Limite definido!');
-    setIsFormOpen(false);
-    setEditing(null);
+    // Os limites são do servidor (C1): gravar pode falhar, e antes disto o
+    // ecrã dizia "guardado!" a algo que só existia neste browser.
+    try {
+      await upsert({
+        categoryId: Number(formCategoryId),
+        categoryName: category?.name ?? editing?.categoryName ?? 'Categoria',
+        monthlyLimit: limitValue,
+        alertAt: alertValue,
+      });
+      toast.success(editing ? 'Limite atualizado!' : 'Limite definido!');
+      setIsFormOpen(false);
+      setEditing(null);
+    } catch {
+      toast.error('Não foi possível guardar o limite.');
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleting) return;
-    remove(deleting.categoryId);
-    toast.success('Limite removido.');
-    setDeleting(null);
+    try {
+      await remove(deleting.categoryId);
+      toast.success('Limite removido.');
+      setDeleting(null);
+    } catch {
+      toast.error('Não foi possível remover o limite.');
+    }
   };
 
   // Categorias ainda sem limite (para o select ao criar)

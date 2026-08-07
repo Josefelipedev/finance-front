@@ -16,6 +16,13 @@ export interface FiscalProfile {
   activityCode?: string | null;
   fiscalNumber?: string | null;
   annualRevenue: number;
+  /** De onde saiu o volume acima: dos lançamentos ou do campo do perfil (C6). */
+  revenueSource?: 'ledger' | 'manual';
+  /** O que os lançamentos do ano dizem (null = nenhuma categoria marcada). */
+  ledgerRevenueEur?: number | null;
+  /** O que está escrito no perfil, para se poderem comparar. */
+  manualRevenue?: number;
+  revenueYear?: number;
   thresholdEur: number; // 15000
   immediateExitThresholdEur: number; // 18750
   currency: string;

@@ -7,7 +7,17 @@ export interface BankAccount {
   accountNumber: string;
   agency?: string | null;
   currency: string;
+  /**
+   * Saldo INICIAL — o ponto de partida escrito à mão (C5). O que se mostra é o
+   * `currentBalance`; este campo sozinho nunca acompanhou movimento nenhum.
+   */
   balance: number;
+  /** O mesmo que `balance`, com o nome que diz o que é. */
+  initialBalance?: number;
+  /** Ponto de partida + o que entrou − o que saiu, calculado no servidor. */
+  currentBalance?: number;
+  /** O que os lançamentos ligados a esta conta somam. */
+  movements?: { income: number; expense: number; count: number };
   iconName?: string | null;
   userId: number;
   user?: { id: number; name: string };

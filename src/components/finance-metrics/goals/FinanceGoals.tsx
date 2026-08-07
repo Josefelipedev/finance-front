@@ -15,6 +15,7 @@ const FinanceGoals: React.FC = () => {
     createGoal,
     updateGoal,
     deleteGoal,
+    depositToGoal,
     calculateGoalProgress,
     isGoalOverdue,
     filterGoalsByStatus,
@@ -37,6 +38,12 @@ const FinanceGoals: React.FC = () => {
   const [deletingGoal, setDeletingGoal] = useState<Goal | null>(null);
   const [depositingGoal, setDepositingGoal] = useState<Goal | null>(null);
   const [depositAmount, setDepositAmount] = useState('');
+  /**
+   * Um depósito é dinheiro que sai (C2): por omissão vira despesa na categoria
+   * "Metas". Desligar isto grava o depósito sem lançamento — é para quem move
+   * dinheiro entre contas suas e não quer que conte como gasto.
+   */
+  const [depositToLedger, setDepositToLedger] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED' | 'CANCELED'>('ACTIVE');
   const [expandedGoalId, setExpandedGoalId] = useState<number | null>(null);
@@ -68,6 +75,7 @@ const FinanceGoals: React.FC = () => {
     e.stopPropagation();
     setDepositingGoal(goal);
     setDepositAmount('');
+    setDepositToLedger(true);
     depositModal.openModal();
   };
 
@@ -79,15 +87,23 @@ const FinanceGoals: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const newValue = depositingGoal.currentValue + amount;
-      await updateGoal(depositingGoal.id, {
-        currentValue: newValue,
-        status: newValue >= depositingGoal.targetValue ? 'COMPLETED' : depositingGoal.status,
+      // Quem soma é o servidor, na mesma transação em que cria a despesa: o
+      // cliente somava `currentValue + amount` e mandava um PUT, e dois
+      // depósitos ao mesmo tempo (web e telemóvel) perdiam-se um ao outro.
+      const { goal: updated } = await depositToGoal(depositingGoal.id, {
+        amount,
+        ledger: depositToLedger,
       });
+      const alcancada = updated.currentValue >= updated.targetValue;
+      if (alcancada && updated.status !== 'COMPLETED') {
+        await updateGoal(updated.id, { status: 'COMPLETED' });
+      }
       toast.success(
-        newValue >= depositingGoal.targetValue
+        alcancada
           ? 'Meta concluída! Parabéns! 🎉'
-          : `${formatMoney(amount, displayCurrency)} depositados com sucesso!`
+          : depositToLedger
+            ? `${formatMoney(amount, displayCurrency)} depositados — e lançados como despesa.`
+            : `${formatMoney(amount, displayCurrency)} depositados com sucesso!`
       );
       depositModal.closeModal();
       setDepositingGoal(null);
@@ -572,6 +588,22 @@ const FinanceGoals: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white text-lg"
                 />
               </div>
+
+              <label className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+                <input
+                  type="checkbox"
+                  checked={depositToLedger}
+                  onChange={(e) => setDepositToLedger(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-700"
+                />
+                <span>
+                  Registar como despesa na categoria <strong>Metas</strong>
+                  <span className="block text-xs text-gray-500 dark:text-gray-500">
+                    O dinheiro sai da sua conta; desligue só se for uma transferência
+                    entre contas suas que não quer contar como gasto.
+                  </span>
+                </span>
+              </label>
 
               {depositAmount && (
                 <div className="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-lg p-3">

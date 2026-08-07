@@ -37,6 +37,18 @@ export interface CreateGoalDto {
 
 export type UpdateGoalDto = Partial<CreateGoalDto>;
 
+/** Um depósito, já com o lançamento que o representa (C2). */
+export interface GoalDeposit {
+  id: number;
+  goalId: number;
+  userId: number;
+  amount: number;
+  currency: string;
+  financeId: number | null;
+  financeAutoCreated: boolean;
+  createdAt: string;
+}
+
 // ===================== HOOK =====================
 
 export function useGoals() {
@@ -129,6 +141,50 @@ export function useGoals() {
     }
   };
 
+  /**
+   * Depositar (C2): o servidor cria a despesa e sobe o `currentValue` na mesma
+   * transação. Antes disto o cliente somava o valor e mandava um `PUT` com o
+   * `currentValue` novo — a meta subia e o dinheiro não existia para a app.
+   *
+   * `ledger: false` grava o depósito sem lançamento, para quem move dinheiro
+   * entre contas suas e não quer que isso conte como gasto.
+   */
+  const depositToGoal = async (
+    id: number,
+    data: { amount: number; financeId?: number; ledger?: boolean }
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await api.post<{ goal: Goal; deposit: GoalDeposit }>(
+        `/goals/${id}/deposit`,
+        data
+      );
+      if (result?.goal) {
+        setGoals((prev) => prev.map((goal) => (goal.id === id ? result.goal : goal)));
+      }
+      return result;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /** Histórico de depósitos de uma meta. */
+  const getGoalDeposits = async (id: number) =>
+    api.get<GoalDeposit[]>(`/goals/${id}/deposits`);
+
+  /** Desfaz um depósito (e apaga o lançamento, se foi a app que o criou). */
+  const undoGoalDeposit = async (goalId: number, depositId: number) => {
+    const updated = await api.delete<Goal>(`/goals/${goalId}/deposit/${depositId}`);
+    if (updated) {
+      setGoals((prev) => prev.map((goal) => (goal.id === goalId ? updated : goal)));
+    }
+    return updated;
+  };
+
   const deleteGoal = async (id: number) => {
     setIsLoading(true);
     setError(null);
@@ -200,6 +256,9 @@ export function useGoals() {
     createGoal,
     updateGoal,
     deleteGoal,
+    depositToGoal,
+    getGoalDeposits,
+    undoGoalDeposit,
 
     // Utilidades
     calculateGoalProgress,

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import api from '../services/api';
 
 // ===================== TYPES =====================
-// Paridade com o Android: os limites de orçamento são armazenados
-// localmente no dispositivo (Room). No web, o equivalente fiel é o
-// localStorage. O "gasto" vem das transações da API (useFinance).
+// Os limites vivem no SERVIDOR (C1 da revisão). Viviam no `localStorage` do
+// browser e, no Android, numa base Room local: dois conjuntos que divergiam em
+// silêncio, que não sobreviviam a trocar de browser nem de telemóvel, e que o
+// casal nunca via igual. O gasto continua a vir das transações (useFinance).
 
 export interface BudgetLimit {
   categoryId: number;
@@ -12,57 +14,89 @@ export interface BudgetLimit {
   alertAt: number; // percentual (default 80)
 }
 
+/** Chave da migração única do que estava guardado no browser. */
 const STORAGE_KEY = 'finploit:budget-limits';
-
-function readStorage(): BudgetLimit[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeStorage(limits: BudgetLimit[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(limits));
-}
 
 // ===================== HOOK =====================
 
 export function useBudget() {
   const [limits, setLimits] = useState<BudgetLimit[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await api.get<BudgetLimit[]>('/budget');
+      setLimits(Array.isArray(data) ? data : []);
+      setError(null);
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      setError(err as Error);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  /**
+   * Sobe uma vez o que estava no browser, para quem já tinha limites definidos
+   * não os ver desaparecer no dia em que isto passou para o servidor. Corre
+   * só quando o servidor ainda não tem nada, e apaga a chave a seguir.
+   */
+  const migrateLocal = useCallback(async (existing: BudgetLimit[]) => {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    if (existing.length > 0) {
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+      for (const limit of parsed) {
+        if (typeof limit?.categoryId !== 'number') continue;
+        await api.put(`/budget/${limit.categoryId}`, {
+          monthlyLimit: Number(limit.monthlyLimit) || 0,
+          alertAt: Number(limit.alertAt) || 80,
+        });
+      }
+    } catch {
+      // Um localStorage corrompido não pode impedir o ecrã de abrir.
+    } finally {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, []);
 
   useEffect(() => {
-    setLimits(readStorage());
+    (async () => {
+      const existing = await load();
+      await migrateLocal(existing);
+      if (localStorage.getItem(STORAGE_KEY) === null && existing.length === 0) {
+        await load();
+      }
+    })().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const persist = useCallback((next: BudgetLimit[]) => {
-    setLimits(next);
-    writeStorage(next);
-  }, []);
-
-  // upsert por categoryId (PrimaryKey, igual ao Room)
   const upsert = useCallback(
-    (limit: BudgetLimit) => {
-      const next = (() => {
-        const exists = limits.some((l) => l.categoryId === limit.categoryId);
-        return exists
-          ? limits.map((l) => (l.categoryId === limit.categoryId ? limit : l))
-          : [...limits, limit];
-      })();
-      persist(next);
+    async (limit: BudgetLimit) => {
+      await api.put(`/budget/${limit.categoryId}`, {
+        monthlyLimit: limit.monthlyLimit,
+        alertAt: limit.alertAt,
+      });
+      await load();
     },
-    [limits, persist]
+    [load]
   );
 
   const remove = useCallback(
-    (categoryId: number) => {
-      persist(limits.filter((l) => l.categoryId !== categoryId));
+    async (categoryId: number) => {
+      await api.delete(`/budget/${categoryId}`);
+      await load();
     },
-    [limits, persist]
+    [load]
   );
 
-  return { limits, upsert, remove };
+  return { limits, upsert, remove, isLoading, error, reload: load };
 }

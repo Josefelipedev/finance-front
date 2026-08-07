@@ -470,7 +470,9 @@ export default function FiscalPage() {
                 className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
               />
               <p className="mt-1.5 text-xs text-gray-400">
-                Atualize este valor para receber alertas de limites.
+                Só é usado enquanto não marcar categorias de receita como
+                “Faturação da atividade”. A partir daí, o volume é somado dos seus
+                lançamentos do ano.
               </p>
             </div>
 
@@ -615,6 +617,14 @@ export default function FiscalPage() {
             </p>
             <p className="mt-1 text-sm font-semibold tabular-nums text-gray-900 dark:text-white">
               {formatEur(profile.annualRevenue)}
+            </p>
+            {/* De onde vem este número (C6): somado dos lançamentos ou escrito
+                à mão. São coisas diferentes e o limiar do art. 53.º depende
+                disso. */}
+            <p className="mt-0.5 text-[11px] text-gray-400 dark:text-gray-500">
+              {profile.revenueSource === 'ledger'
+                ? `dos seus lançamentos de ${profile.revenueYear ?? ''}`
+                : 'escrito por si no perfil'}
             </p>
           </div>
           <div className="rounded-xl border border-gray-200 p-3 dark:border-white/[0.06]">
@@ -917,6 +927,13 @@ export default function FiscalPage() {
               <span>0 €</span>
               <span>{formatEur(profile.thresholdEur)}</span>
             </div>
+            {profile.revenueSource === 'manual' && (
+              <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+                Este medidor está a usar o valor que escreveu no perfil, não os seus
+                lançamentos. Marque as categorias de receita da atividade em
+                Categorias para o passar a somar sozinho.
+              </p>
+            )}
             <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
               Registou{' '}
               <strong className="font-medium text-gray-700 dark:text-gray-200">

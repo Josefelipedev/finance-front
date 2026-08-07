@@ -51,6 +51,8 @@ interface MealShoppingItem {
   quantity: number;
   unit: string;
   estimatedPrice: number | null;
+  /** Preço realmente pago. É ele que manda no total ao fechar a lista (C4). */
+  actualPrice: number | null;
   category: string | null;
   purchased: boolean;
 }
@@ -60,6 +62,10 @@ interface MealShoppingList {
   totalEstimate: number | null;
   notified: boolean;
   items: MealShoppingItem[];
+  /** Quando a lista foi dada por comprada e virou despesa (C4). */
+  closedAt?: string | null;
+  /** A despesa que ela gerou. */
+  financeId?: number | null;
 }
 
 interface MealPlan {
@@ -664,11 +670,17 @@ function ShoppingListView({
   onToggle,
   onNotify,
   notifying,
+  onClose,
+  onReopen,
+  closing,
 }: {
   list: MealShoppingList;
   onToggle: (id: number) => void;
   onNotify: () => void;
   notifying: boolean;
+  onClose: () => void;
+  onReopen: () => void;
+  closing: boolean;
 }) {
   const { profile: userProfile, getProfile } = useUserProfile();
   const displayCurrency = userProfile?.currency;
@@ -681,6 +693,14 @@ function ShoppingListView({
   const pending = list.items.filter((i) => !i.purchased);
   const totalPending = pending.reduce((s, i) => s + (i.estimatedPrice ?? 0), 0);
   const progress = Math.round(((list.items.length - pending.length) / list.items.length) * 100);
+  const isClosed = Boolean(list.closedAt);
+  // O que a despesa vai valer: o preço pago quando existe, o estimado quando
+  // ainda não se preencheu. É a mesma conta que o servidor faz ao fechar.
+  const purchased = list.items.filter((i) => i.purchased);
+  const totalPurchased = purchased.reduce(
+    (s, i) => s + (i.actualPrice ?? i.estimatedPrice ?? 0),
+    0
+  );
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
@@ -691,14 +711,46 @@ function ShoppingListView({
             {pending.length} de {list.items.length} itens restantes
           </p>
         </div>
-        <button
-          onClick={onNotify}
-          disabled={notifying || pending.length === 0}
-          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
-        >
-          📲 {notifying ? 'Enviando...' : 'Enviar via WhatsApp'}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={onNotify}
+            disabled={notifying || pending.length === 0 || isClosed}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition disabled:opacity-50"
+          >
+            📲 {notifying ? 'Enviando...' : 'Enviar via WhatsApp'}
+          </button>
+          {/* C4: fechar a lista é o que faz o cardápio chegar aos gastos. */}
+          {isClosed ? (
+            <button
+              onClick={onReopen}
+              disabled={closing}
+              className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              ↩︎ {closing ? 'A reabrir...' : 'Reabrir lista'}
+            </button>
+          ) : (
+            <button
+              onClick={onClose}
+              disabled={closing || purchased.length === 0}
+              className="flex items-center gap-2 rounded-lg bg-brand-400 px-4 py-2 text-sm font-semibold text-gray-950 transition hover:bg-brand-300 disabled:opacity-50"
+              title={
+                purchased.length === 0
+                  ? 'Marque os itens que comprou antes de fechar'
+                  : 'Cria a despesa em Alimentação com o total do que comprou'
+              }
+            >
+              💸 {closing ? 'A fechar...' : 'Fechar e lançar despesa'}
+            </button>
+          )}
+        </div>
       </div>
+
+      {isClosed && (
+        <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm text-brand-700 dark:border-brand-400/20 dark:bg-brand-400/10 dark:text-brand-300">
+          Lista fechada — os {formatMoney(totalPurchased, displayCurrency)} já estão
+          lançados como despesa. Reabra para a voltar a editar (a despesa é apagada).
+        </div>
+      )}
 
       {/* Barra de progresso */}
       <div className="mb-4">
@@ -713,6 +765,13 @@ function ShoppingListView({
           />
         </div>
       </div>
+
+      {purchased.length > 0 && !isClosed && (
+        <div className="mb-4 rounded-lg bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 dark:bg-white/[0.04] dark:text-gray-300">
+          🧾 Comprado até agora: {formatMoney(totalPurchased, displayCurrency)} ({purchased.length}{' '}
+          {purchased.length === 1 ? 'item' : 'itens'})
+        </div>
+      )}
 
       {list.totalEstimate && (
         <div className="bg-brand-50 dark:bg-brand-900/20 rounded-lg px-4 py-2 mb-4 text-sm text-brand-700 dark:text-brand-300 font-medium">
@@ -738,7 +797,8 @@ function ShoppingListView({
                     type="checkbox"
                     checked={item.purchased}
                     onChange={() => onToggle(item.id)}
-                    className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 shrink-0"
+                    disabled={isClosed}
+                    className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 shrink-0 disabled:opacity-50"
                   />
                   <span className={`flex-1 text-sm text-gray-800 dark:text-white ${item.purchased ? 'line-through' : ''}`}>
                     {item.name}
@@ -776,6 +836,7 @@ export default function MealPlannerPage() {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [notifying, setNotifying] = useState(false);
+  const [closingList, setClosingList] = useState(false);
   const [budget, setBudget] = useState('');
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
@@ -798,6 +859,8 @@ export default function MealPlannerPage() {
     saveSchedule: persistSchedule,
     generatePlan: requestPlan,
     toggleItem: toggleShoppingItem,
+    closeShoppingList: closeList,
+    reopenShoppingList: reopenList,
     sendNotification: requestNotification,
     getPlans,
     deletePlan: removePlan,
@@ -947,6 +1010,37 @@ export default function MealPlannerPage() {
       });
     } catch {
       flash('error', 'Erro ao atualizar item.');
+    }
+  }
+
+  /**
+   * Fechar a lista lança a despesa (C4): o `actualPrice` de cada item era
+   * gravado e morria ali — o cardápio sabia o preço real da comida e não o
+   * dizia a ninguém.
+   */
+  async function closeShopping() {
+    setClosingList(true);
+    try {
+      await closeList();
+      await loadActivePlan();
+      flash('success', 'Lista fechada e despesa lançada.');
+    } catch (e: unknown) {
+      flash('error', e instanceof Error ? e.message : 'Não foi possível fechar a lista.');
+    } finally {
+      setClosingList(false);
+    }
+  }
+
+  async function reopenShopping() {
+    setClosingList(true);
+    try {
+      await reopenList();
+      await loadActivePlan();
+      flash('success', 'Lista reaberta — a despesa foi apagada.');
+    } catch (e: unknown) {
+      flash('error', e instanceof Error ? e.message : 'Não foi possível reabrir a lista.');
+    } finally {
+      setClosingList(false);
     }
   }
 
@@ -1174,6 +1268,9 @@ export default function MealPlannerPage() {
             onToggle={toggleItem}
             onNotify={sendNotification}
             notifying={notifying}
+            onClose={closeShopping}
+            onReopen={reopenShopping}
+            closing={closingList}
           />
         ) : (
           <div className="rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-16 text-center">

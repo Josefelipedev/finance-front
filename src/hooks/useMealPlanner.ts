@@ -27,6 +27,8 @@ export interface MealShoppingItem {
   quantity: number;
   unit: string;
   estimatedPrice: number | null;
+  /** Preço realmente pago; manda no total ao fechar a lista (C4). */
+  actualPrice: number | null;
   category: string | null;
   purchased: boolean;
 }
@@ -36,6 +38,9 @@ export interface MealShoppingList {
   totalEstimate: number | null;
   notified: boolean;
   items: MealShoppingItem[];
+  /** Quando a lista foi fechada e virou despesa (C4). */
+  closedAt?: string | null;
+  financeId?: number | null;
 }
 
 export interface MealPlan {
@@ -230,6 +235,37 @@ export function useMealPlanner() {
     }
   }, []);
 
+  /**
+   * Fecha a lista e regista a despesa do que se comprou (C4). O total é somado
+   * no servidor, a partir do preço pago (ou do estimado, quando falta).
+   */
+  const closeShoppingList = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      return await api.post('/meal-planner/shopping/close', {});
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  /** Reabre a lista e apaga a despesa que ela gerou. */
+  const reopenShoppingList = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      return await api.post('/meal-planner/shopping/reopen', {});
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const sendNotification = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -303,6 +339,8 @@ export function useMealPlanner() {
     saveSchedule,
     generatePlan,
     toggleItem,
+    closeShoppingList,
+    reopenShoppingList,
     sendNotification,
     getPlans,
     deletePlan,

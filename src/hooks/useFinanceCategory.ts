@@ -10,6 +10,8 @@ export interface FinanceCategory {
   iconName?: string;
   description?: string;
   isActive: boolean;
+  /** Receitas desta categoria contam como faturação da atividade (C6). */
+  isBusinessIncome?: boolean;
   userId: number;
   createdAt: string;
   updatedAt: string;
@@ -28,6 +30,7 @@ export interface CreateCategoryDto {
   color?: string;
   description?: string;
   isActive?: boolean;
+  isBusinessIncome?: boolean;
 }
 
 export interface UpdateCategoryDto {
@@ -36,6 +39,7 @@ export interface UpdateCategoryDto {
   color?: string;
   description?: string;
   isActive?: boolean;
+  isBusinessIncome?: boolean;
 }
 
 interface GetAllCategoriesOptions {

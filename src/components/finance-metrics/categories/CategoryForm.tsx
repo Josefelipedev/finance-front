@@ -26,6 +26,8 @@ const categorySchema = z.object({
     .string()
     .max(200, 'A descrição deve ter no máximo 200 caracteres')
     .transform((val) => val?.trim() || ''),
+  /** C6: o fiscal soma as receitas destas categorias para o limiar do art. 53.º. */
+  isBusinessIncome: z.boolean(),
 });
 
 type CategoryFormData = z.infer<typeof categorySchema>;
@@ -53,6 +55,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onSuccess, onCanc
       iconName: 'fas fa-circle',
       color: '#6B7280',
       description: '',
+      isBusinessIncome: false,
     },
     mode: 'onChange',
   });
@@ -70,6 +73,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onSuccess, onCanc
         iconName: category.iconName || 'fas fa-circle',
         color: category.color || '#6B7280',
         description: category.description || '',
+        isBusinessIncome: category.isBusinessIncome ?? false,
       });
     }
   }, [category, reset]);
@@ -92,6 +96,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onSuccess, onCanc
         color: data.color,
         description: data.description,
         isActive: category?.isActive ?? true,
+        isBusinessIncome: data.isBusinessIncome,
       };
 
       if (category) {
@@ -242,6 +247,24 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onSuccess, onCanc
               <p className="text-xs text-gray-500 dark:text-gray-400">{description.length}/200</p>
             </div>
           </div>
+
+          {/* Faturação da atividade (C6) — é esta marca que diz ao módulo fiscal
+              o que somar. Sem ela, o limiar dos 15.000 € do art. 53.º é
+              comparado com um número escrito à mão no perfil. */}
+          <label className="flex items-start gap-2 rounded-xl border border-gray-200 p-3 dark:border-white/[0.08]">
+            <input
+              type="checkbox"
+              {...register('isBusinessIncome')}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-700"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Faturação da atividade
+              <span className="block text-xs text-gray-500 dark:text-gray-400">
+                As receitas desta categoria contam para o volume anual do seu perfil fiscal
+                (limiar do art. 53.º). Não marque salários nem reembolsos.
+              </span>
+            </span>
+          </label>
 
           {/* Botões */}
           <div className="flex justify-end gap-3 pt-4 border-t dark:border-gray-700">

@@ -134,8 +134,14 @@ export default function AccountsPage() {
               </select>
             </div>
             <div>
+              {/* Já não é "saldo atual": os lançamentos ligados à conta somam-se
+                  por cima deste valor (C5). Escrever aqui o saldo que o banco
+                  mostra hoje seria contar os movimentos duas vezes. */}
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Saldo atual (opcional)
+                Saldo inicial (opcional)
+                <span className="ml-1 font-normal text-xs text-gray-400 dark:text-gray-500">
+                  — o ponto de partida; os lançamentos somam-se a este valor
+                </span>
               </label>
               <div className="flex gap-2">
                 <input
@@ -195,9 +201,31 @@ export default function AccountsPage() {
                   {account.accountNumber ? `Conta ${account.accountNumber}` : 'Sem número'}
                   {account.user?.name ? ` · ${account.user.name}` : ''}
                 </p>
+                {/* O saldo é derivado (C5): o valor escrito à mão é só o ponto
+                    de partida e os lançamentos ligados à conta somam-se por
+                    cima. Antes mostrava-se o campo manual, que não acompanhava
+                    nada e mentia a partir do primeiro movimento. */}
                 <p className="mt-3 font-display text-xl font-semibold tabular-nums text-gray-900 dark:text-white">
-                  {formatMoney(account.balance, account.currency)}
+                  {formatMoney(account.currentBalance ?? account.balance, account.currency)}
                 </p>
+                {account.movements && account.movements.count > 0 ? (
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    Início {formatMoney(account.initialBalance ?? account.balance, account.currency)}
+                    {' · '}
+                    <span className="text-success-600 dark:text-success-400">
+                      +{formatMoney(account.movements.income, account.currency)}
+                    </span>{' '}
+                    <span className="text-error-600 dark:text-red-400">
+                      −{formatMoney(account.movements.expense, account.currency)}
+                    </span>{' '}
+                    ({account.movements.count}{' '}
+                    {account.movements.count === 1 ? 'movimento' : 'movimentos'})
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    Saldo inicial · sem lançamentos ligados a esta conta
+                  </p>
+                )}
                 <div className="mt-4 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
                   <button
                     onClick={() => handleArchive(account.id)}
