@@ -73,6 +73,17 @@ export interface UpdateRecurringTransactionDto {
   totalAmount?: number;
 }
 
+/** O que a quitação ("paguei tudo") pagou de facto. */
+export interface SettleRecurringResult {
+  recurring: RecurringTransaction;
+  /** Valor liquidado, na moeda da recorrente. */
+  settledAmount: number;
+  currency: string;
+  /** Lançamento único criado no razão. */
+  financeId: number;
+  billOccurrenceId: number;
+}
+
 // ===================== HOOK =====================
 
 export function useRecurringFinance() {
@@ -158,6 +169,27 @@ export function useRecurringFinance() {
       setData((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
 
       return updated;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * "Paguei tudo": liquida de uma vez o que falta do parcelamento.
+   *
+   * O servidor marca as parcelas por pagar como liquidadas, cria UM lançamento
+   * com o valor em falta (data de hoje) e fecha a recorrente. Devolve quanto é
+   * que a quitação pagou, para o ecrã o poder dizer em vez de um "pronto".
+   */
+  const settleRecurringTransaction = async (id: number) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      return await api.post<SettleRecurringResult>(`/recurring-finance/${id}/settle`, {});
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -258,6 +290,7 @@ export function useRecurringFinance() {
     getAllRecurringTransactions,
     getRecurringTransactionById,
     updateRecurringTransaction,
+    settleRecurringTransaction,
     deleteRecurringTransaction,
 
     // Utilities

@@ -50,3 +50,15 @@ export function remainingTotal(r: RecurringTransaction): number | null {
   if (r.contractedTotal == null) return null;
   return Math.max(0, r.contractedTotal - (r.paidTotal ?? 0));
 }
+
+/**
+ * Dá para dizer "paguei tudo" a esta recorrente?
+ *
+ * Só faz sentido onde existe um fim: uma subscrição sem número de parcelas
+ * paga-se para sempre e não há "tudo" nenhum a liquidar. E não se quita o que
+ * já está quitado — nem uma recorrente que já terminou.
+ */
+export function canSettle(r: RecurringTransaction, now: Date = new Date()): boolean {
+  const falta = remainingTotal(r);
+  return falta != null && falta > 0 && !isFinished(r, now);
+}

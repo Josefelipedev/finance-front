@@ -2,7 +2,7 @@ import React from 'react';
 import { RecurringTransaction } from '../../../hooks/useRecurringFinance';
 import { OwnerNaming } from '../../../hooks/useOwner';
 import { formatMoney } from '../../../utils/currency';
-import { remainingTotal } from '../../../utils/recurring';
+import { canSettle, remainingTotal } from '../../../utils/recurring';
 import OwnerChip from '../../common/OwnerChip';
 
 interface RecurringListProps {
@@ -10,6 +10,10 @@ interface RecurringListProps {
   /** Quem é quem no workspace do casal; no individual não desenha nada. */
   naming: OwnerNaming;
   onEdit: (transaction: RecurringTransaction) => void;
+  /** "Paguei tudo": liquida de uma vez o que falta do parcelamento. */
+  onSettle: (transaction: RecurringTransaction) => void;
+  /** Ids a liquidar agora — o botão não pode ser carregado duas vezes. */
+  settlingIds?: number[];
   onDelete: (id: number) => void;
 }
 
@@ -17,6 +21,8 @@ const RecurringList: React.FC<RecurringListProps> = ({
   transactions,
   naming,
   onEdit,
+  onSettle,
+  settlingIds = [],
   onDelete,
 }) => {
   if (transactions.length === 0) {
@@ -118,6 +124,30 @@ const RecurringList: React.FC<RecurringListProps> = ({
 
             {/* Actions */}
             <div className="flex gap-2 sm:gap-1 self-end sm:self-auto">
+              {/* "Paguei tudo": o financiamento pago antes do tempo saía em UM
+                  pagamento, e fechá-lo aqui poupa abrir as Contas mês a mês a
+                  carregar em Pagar tantas vezes quantas as parcelas que faltam.
+                  Só aparece onde há um fim contratado por liquidar. */}
+              {canSettle(transaction) && (
+                <button
+                  onClick={() => onSettle(transaction)}
+                  disabled={settlingIds.includes(transaction.id)}
+                  className="p-2 rounded-lg text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20 disabled:opacity-50"
+                  title={
+                    transaction.type === 'income'
+                      ? 'Recebi tudo — liquidar o que falta receber'
+                      : 'Paguei tudo — quitar o que falta pagar'
+                  }
+                >
+                  <i
+                    className={`fas ${
+                      settlingIds.includes(transaction.id)
+                        ? 'fa-spinner fa-spin'
+                        : 'fa-check-double'
+                    }`}
+                  />
+                </button>
+              )}
               <button
                 onClick={() => onEdit(transaction)}
                 className="p-2 rounded-lg text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"
