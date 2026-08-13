@@ -23,8 +23,9 @@ const AIShoppingModal: React.FC<AIShoppingModalProps> = ({ onSuccess, onCancel }
         budget: budget ? parseFloat(budget) : undefined,
         preferences: preferences.trim() || undefined,
         listName: listName.trim() || undefined,
-        currencyCode: 'EUR',
-        currencySymbol: '€',
+        // A moeda ia fixa em euros para toda a gente: quem gasta em reais
+        // recebia uma lista orçamentada em euros, com preços de supermercado
+        // português. O servidor usa a moeda do perfil quando não vem nada.
       });
 
       toast.success(`Lista "${result.list.name}" criada com ${result.list.items.length} itens!`);
