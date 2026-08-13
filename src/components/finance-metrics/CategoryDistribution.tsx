@@ -76,34 +76,39 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
         return;
       }
 
-      //Agrupamento por categoria
-      const categories = records.reduce((acc: any, record) => {
-        // Determina o nome da categoria
-        let categoryName = 'Sem Categoria';
-        let categoryColor = '#6B7280'; // Cor padrão para "Sem Categoria"
+      //Agrupamento por categoria — só o que foi GASTO. Isto somava tudo o que
+      // viesse na lista, sem olhar ao tipo: as receitas entravam na
+      // "distribuição de despesa" e, com o tipo `transfer`, um depósito numa
+      // meta passaria a competir com a Alimentação no gráfico (T6.1).
+      const categories = records
+        .filter((r) => r.type === 'expense')
+        .reduce((acc: any, record) => {
+          // Determina o nome da categoria
+          let categoryName = 'Sem Categoria';
+          let categoryColor = '#6B7280'; // Cor padrão para "Sem Categoria"
 
-        if (record.category && record.category.name) {
-          categoryName = record.category.name;
-          categoryColor = record.category.color || categoryColor;
-        }
+          if (record.category && record.category.name) {
+            categoryName = record.category.name;
+            categoryColor = record.category.color || categoryColor;
+          }
 
-        // Cria chave única para a categoria
-        const categoryKey = categoryName;
+          // Cria chave única para a categoria
+          const categoryKey = categoryName;
 
-        if (!acc[categoryKey]) {
-          acc[categoryKey] = {
-            category: categoryName,
-            name: categoryName,
-            amount: 0,
-            color: categoryColor,
-          };
-        }
+          if (!acc[categoryKey]) {
+            acc[categoryKey] = {
+              category: categoryName,
+              name: categoryName,
+              amount: 0,
+              color: categoryColor,
+            };
+          }
 
-        // Soma o valor já convertido pelo servidor, à taxa do dia de cada
-        // lançamento (registos do casal podem estar em BRL e EUR misturados).
-        acc[categoryKey].amount += Math.abs(record.convertedAmount ?? record.amount);
-        return acc;
-      }, {});
+          // Soma o valor já convertido pelo servidor, à taxa do dia de cada
+          // lançamento (registos do casal podem estar em BRL e EUR misturados).
+          acc[categoryKey].amount += Math.abs(record.convertedAmount ?? record.amount);
+          return acc;
+        }, {});
 
       // Converte para array e ordena por valor (decrescente)
       const formattedData = Object.values(categories)

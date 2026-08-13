@@ -9,6 +9,8 @@ import { formatMoney } from '../../utils/currency';
 import OwnerChip from '../common/OwnerChip';
 import BillLinkBadge from '../common/BillLinkBadge';
 import { billDueLabel } from '../../utils/bill';
+import OriginBadge from '../common/OriginBadge';
+import { isTransfer, typeLabel, typeSign } from '../../utils/finance-type';
 import Button from '../ui/button/Button';
 
 interface TransactionsListProps {
@@ -147,6 +149,9 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                           mine={naming.isMine(transaction.userId)}
                         />
                         {transaction.bill && <BillLinkBadge bill={transaction.bill} />}
+                        {!transaction.bill && transaction.origin && (
+                          <OriginBadge origin={transaction.origin} />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -166,10 +171,12 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                     className={`px-2 py-1 text-xs font-semibold rounded-full ${
                       transaction.type === 'income'
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        : isTransfer(transaction.type)
+                          ? 'bg-gray-100 text-gray-700 dark:bg-white/[0.06] dark:text-gray-300'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                     }`}
                   >
-                    {transaction.type === 'income' ? 'Receita' : 'Despesa'}
+                    {typeLabel(transaction.type)}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -177,10 +184,12 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                     className={
                       transaction.type === 'income'
                         ? 'text-green-600 dark:text-green-400'
-                        : 'text-error-600 dark:text-red-400'
+                        : isTransfer(transaction.type)
+                          ? 'text-gray-600 dark:text-gray-300'
+                          : 'text-error-600 dark:text-red-400'
                     }
                   >
-                    {transaction.type === 'income' ? '+' : '-'}
+                    {typeSign(transaction.type)}
                     {formatMoney(transaction.amount, transaction.currency)}
                   </span>
                 </td>

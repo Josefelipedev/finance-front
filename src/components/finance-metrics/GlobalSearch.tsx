@@ -6,6 +6,7 @@ import { useShopping } from '../../hooks/useShopping';
 import type { FinanceRecord } from '../../types/finance';
 import type { Goal } from '../../hooks/useGoals';
 import type { ShoppingList } from '../../hooks/useShopping';
+import { typeSign } from '../../utils/finance-type';
 
 const MIN_CHARS = 2;
 const DEBOUNCE_MS = 300;
@@ -125,7 +126,7 @@ const GlobalSearch: React.FC = () => {
                           : 'text-rose-600 dark:text-rose-400'
                       }
                     >
-                      {tx.type === 'income' ? '+' : '-'}
+                      {typeSign(tx.type)}
                       {formatCurrency(tx.amount)}
                     </span>
                   }

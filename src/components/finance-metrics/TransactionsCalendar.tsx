@@ -13,7 +13,7 @@ import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 import { formatMoney } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import { Modal } from '../ui/modal';
-import { countableType } from '../../utils/finance-type';
+import { countableType, typeSign } from '../../utils/finance-type';
 
 const recordCurrency = (record: FinanceRecord) => (record as { currency?: string }).currency;
 
@@ -196,7 +196,7 @@ const TransactionsCalendar: React.FC = () => {
                         : 'text-rose-600 dark:text-rose-400'
                     }`}
                   >
-                    {tx.type === 'income' ? '+' : '-'}
+                    {typeSign(tx.type)}
                     {formatMoney(tx.amount, recordCurrency(tx))}
                   </span>
                 </div>

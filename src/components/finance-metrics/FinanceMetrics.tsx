@@ -14,6 +14,8 @@ interface MetricItem {
   iconChip: string;
   highlight?: boolean;
   badgeColor: BadgeColor;
+  /** O que este número conta, para quem quiser saber ao certo (T6.6). */
+  hint?: string;
 }
 interface FinanceMetricsProps {
   totalIncome: number;
@@ -81,6 +83,9 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       value: formatMoney(safeTotalExpense, displayCurrency),
       change: '-',
       comparisonText: 'no período',
+      // Um total que a pessoa não sabe definir não é um total em que se possa
+      // confiar (T6.6). Cinco módulos emitem lançamentos e nem todos são gasto.
+      hint: 'Dinheiro gasto: lançamentos manuais, contas pagas, listas de compras e cardápios fechados. Depósitos em metas NÃO entram — são transferências.',
       icon: 'arrow-trend-down',
       valueColor: 'text-error-600 dark:text-red-400',
       iconChip: 'bg-red-50 text-error-600 dark:bg-error-500/10 dark:text-red-400',
@@ -138,8 +143,14 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
               </Badge>
             </div>
 
-            <p className="mb-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <p className="mb-1 flex items-center gap-1.5 text-sm font-medium text-gray-500 dark:text-gray-400">
               {item.title}
+              {item.hint && (
+                <i
+                  title={item.hint}
+                  className="fas fa-circle-info cursor-help text-[11px] text-gray-400 dark:text-gray-500"
+                />
+              )}
             </p>
             <h4
               className={`font-display text-2xl font-semibold tracking-tight tabular-nums ${item.valueColor}`}

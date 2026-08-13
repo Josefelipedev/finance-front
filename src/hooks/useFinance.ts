@@ -45,6 +45,21 @@ export interface FinanceRecord {
   /** Conta a pagar/receber que este lançamento quita (null = lançamento solto). */
   billOccurrenceId?: number | null;
   bill?: LinkedBill | null;
+  /** De onde veio este lançamento — `null` quando foi escrito à mão. */
+  origin?: FinanceOrigin | null;
+}
+
+/**
+ * A origem de um lançamento que a app criou sozinha.
+ *
+ * Cinco módulos emitem lançamentos e na lista eram todos linhas iguais — não
+ * havia como ver que a mesma compra tinha sido contada duas vezes, uma pela
+ * lista fechada e outra à mão.
+ */
+export interface FinanceOrigin {
+  kind: 'bill' | 'goal' | 'shopping' | 'meal';
+  label: string;
+  refId: number;
 }
 
 /**

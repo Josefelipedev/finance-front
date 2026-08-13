@@ -16,3 +16,32 @@ export type CountableType = 'income' | 'expense';
 export function countableType(type?: string | null): CountableType | null {
   return type === 'income' || type === 'expense' ? type : null;
 }
+
+/**
+ * Transferência: dinheiro que saiu do bolso disponível **sem ter sido gasto** —
+ * um depósito numa meta, uma passagem entre contas próprias.
+ *
+ * Fica fora de todos os totais (o `countableType` já a exclui, como exclui
+ * qualquer tipo que não se saiba somar), mas ao contrário de um tipo estranho
+ * esta é uma coisa que a app cria de propósito e tem de saber mostrar. Sem isto,
+ * um depósito de 250 € aparecia na lista rotulado "Despesa" com um menos à
+ * frente, que é exatamente a leitura que se quis evitar.
+ */
+export function isTransfer(type?: string | null): boolean {
+  return type === 'transfer';
+}
+
+/** O rótulo de um lançamento na lista. */
+export function typeLabel(type?: string | null): string {
+  if (type === 'income') return 'Receita';
+  if (type === 'transfer') return 'Transferência';
+  return 'Despesa';
+}
+
+/**
+ * O sinal à frente do valor. A transferência leva `−` porque o dinheiro saiu
+ * mesmo da conta — o que ela não é, é despesa.
+ */
+export function typeSign(type?: string | null): '+' | '-' {
+  return type === 'income' ? '+' : '-';
+}

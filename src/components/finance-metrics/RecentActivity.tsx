@@ -1,6 +1,7 @@
 // src/components/finance-metrics/RecentActivity.tsx
 import React, { useEffect, useState } from 'react';
 import { useFinance, FinanceRecord } from '../../hooks/useFinance.ts';
+import { typeSign } from '../../utils/finance-type';
 import { formatMoney } from '../../utils/currency';
 
 interface RecentActivityProps {
@@ -99,7 +100,7 @@ const RecentActivity: React.FC<RecentActivityProps> = ({ limit = 5 }) => {
                     : 'text-error-600 dark:text-red-400'
                 }`}
               >
-                {activity.type === 'income' ? '+' : '-'}{' '}
+                {typeSign(activity.type)}{' '}
                 {formatMoney(Math.abs(activity.amount), activity.currency)}
               </div>
             </div>
