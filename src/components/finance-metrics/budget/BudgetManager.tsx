@@ -7,14 +7,8 @@ import { useFinanceCategory, FinanceCategory } from '../../../hooks/useFinanceCa
 import { Modal } from '../../ui/modal';
 import CategorySelect from '../../form/CategorySelect';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { useExchangeRates } from '../../../hooks/useExchangeRates';
 import MixedCurrencyWarning from '../../common/MixedCurrencyWarning';
-import {
-  formatMoney,
-  currencyOption,
-  convertAmount,
-  unconvertibleCurrencies,
-} from '../../../utils/currency';
+import { formatMoney, currencyOption } from '../../../utils/currency';
 import Button from '../../ui/button/Button';
 import MoneyInput from '../../form/MoneyInput';
 
@@ -27,13 +21,12 @@ const monthRange = () => {
 
 const BudgetManager: React.FC = () => {
   const { limits, upsert, remove } = useBudget();
-  const { getAllFinances } = useFinance();
+  const { getAllFinances, listMeta } = useFinance();
   const { getAllCategories } = useFinanceCategory();
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
   const currencySymbol = currencyOption(displayCurrency).symbol;
   const formatCurrency = (value: number) => formatMoney(value, displayCurrency);
-  const rates = useExchangeRates();
 
   const [categories, setCategories] = useState<FinanceCategory[]>([]);
   const [transactions, setTransactions] = useState<FinanceRecord[]>([]);
@@ -66,31 +59,22 @@ const BudgetManager: React.FC = () => {
     }
   };
 
-  // Gasto por categoria, convertido para a moeda de exibição antes de somar
-  // (registros do casal podem estar em BRL e EUR misturados). Recalcula quando
-  // as taxas de câmbio terminam de carregar.
-  // Sem taxas para alguma moeda presente, o gasto por categoria sairia errado.
-  const semTaxa = useMemo(
-    () =>
-      unconvertibleCurrencies(
-        transactions.map((t) => t.currency),
-        displayCurrency,
-        rates
-      ),
-    [transactions, displayCurrency, rates]
-  );
+  // Moeda que o servidor não conseguiu converter: o gasto por categoria sairia
+  // errado e mostra-se o aviso em vez dos números.
+  const semTaxa = listMeta?.unconvertedCurrencies ?? [];
 
+  // Gasto por categoria, somado a partir do valor que o servidor já converteu
+  // à taxa do dia de cada lançamento (o casal mistura BRL e EUR).
   const spendByCategory = useMemo(() => {
     const spend: Record<number, number> = {};
     for (const tx of transactions) {
       if (tx.type !== 'expense') continue;
       const catId = tx.categoryId ?? tx.category?.id;
       if (catId == null) continue;
-      spend[catId] =
-        (spend[catId] || 0) + convertAmount(tx.amount || 0, tx.currency, displayCurrency, rates);
+      spend[catId] = (spend[catId] || 0) + (tx.convertedAmount ?? tx.amount ?? 0);
     }
     return spend;
-  }, [transactions, rates, displayCurrency]);
+  }, [transactions]);
 
   const openCreate = () => {
     setEditing(null);

@@ -11,7 +11,14 @@ export interface CreateFinanceDto {
 
 export interface FinanceRecord {
     id: number;
+    /** O valor como foi lançado, na moeda dele. Serve para MOSTRAR a linha. */
     amount: number;
+    /**
+     * O mesmo valor na moeda de exibição, convertido pelo servidor à taxa do
+     * **dia do lançamento**. É o único que se pode somar — o cliente não
+     * converte nada (fazia-o à taxa de hoje, e o passado mexia-se sozinho).
+     */
+    convertedAmount?: number;
     type: 'income' | 'expense';
     description: string | null;
     iconName: string;

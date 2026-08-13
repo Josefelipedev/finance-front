@@ -16,7 +16,17 @@ export interface CreateFinanceDto {
 
 export interface FinanceRecord {
   id: number;
+  /** O valor como foi lançado, na moeda dele. Serve para MOSTRAR a linha. */
   amount: number;
+  /**
+   * O mesmo valor na moeda de exibição, convertido pelo servidor **à taxa do
+   * dia do lançamento**. É o único que se pode somar.
+   *
+   * O cliente não converte nada: fazia-o com a taxa de hoje, e por isso o total
+   * de um mês fechado mudava sozinho todos os dias (julho/2026 valeu entre
+   * 898,02 € e 925,19 € sem ninguém lançar nada).
+   */
+  convertedAmount?: number;
   type: 'income' | 'expense';
   currency?: string;
   description: string | null;
@@ -48,6 +58,30 @@ export interface LinkedBill {
   dueDate: string;
   status: string;
   recurringId: number | null;
+}
+
+/**
+ * O que o servidor diz sobre a conversão de uma listagem.
+ *
+ * `unconvertedCurrencies` é a lista das moedas que ele NÃO conseguiu converter
+ * (AOA e MZN não são cobertas pelo BCE): com algo aqui, os `convertedAmount`
+ * dessas linhas vêm pelo valor nativo e somá-los daria reais valendo euros.
+ * Quem mostra um total tem de o recusar e mostrar `<MixedCurrencyWarning>`.
+ */
+export interface FinanceListMeta {
+  total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+  displayCurrency?: string;
+  /** Data da taxa aplicada — com a regra da data, a mais recente das aplicadas. */
+  rateDate?: string | null;
+  unconvertedCurrencies?: string[];
+}
+
+interface FinanceListResponse {
+  data: FinanceRecord[];
+  meta?: FinanceListMeta;
 }
 
 export interface CurrencyBreakdown {
@@ -102,6 +136,7 @@ export const useFinance = () => {
   const [error, setError] = useState<Error | null>(null);
 
   const [records, setRecords] = useState<FinanceRecord[]>([]);
+  const [listMeta, setListMeta] = useState<FinanceListMeta | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [summaryData, setSummaryData] = useState<FinanceSummary | null>(null);
 
@@ -163,9 +198,7 @@ export const useFinance = () => {
         let totalPages = 1;
 
         do {
-          const res = await api.get<
-            FinanceRecord[] | { data: FinanceRecord[]; meta?: { totalPages?: number } }
-          >('/finance', {
+          const res = await api.get<FinanceRecord[] | FinanceListResponse>('/finance', {
             params: {
               startDate: params?.startDate,
               endDate: params?.endDate,
@@ -178,6 +211,11 @@ export const useFinance = () => {
           const list = Array.isArray(res) ? res : res?.data;
           if (!Array.isArray(list)) throw new Error('Lista de finanças inválida');
           todos.push(...list);
+
+          // A moeda de exibição e o que o servidor NÃO conseguiu converter. Quem
+          // soma tem de olhar para isto antes de mostrar um total — ver
+          // `MixedCurrencyWarning`.
+          if (!Array.isArray(res) && res?.meta) setListMeta(res.meta);
 
           totalPages = Array.isArray(res) ? 1 : (res?.meta?.totalPages ?? 1);
           page += 1;
@@ -315,6 +353,7 @@ export const useFinance = () => {
 
     // Estado
     records,
+    listMeta,
     dashboardData,
     summaryData,
     isLoading,

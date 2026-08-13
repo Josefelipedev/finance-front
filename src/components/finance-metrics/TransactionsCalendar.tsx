@@ -9,9 +9,8 @@ import type { DatesSetArg } from '@fullcalendar/core';
 import { toast } from 'sonner';
 import { useFinance } from '../../hooks/useFinance';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { useExchangeRatesState } from '../../hooks/useExchangeRates';
 import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
-import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
+import { formatMoney } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import { Modal } from '../ui/modal';
 import { countableType } from '../../utils/finance-type';
@@ -22,10 +21,9 @@ const dayKey = (record: FinanceRecord) =>
   new Date(record.referenceDate || record.createdAt).toISOString().split('T')[0];
 
 const TransactionsCalendar: React.FC = () => {
-  const { getAllFinances } = useFinance();
+  const { getAllFinances, listMeta } = useFinance();
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
-  const { rates, status: ratesStatus } = useExchangeRatesState();
 
   const [records, setRecords] = useState<FinanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,37 +57,28 @@ const TransactionsCalendar: React.FC = () => {
     []
   );
 
-  // Sem taxas para alguma moeda presente, o saldo diário sairia errado.
-  const semTaxa = useMemo(
-    // Enquanto as taxas não chegam não há nada a avisar: tratar "a carregar"
-    // como "não há taxas" mostrava um erro no primeiro instante do ecrã.
-    () =>
-      ratesStatus === 'loading'
-        ? []
-        : unconvertibleCurrencies(records.map(recordCurrency), displayCurrency, rates),
-    [records, displayCurrency, rates, ratesStatus]
-  );
+  // Moeda que o servidor não conseguiu converter: o saldo diário sairia errado.
+  const semTaxa = listMeta?.unconvertedCurrencies ?? [];
 
   // Saldo diário (receita - despesa) por dia, como no app Android
   const dailyBalances = useMemo(() => {
     const map: Record<string, number> = {};
     for (const r of records) {
       const key = dayKey(r);
-      // Converte para a moeda de exibição antes de somar
-      // (registros do casal podem estar em BRL e EUR misturados)
       const tipo = countableType(r.type);
       if (!tipo) continue; // tipo que não se sabe somar fica de fora
-      const amount = convertAmount(r.amount, recordCurrency(r), displayCurrency, rates);
+      // Já convertido pelo servidor, à taxa do dia do lançamento.
+      const amount = r.convertedAmount ?? r.amount;
       map[key] = (map[key] || 0) + (tipo === 'income' ? amount : -amount);
     }
     return map;
-  }, [records, rates, displayCurrency]);
+  }, [records]);
 
   const events = useMemo(
     () =>
-      // Sem taxas, os saldos diários sairiam da soma de moedas diferentes:
+      // Sem conversão, os saldos diários sairiam da soma de moedas diferentes:
       // melhor não mostrar badge nenhum (o aviso no topo explica).
-      (semTaxa.length || ratesStatus === 'loading' ? [] : Object.entries(dailyBalances)).map(
+      (semTaxa.length ? [] : Object.entries(dailyBalances)).map(
         ([date, balance]) => ({
           start: date,
           allDay: true,
@@ -97,7 +86,7 @@ const TransactionsCalendar: React.FC = () => {
           color: balance >= 0 ? '#10b981' : '#f43f5e',
         })
       ),
-    [dailyBalances, semTaxa, ratesStatus]
+    [dailyBalances, semTaxa]
   );
 
   const handleDateClick = (arg: DateClickArg) => {
@@ -113,15 +102,14 @@ const TransactionsCalendar: React.FC = () => {
     let income = 0;
     let expense = 0;
     for (const r of selectedTransactions) {
-      // Converte para a moeda de exibição antes de somar
       const tipo = countableType(r.type);
       if (!tipo) continue;
-      const amount = convertAmount(r.amount, recordCurrency(r), displayCurrency, rates);
+      const amount = r.convertedAmount ?? r.amount;
       if (tipo === 'income') income += amount;
       else expense += amount;
     }
     return { income, expense };
-  }, [selectedTransactions, rates, displayCurrency]);
+  }, [selectedTransactions]);
 
   return (
     <div className="space-y-4 px-2 sm:px-0">

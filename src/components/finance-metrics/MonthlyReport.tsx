@@ -4,9 +4,8 @@ import { toast } from 'sonner';
 import { useFinance } from '../../hooks/useFinance';
 import { useAnalysis } from '../../hooks/useAnalysis';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { useExchangeRatesState } from '../../hooks/useExchangeRates';
 import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
-import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
+import { formatMoney } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import Button from '../ui/button/Button';
 import { countableType } from '../../utils/finance-type';
@@ -26,7 +25,6 @@ const MONTH_NAMES = [
   'Dezembro',
 ];
 
-const recordCurrency = (record: FinanceRecord) => (record as { currency?: string }).currency;
 
 const monthBounds = (year: number, month: number) => {
   const start = new Date(year, month, 1);
@@ -35,11 +33,10 @@ const monthBounds = (year: number, month: number) => {
 };
 
 const MonthlyReport: React.FC = () => {
-  const { getAllFinances } = useFinance();
+  const { getAllFinances, listMeta } = useFinance();
   const { getInsight, isLoading: insightLoading } = useAnalysis();
   const { profile, getProfile } = useUserProfile();
   const displayCurrency = profile?.currency;
-  const { rates, status: ratesStatus } = useExchangeRatesState();
 
   // Totais agregados são formatados na moeda de exibição do usuário
   const formatCurrency = (value: number) => formatMoney(value, displayCurrency);
@@ -99,27 +96,19 @@ const MonthlyReport: React.FC = () => {
 
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
 
-  // Moedas que não dá para converter: somar daria um total errado.
-  const semTaxa = useMemo(
-    // Enquanto as taxas não chegam não há nada a avisar: tratar "a carregar"
-    // como "não há taxas" mostrava um erro no primeiro instante do ecrã.
-    () =>
-      ratesStatus === 'loading'
-        ? []
-        : unconvertibleCurrencies(records.map(recordCurrency), displayCurrency, rates),
-    [records, displayCurrency, rates, ratesStatus]
-  );
+  // Moedas que o servidor não conseguiu converter: somar daria um total errado.
+  const semTaxa = listMeta?.unconvertedCurrencies ?? [];
 
   const { income, expense, balance, byCategory } = useMemo(() => {
     let inc = 0;
     let exp = 0;
     const cats: Record<string, number> = {};
     for (const r of records) {
-      // Converte para a moeda de exibição antes de somar
-      // (registros do casal podem estar em BRL e EUR misturados)
       const tipo = countableType(r.type);
       if (!tipo) continue; // tipo que não se sabe somar fica de fora
-      const amount = convertAmount(r.amount, recordCurrency(r), displayCurrency, rates);
+      // Já convertido pelo servidor, à taxa do dia do lançamento — o mês
+      // fechado vale sempre o mesmo, seja quando for que se abra o relatório.
+      const amount = r.convertedAmount ?? r.amount;
       if (tipo === 'income') {
         inc += amount;
       } else {
@@ -132,7 +121,7 @@ const MonthlyReport: React.FC = () => {
       .map(([name, value]) => ({ name, value, pct: exp > 0 ? (value / exp) * 100 : 0 }))
       .sort((a, b) => b.value - a.value);
     return { income: inc, expense: exp, balance: inc - exp, byCategory };
-  }, [records, rates, displayCurrency]);
+  }, [records]);
 
   const handleExport = () => {
     if (records.length === 0) {
@@ -230,12 +219,6 @@ const MonthlyReport: React.FC = () => {
           <Button variant="outline" size="sm" className="mt-4" onClick={load}>
             Tentar novamente
           </Button>
-        </div>
-      ) : ratesStatus === 'loading' ? (
-        // A carregar as taxas: mostrar números por converter seria mostrar
-        // reais somados com euros durante um instante.
-        <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
-          A carregar as taxas de câmbio…
         </div>
       ) : semTaxa.length > 0 ? (
         <MixedCurrencyWarning currencies={semTaxa} />

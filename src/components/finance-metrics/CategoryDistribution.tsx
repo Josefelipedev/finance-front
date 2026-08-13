@@ -4,8 +4,7 @@ import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useFinance } from '../../hooks/useFinance';
 import { useUserProfile } from '../../hooks/useUserProfile';
-import { formatMoney, convertAmount, unconvertibleCurrencies } from '../../utils/currency';
-import { useExchangeRatesState } from '../../hooks/useExchangeRates';
+import { formatMoney } from '../../utils/currency';
 import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 
 interface CategoryDistributionProps {
@@ -48,15 +47,14 @@ interface CategoryData {
 }
 
 const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }) => {
-  const { getRecords, isLoading } = useFinance();
+  const { getRecords, isLoading, listMeta } = useFinance();
   const { profile, getProfile } = useUserProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
   const [error, setError] = useState<string | null>(null);
-  // Moedas dos registos que não deu para converter: com algo aqui, somar
-  // produziria um total errado (ver unconvertibleCurrencies).
-  const [semTaxa, setSemTaxa] = useState<string[]>([]);
   const displayCurrency = profile?.currency;
-  const { rates, status: ratesStatus } = useExchangeRatesState();
+  // Moedas que o SERVIDOR não conseguiu converter: com algo aqui, somar
+  // produziria um total errado e mostra-se o aviso em vez do gráfico.
+  const semTaxa = listMeta?.unconvertedCurrencies ?? [];
 
   useEffect(() => {
     getProfile().catch(() => {});
@@ -65,10 +63,6 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
   useEffect(() => {
     const loadData = async () => {
       setError(null);
-      // Esperar pelas taxas antes de somar: sem elas, `convertAmount` devolve o
-      // valor como está e o gráfico somaria reais com euros em silêncio — pior
-      // do que o aviso que esta espera evita.
-      if (ratesStatus === 'loading') return;
       let records;
       try {
         records = await getRecords({
@@ -78,18 +72,6 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
       } catch (err) {
         console.error('Erro ao carregar distribuição por categoria:', err);
         setError(err instanceof Error ? err.message : 'Não foi possível carregar os dados.');
-        setCategoryData([]);
-        return;
-      }
-
-      // Antes de somar: dá para converter tudo para a moeda de exibição?
-      const faltam = unconvertibleCurrencies(
-        records.map((r) => r.currency),
-        displayCurrency,
-        rates
-      );
-      setSemTaxa(faltam);
-      if (faltam.length) {
         setCategoryData([]);
         return;
       }
@@ -117,11 +99,9 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
           };
         }
 
-        // Soma o valor absoluto, convertido para a moeda de exibição
-        // (registros do casal podem estar em BRL e EUR misturados)
-        acc[categoryKey].amount += Math.abs(
-          convertAmount(record.amount, record.currency, displayCurrency, rates)
-        );
+        // Soma o valor já convertido pelo servidor, à taxa do dia de cada
+        // lançamento (registos do casal podem estar em BRL e EUR misturados).
+        acc[categoryKey].amount += Math.abs(record.convertedAmount ?? record.amount);
         return acc;
       }, {});
 
@@ -140,7 +120,10 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
     };
 
     loadData();
-  }, [dateRange, rates, ratesStatus, displayCurrency]);
+    // Só o período: os valores vêm já convertidos do servidor, por isso a moeda
+    // de exibição só afeta a formatação, que acontece no render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange]);
 
   // Cores para o gráfico - usa as cores das categorias ou padrão
   const getChartColors = () => {

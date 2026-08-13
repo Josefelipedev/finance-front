@@ -28,9 +28,18 @@ export function currencyOption(code?: string | null): CurrencyOption {
 export type ExchangeRates = Record<string, number>;
 
 /**
- * Converte um valor entre moedas via taxa cruzada com base EUR.
+ * Converte um valor entre moedas via taxa cruzada com base EUR, à taxa de HOJE.
  * Sem taxas ou sem cobertura da moeda → retorna o valor original (melhor esforço).
- * Use ANTES de agregar valores de moedas diferentes (ex.: totais do casal).
+ *
+ * ⚠️ **Só para valores que ainda não aconteceram** — o compromisso mensal de uma
+ * recorrente, uma conta por pagar, uma projeção. Aí a taxa de hoje é a resposta
+ * certa: é o que a coisa vai custar.
+ *
+ * **Nunca para histórico.** Um lançamento já feito converte-se à taxa do dia em
+ * que foi feito, e isso vive no servidor: use o `convertedAmount` que vem em
+ * cada linha de `GET /finance`. Aplicar a taxa de hoje ao passado era o que
+ * fazia as despesas de julho/2026 valerem 925,19 € num dia e 898,02 € noutro,
+ * sem ninguém ter lançado nada.
  */
 export function convertAmount(
   amount: number,
