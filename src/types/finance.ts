@@ -20,6 +20,8 @@ export interface FinanceRecord {
      */
     convertedAmount?: number;
     type: 'income' | 'expense';
+    /** Moeda do lançamento — a linha mostra-se nela, nunca na do utilizador. */
+    currency?: string;
     description: string | null;
     iconName: string;
     createdAt: string;
@@ -75,6 +77,8 @@ export interface RecurringTransaction {
     id: number;
     amount: number;
     type: 'income' | 'expense';
+    /** Moeda do lançamento — a linha mostra-se nela, nunca na do utilizador. */
+    currency?: string;
     description: string | null;
     frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
     nextOccurrence: string;

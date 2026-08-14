@@ -17,6 +17,8 @@ export interface Goal {
   startDate?: string;
   endDate?: string;
   status: 'ACTIVE' | 'COMPLETED' | 'CANCELED';
+  /** A moeda em que a meta soma. Sem ela, os ecrãs formatavam tudo em BRL. */
+  currency?: string;
   userId: number;
   createdAt?: string;
   updatedAt?: string;

@@ -7,12 +7,17 @@ import type { FinanceRecord } from '../../types/finance';
 import type { Goal } from '../../hooks/useGoals';
 import type { ShoppingList } from '../../hooks/useShopping';
 import { typeSign } from '../../utils/finance-type';
+import { formatMoney } from '../../utils/currency';
 
 const MIN_CHARS = 2;
 const DEBOUNCE_MS = 300;
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+/**
+ * Isto era `Intl.NumberFormat('pt-BR', { currency: 'BRL' })` fixo: cada
+ * resultado da busca aparecia em reais, incluindo os lançamentos e as metas de
+ * quem vive em euros (T7). Escapou ao varrimento porque não tem `R$` escrito em
+ * lado nenhum — constrói o símbolo a partir do código.
+ */
 
 const contains = (haystack: string | null | undefined, needle: string) =>
   (haystack || '').toLowerCase().includes(needle.toLowerCase());
@@ -25,6 +30,7 @@ const GlobalSearch: React.FC = () => {
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fontes carregadas uma vez e filtradas localmente (igual ao Android)
   const [transactions, setTransactions] = useState<FinanceRecord[]>([]);
@@ -43,15 +49,19 @@ const GlobalSearch: React.FC = () => {
     if (debounced.length < MIN_CHARS || loadedRef.current) return;
     loadedRef.current = true;
     setIsLoading(true);
-    Promise.all([
-      getAllFinances().catch(() => [] as FinanceRecord[]),
-      getAllGoals().catch(() => [] as Goal[]),
-      getAllLists().catch(() => [] as ShoppingList[]),
-    ])
+    setError(null);
+    // Os três `.catch(() => [])` faziam uma busca falhada parecer uma busca sem
+    // resultados: o ecrã dizia "Nenhum resultado para X" quando o que aconteceu
+    // foi não ter conseguido perguntar. Quem procura confia nessa frase.
+    Promise.all([getAllFinances(), getAllGoals(), getAllLists()])
       .then(([txs, gs, ls]) => {
         setTransactions(txs || []);
         setGoals(gs || []);
         setLists(ls || []);
+      })
+      .catch((err) => {
+        loadedRef.current = false; // deixa tentar outra vez
+        setError(err instanceof Error ? err.message : 'Não foi possível procurar.');
       })
       .finally(() => setIsLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,6 +113,14 @@ const GlobalSearch: React.FC = () => {
           <i className="fas fa-search text-4xl mb-3 opacity-40"></i>
           <p>Comece a digitar para buscar.</p>
         </div>
+      ) : error ? (
+        <div className="py-12 text-center text-gray-500 dark:text-gray-400">
+          <i className="fas fa-triangle-exclamation mb-3 text-4xl text-error-500 opacity-70 dark:text-red-400"></i>
+          <p className="font-medium text-gray-700 dark:text-gray-300">
+            Não foi possível procurar
+          </p>
+          <p className="mt-1 text-sm">{error}</p>
+        </div>
       ) : total === 0 && !isLoading ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <i className="fas fa-folder-open text-4xl mb-3 opacity-40"></i>
@@ -127,7 +145,7 @@ const GlobalSearch: React.FC = () => {
                       }
                     >
                       {typeSign(tx.type)}
-                      {formatCurrency(tx.amount)}
+                      {formatMoney(tx.amount, tx.currency)}
                     </span>
                   }
                   iconClass="fa-exchange-alt text-brand-500"
@@ -143,7 +161,10 @@ const GlobalSearch: React.FC = () => {
                 <ResultRow
                   key={`goal-${g.id}`}
                   title={g.name}
-                  subtitle={`${formatCurrency(g.currentValue)} de ${formatCurrency(g.targetValue)}`}
+                  subtitle={`${formatMoney(g.currentValue, g.currency)} de ${formatMoney(
+                    g.targetValue,
+                    g.currency
+                  )}`}
                   trailing={
                     <span className="text-xs px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded-full">
                       {g.status === 'COMPLETED'

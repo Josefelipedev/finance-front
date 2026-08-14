@@ -24,13 +24,24 @@ const BudgetManager: React.FC = () => {
   const { getAllFinances, listMeta } = useFinance();
   const { getAllCategories } = useFinanceCategory();
   const { profile, getProfile } = useUserProfile();
-  const displayCurrency = profile?.currency;
+  /**
+   * A moeda com que o SERVIDOR converteu estes valores, com recuo para a do
+   * perfil. Esta ordem importa: o `getProfile()` é chamado com
+   * `.catch(() => {})` e, se falhasse, o `profile?.currency` ficava `undefined`
+   * — o `currencyOption` recua para BRL e o ecrã passava a etiquetar euros com
+   * "R$". O `meta` vem no mesmo pedido que traz os números, por isso quando há
+   * valores para mostrar há sempre moeda certa para os mostrar (T9).
+   */
+  const displayCurrency = listMeta?.displayCurrency ?? profile?.currency;
   const currencySymbol = currencyOption(displayCurrency).symbol;
   const formatCurrency = (value: number) => formatMoney(value, displayCurrency);
 
   const [categories, setCategories] = useState<FinanceCategory[]>([]);
   const [transactions, setTransactions] = useState<FinanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // Erro fica no ecrã: sem isto, uma falha era indistinguível de "não gastaste
+  // nada este mês".
+  const [error, setError] = useState<string | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<BudgetLimit | null>(null);
@@ -45,15 +56,26 @@ const BudgetManager: React.FC = () => {
     getProfile().catch(() => {});
   }, []);
 
+  /**
+   * Isto engolia os dois erros com `.catch(() => [])`.
+   *
+   * Uma falha a carregar as transações fazia **todas as categorias mostrarem 0
+   * gasto** — ou seja, o ecrã dizia "estás dentro de todos os limites" quando o
+   * que aconteceu foi não ter conseguido perguntar. É a mentira mais perigosa
+   * que um ecrã de orçamento pode contar, e não havia sequer estado de erro.
+   */
   const load = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const [cats, txs] = await Promise.all([
-        getAllCategories().catch(() => [] as FinanceCategory[]),
-        getAllFinances(monthRange()).catch(() => []),
+        getAllCategories(),
+        getAllFinances(monthRange()),
       ]);
       setCategories(cats || []);
       setTransactions(txs || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar o orçamento.');
     } finally {
       setIsLoading(false);
     }
@@ -147,6 +169,21 @@ const BudgetManager: React.FC = () => {
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-brand-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-white/[0.06] dark:bg-gray-900">
+        <i className="fas fa-triangle-exclamation mb-3 text-3xl text-error-500 dark:text-red-400"></i>
+        <p className="font-medium text-gray-800 dark:text-white">
+          Não foi possível carregar o orçamento
+        </p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{error}</p>
+        <Button variant="outline" size="sm" className="mt-4" onClick={load}>
+          Tentar novamente
+        </Button>
       </div>
     );
   }

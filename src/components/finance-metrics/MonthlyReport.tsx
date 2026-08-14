@@ -8,7 +8,7 @@ import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 import { formatMoney } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import Button from '../ui/button/Button';
-import { countableType } from '../../utils/finance-type';
+import { countableType, typeLabel } from '../../utils/finance-type';
 
 const MONTH_NAMES = [
   'Janeiro',
@@ -36,7 +36,15 @@ const MonthlyReport: React.FC = () => {
   const { getAllFinances, listMeta } = useFinance();
   const { getInsight, isLoading: insightLoading } = useAnalysis();
   const { profile, getProfile } = useUserProfile();
-  const displayCurrency = profile?.currency;
+  /**
+   * A moeda com que o SERVIDOR converteu estes valores, com recuo para a do
+   * perfil. Esta ordem importa: o `getProfile()` é chamado com
+   * `.catch(() => {})` e, se falhasse, o `profile?.currency` ficava `undefined`
+   * — o `currencyOption` recua para BRL e o ecrã passava a etiquetar euros com
+   * "R$". O `meta` vem no mesmo pedido que traz os números, por isso quando há
+   * valores para mostrar há sempre moeda certa para os mostrar (T9).
+   */
+  const displayCurrency = listMeta?.displayCurrency ?? profile?.currency;
 
   // Totais agregados são formatados na moeda de exibição do usuário
   const formatCurrency = (value: number) => formatMoney(value, displayCurrency);
@@ -128,14 +136,18 @@ const MonthlyReport: React.FC = () => {
       toast.info('Nenhuma transação neste mês para exportar.');
       return;
     }
-    const header = ['Data', 'Descrição', 'Tipo', 'Categoria', 'Valor (R$)'].join(';');
+    // O cabeçalho dizia "Valor (R$)" fixo e a coluna trazia o valor cru: para
+    // um casal que mistura moedas, o ficheiro exportado rotulava euros como
+    // reais e não dizia qual linha era qual. A moeda passa a ser uma coluna.
+    const header = ['Data', 'Descrição', 'Tipo', 'Categoria', 'Valor', 'Moeda'].join(';');
     const rows = records.map((t) =>
       [
         new Date(t.referenceDate || t.createdAt).toLocaleDateString('pt-BR'),
         `"${(t.description || '').replace(/"/g, '""')}"`,
-        t.type === 'income' ? 'Receita' : 'Despesa',
+        typeLabel(t.type),
         `"${(t.category?.name || 'Sem categoria').replace(/"/g, '""')}"`,
         t.amount.toFixed(2).replace('.', ','),
+        t.currency || displayCurrency || '',
       ].join(';')
     );
     const csv = '﻿' + [header, ...rows].join('\n');

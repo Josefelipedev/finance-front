@@ -51,7 +51,15 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
   const { profile, getProfile } = useUserProfile();
   const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const displayCurrency = profile?.currency;
+  /**
+   * A moeda com que o SERVIDOR converteu estes valores, com recuo para a do
+   * perfil. Esta ordem importa: o `getProfile()` é chamado com
+   * `.catch(() => {})` e, se falhasse, o `profile?.currency` ficava `undefined`
+   * — o `currencyOption` recua para BRL e o ecrã passava a etiquetar euros com
+   * "R$". O `meta` vem no mesmo pedido que traz os números, por isso quando há
+   * valores para mostrar há sempre moeda certa para os mostrar (T9).
+   */
+  const displayCurrency = listMeta?.displayCurrency ?? profile?.currency;
   // Moedas que o SERVIDOR não conseguiu converter: com algo aqui, somar
   // produziria um total errado e mostra-se o aviso em vez do gráfico.
   const semTaxa = listMeta?.unconvertedCurrencies ?? [];

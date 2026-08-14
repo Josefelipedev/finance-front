@@ -23,9 +23,19 @@ const dayKey = (record: FinanceRecord) =>
 const TransactionsCalendar: React.FC = () => {
   const { getAllFinances, listMeta } = useFinance();
   const { profile, getProfile } = useUserProfile();
-  const displayCurrency = profile?.currency;
+  /**
+   * A moeda com que o SERVIDOR converteu estes valores, com recuo para a do
+   * perfil. Esta ordem importa: o `getProfile()` é chamado com
+   * `.catch(() => {})` e, se falhasse, o `profile?.currency` ficava `undefined`
+   * — o `currencyOption` recua para BRL e o ecrã passava a etiquetar euros com
+   * "R$". O `meta` vem no mesmo pedido que traz os números, por isso quando há
+   * valores para mostrar há sempre moeda certa para os mostrar (T9).
+   */
+  const displayCurrency = listMeta?.displayCurrency ?? profile?.currency;
 
   const [records, setRecords] = useState<FinanceRecord[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [ultimoIntervalo, setUltimoIntervalo] = useState<DatesSetArg | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
@@ -39,6 +49,7 @@ const TransactionsCalendar: React.FC = () => {
   // Recarrega ao mudar o intervalo visível (navegação de mês)
   const handleDatesSet = useCallback(
     async (arg: DatesSetArg) => {
+      setUltimoIntervalo(arg);
       setIsLoading(true);
       try {
         const data = await getAllFinances({
@@ -46,8 +57,11 @@ const TransactionsCalendar: React.FC = () => {
           endDate: arg.end.toISOString(),
         });
         setRecords(data || []);
-      } catch {
-        toast.error('Erro ao carregar o calendário.');
+        setError(null);
+      } catch (err) {
+        // O toast desaparece em segundos e o que ficava era um calendário sem
+        // movimentos — indistinguível de um mês em que não se gastou nada.
+        setError(err instanceof Error ? err.message : 'Não foi possível carregar o calendário.');
         setRecords([]);
       } finally {
         setIsLoading(false);
@@ -114,6 +128,22 @@ const TransactionsCalendar: React.FC = () => {
   return (
     <div className="space-y-4 px-2 sm:px-0">
       <MixedCurrencyWarning currencies={semTaxa} />
+
+      {error && (
+        <div className="rounded-2xl border border-error-200 bg-error-50 p-4 text-center dark:border-error-500/20 dark:bg-error-500/10">
+          <p className="text-sm font-medium text-error-700 dark:text-red-300">
+            Não foi possível carregar os movimentos deste período
+          </p>
+          <p className="mt-1 text-xs text-error-600 dark:text-red-400">{error}</p>
+          <button
+            type="button"
+            onClick={() => ultimoIntervalo && handleDatesSet(ultimoIntervalo)}
+            className="mt-3 rounded-lg border border-error-300 px-3 py-1.5 text-xs font-semibold text-error-700 hover:bg-error-100 dark:border-error-500/40 dark:text-red-300 dark:hover:bg-error-500/20"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center justify-between gap-3">
         <div>
