@@ -18,6 +18,8 @@ export interface BillItem {
   categoryId: number | null;
   categoryName: string | null;
   categoryColor: string | null;
+  /** Conta bancária de onde sai (ou onde entra). Null = não foi dito. */
+  accountId: number | null;
   dueDate: string; // ISO date
   status: 'pending' | 'paid';
   paidAt: string | null;
@@ -39,6 +41,7 @@ export interface CreateBillDto {
   type: BillType;
   currency?: string;
   categoryId?: number;
+  accountId?: number;
 }
 
 /** Corpo de edição de uma ocorrência pendente (PATCH /bills/:id). */
@@ -47,6 +50,44 @@ export interface UpdateBillDto {
   amount?: number;
   dueDate?: string; // "YYYY-MM-DD"
   categoryId?: number;
+  /** `null` desliga a conta bancária. */
+  accountId?: number | null;
+}
+
+/**
+ * O que fica em cada conta bancária depois de pagar o que falta.
+ *
+ * Os valores vêm na moeda da **própria conta** (não na de exibição): uma conta
+ * em euros fala em euros. As contas pagas já estão dentro do `currentBalance`,
+ * por isso só as pendentes entram no `incoming`/`outgoing`.
+ */
+export interface BillAccountForecast {
+  id: number;
+  bankName: string;
+  currency: string;
+  iconName?: string | null;
+  ownerId: number;
+  ownerName: string | null;
+  /** O que o banco tem hoje (saldo derivado). */
+  currentBalance: number;
+  /** Entradas que ainda não caíram (salários, sobretudo). */
+  incoming: number;
+  /** Contas desta conta que ainda não foram pagas (inclui atrasadas). */
+  outgoing: number;
+  /** currentBalance + incoming − outgoing. */
+  projectedBalance: number;
+  billCount: number;
+}
+
+export interface BillsForecast {
+  items: BillAccountForecast[];
+  /** Pendentes sem conta bancária dita — na moeda de exibição. */
+  unassigned: {
+    incoming: number;
+    outgoing: number;
+    count: number;
+    currency: string;
+  };
 }
 
 /** Subtotal pendente por moeda nativa. */
@@ -64,6 +105,11 @@ export interface BillsResponse {
   income: BillSideTotals; // a receber (convertido)
   projectedBalance: number; // previsto: income(todo) - expense(todo), convertido
   realizedBalance: number; // realizado: income.paid - expense.paid, convertido
+  /**
+   * O que sobra em cada conta bancária. `null` num mês já fechado: a previsão
+   * parte do saldo de hoje e não sabe responder pelo passado.
+   */
+  accounts?: BillsForecast | null;
   displayCurrency: string; // moeda de exibição do usuário, ex. "EUR" | "BRL"
   rateDate: string | null; // data da taxa de câmbio usada
   byCurrency: BillCurrencySubtotal[]; // subtotais pendentes por moeda nativa

@@ -18,6 +18,11 @@ export interface RecurringTransaction {
   weekDay?: number;
   notification: boolean;
   categoryId: number;
+  /**
+   * Conta bancária de onde sai (ou onde entra) o dinheiro. As contas geradas
+   * herdam-na, e é dela que sai a previsão "o que fica na conta no fim do mês".
+   */
+  accountId?: number | null;
   userId: number;
   /** Mês em que a recorrente começa a gerar contas. Nulo = mês de criação. */
   startDate?: string | null;
@@ -50,6 +55,8 @@ export interface CreateRecurringTransactionDto {
   weekDay?: number;
   notification?: boolean;
   categoryId: number;
+  /** Conta bancária de origem/destino; `null` desliga. */
+  accountId?: number | null;
   startDate?: string;
   endDate?: string;
   occurrences?: number;
@@ -67,6 +74,7 @@ export interface UpdateRecurringTransactionDto {
   weekDay?: number;
   notification?: boolean;
   categoryId?: number;
+  accountId?: number | null;
   startDate?: string;
   endDate?: string;
   occurrences?: number;

@@ -8,8 +8,11 @@ import Button from '../../components/ui/button/Button';
 import { Modal } from '../../components/ui/modal';
 import { useConfirm } from '../../components/ui/confirm/useConfirm';
 import CategorySelect from '../../components/form/CategorySelect';
-import { useBills, BillItem, BillType } from '../../hooks/useBills';
+import BankAccountSelect from '../../components/form/BankAccountSelect';
+import AccountForecastCards from '../../components/finance-metrics/bills/AccountForecastCards';
+import { useBills, BillItem, BillType, BillsForecast } from '../../hooks/useBills';
 import { useUserProfile } from '../../hooks/useUserProfile';
+import { useBankAccounts } from '../../hooks/useBankAccounts';
 import { ownerNaming } from '../../hooks/useOwner';
 import { currencyOption, formatMoney } from '../../utils/currency';
 import DateField from '../../components/form/DateField';
@@ -59,6 +62,8 @@ interface BillFormSubmit {
   dueDate: string; // "YYYY-MM-DD"
   type: BillType;
   categoryId?: number;
+  /** Conta bancária de onde sai (ou onde entra); undefined = sem conta. */
+  accountId?: number;
 }
 
 interface BillFormModalProps {
@@ -89,6 +94,7 @@ function BillFormModal({
   const [dueDate, setDueDate] = useState('');
   const [type, setType] = useState<BillType>('expense');
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [accountId, setAccountId] = useState<number | undefined>(undefined);
 
   // Re-hidrata o formulário sempre que abre.
   useEffect(() => {
@@ -99,12 +105,14 @@ function BillFormModal({
       setDueDate(initial.dueDate.slice(0, 10));
       setType(initial.type);
       setCategoryId(initial.categoryId ?? undefined);
+      setAccountId(initial.accountId ?? undefined);
     } else {
       setDescription('');
       setAmount('');
       setDueDate(defaultDueDate);
       setType(defaultType);
       setCategoryId(undefined);
+      setAccountId(undefined);
     }
   }, [isOpen, mode, initial, defaultType, defaultDueDate]);
 
@@ -123,7 +131,7 @@ function BillFormModal({
       toast.error('Informe o vencimento.');
       return;
     }
-    onSubmit({ description: desc, amount: amountValue, dueDate, type, categoryId });
+    onSubmit({ description: desc, amount: amountValue, dueDate, type, categoryId, accountId });
   };
 
   const inputClass =
@@ -234,6 +242,15 @@ function BillFormModal({
         />
       </div>
 
+      {/* Conta bancária: é ela que responde a "quanto me fica na conta". */}
+      <div className="mt-4">
+        <label htmlFor="bill-form-account" className={labelClass}>
+          {type === 'income' ? 'Entra na conta' : 'Sai da conta'}{' '}
+          <span className="font-normal text-gray-400">(opcional)</span>
+        </label>
+        <BankAccountSelect id="bill-form-account" value={accountId} onChange={setAccountId} />
+      </div>
+
       <div className="mt-6 flex justify-end gap-3">
         <Button type="button" variant="outline" size="sm" disabled={isSaving} onClick={onClose}>
           Cancelar
@@ -271,6 +288,8 @@ export default function BillsPage() {
   const [income, setIncome] = useState({ pending: 0, paid: 0 });
   const [projectedBalance, setProjectedBalance] = useState(0);
   const [realizedBalance, setRealizedBalance] = useState(0);
+  // O que fica em cada conta bancária depois de pagar o que falta.
+  const [accountsForecast, setAccountsForecast] = useState<BillsForecast | null>(null);
   const [displayCurrency, setDisplayCurrency] = useState('BRL');
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -298,10 +317,21 @@ export default function BillsPage() {
   const { profile, getProfile } = useUserProfile();
   const naming = useMemo(() => ownerNaming(profile), [profile]);
   const { confirm, dialog } = useConfirm();
+  // As contas bancárias vêm daqui (e não da previsão) para o nome do banco
+  // continuar a aparecer nas linhas de um mês fechado, onde não há previsão.
+  const { accounts: bankAccounts, loadAccounts } = useBankAccounts();
 
   useEffect(() => {
     getProfile().catch(() => {});
-  }, [getProfile]);
+    loadAccounts().catch(() => {});
+  }, [getProfile, loadAccounts]);
+
+  const hasAccounts = bankAccounts.length > 0;
+  const accountName = useCallback(
+    (id: number | null) =>
+      id == null ? null : (bankAccounts.find((a) => a.id === id)?.bankName ?? null),
+    [bankAccounts]
+  );
 
   const load = useCallback(
     async (targetMonth: string) => {
@@ -314,6 +344,7 @@ export default function BillsPage() {
         setIncome(res?.income ?? { pending: 0, paid: 0 });
         setProjectedBalance(res?.projectedBalance ?? 0);
         setRealizedBalance(res?.realizedBalance ?? 0);
+        setAccountsForecast(res?.accounts ?? null);
         setDisplayCurrency(res?.displayCurrency ?? 'BRL');
       } catch (err) {
         setError((err as Error).message || 'Não foi possível carregar as contas.');
@@ -403,6 +434,9 @@ export default function BillsPage() {
           amount: values.amount,
           dueDate: values.dueDate,
           categoryId: values.categoryId,
+          // `null` (e não `undefined`) para o servidor saber a diferença entre
+          // "não mexeste nisto" e "tiraste a conta bancária".
+          accountId: values.accountId ?? null,
         });
         toast.success('Conta atualizada.');
       } else {
@@ -412,6 +446,7 @@ export default function BillsPage() {
           dueDate: values.dueDate,
           type: values.type,
           categoryId: values.categoryId,
+          accountId: values.accountId,
           currency: profile?.currency,
         });
         toast.success(values.type === 'income' ? 'Recebimento criado!' : 'Conta criada!');
@@ -535,6 +570,28 @@ export default function BillsPage() {
             )}
             {/* Quem lançou — só aparece no workspace do casal */}
             <OwnerChip name={naming.ownerName(item.userId)} mine={naming.isMine(item.userId)} />
+            {/* De que conta sai. Quando não está dito, a conta fica de fora da
+                previsão por conta — e um número que falta explica-se melhor
+                aqui, na linha que o causa, do que num aviso no topo. */}
+            {accountName(item.accountId) ? (
+              <span className="inline-flex items-center gap-1">
+                <i className="fas fa-building-columns text-[10px] text-gray-400 dark:text-gray-500"></i>
+                {accountName(item.accountId)}
+              </span>
+            ) : (
+              !isPaid &&
+              hasAccounts && (
+                <button
+                  type="button"
+                  onClick={() => openEdit(item)}
+                  title="Diga de que conta bancária sai para entrar na previsão por conta"
+                  className="inline-flex items-center gap-1 rounded-md border border-dashed border-gray-300 px-1.5 py-0.5 text-[11px] text-gray-400 transition-colors hover:border-brand-400 hover:text-brand-500 dark:border-gray-700 dark:text-gray-500"
+                >
+                  <i className="fas fa-building-columns text-[9px]"></i>
+                  sem conta
+                </button>
+              )
+            )}
           </div>
         </div>
 
@@ -757,6 +814,12 @@ export default function BillsPage() {
           </p>
         </Surface>
       </div>
+
+      {/* Os quatro números acima são do casal inteiro. Estes dizem em que conta
+          é que o dinheiro fica — a pergunta de quem tem contas separadas. */}
+      {!isFetching && !error && (
+        <AccountForecastCards forecast={accountsForecast} currentUserId={profile?.id} />
+      )}
 
       {/* Lista de contas */}
       {isFetching ? (

@@ -8,6 +8,7 @@ import {
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { CURRENCY_OPTIONS, currencyOption } from '../../../utils/currency';
 import CategorySelect from '../../form/CategorySelect';
+import BankAccountSelect from '../../form/BankAccountSelect';
 import MoneyInput from '../../form/MoneyInput';
 import DateField from '../../form/DateField';
 import { Modal } from '../../ui/modal';
@@ -34,6 +35,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
     weekDay: 0,
     notification: false,
     categoryId: 0,
+    accountId: null,
     startDate: '',
     endDate: '',
     occurrences: undefined,
@@ -70,6 +72,7 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
         weekDay: transaction.weekDay || 0,
         notification: transaction.notification,
         categoryId: transaction.categoryId ?? transaction.category?.id ?? 0,
+        accountId: transaction.accountId ?? null,
         // A API devolve a data completa ("2026-11-12T00:00:00.000Z") e um
         // <input type="date"> só aceita "AAAA-MM-DD" — com o ISO inteiro o
         // browser descarta o valor e mostra o campo VAZIO, que é o que fazia a
@@ -402,6 +405,23 @@ const RecurringForm: React.FC<RecurringFormProps> = ({ transaction, onSuccess, o
             {errors.categoryId && (
               <p className="text-error-500 text-sm mt-1">{errors.categoryId}</p>
             )}
+          </div>
+
+          {/* Conta bancária — é daqui que sai a previsão por conta: cada conta
+              gerada herda-a, e o pagamento leva-a ao lançamento. */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {formData.type === 'income' ? 'Entra na conta' : 'Sai da conta'} (opcional)
+            </label>
+            <BankAccountSelect
+              value={formData.accountId}
+              onChange={(id) => handleChange('accountId', id ?? null)}
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {formData.type === 'income'
+                ? 'Diz em que conta cai este dinheiro para veres quanto fica nela ao fim do mês.'
+                : 'Diz de que conta sai para veres quanto sobra nela depois de pagar tudo.'}
+            </p>
           </div>
 
           {/* Mês de Início */}
