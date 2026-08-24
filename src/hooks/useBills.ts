@@ -88,6 +88,8 @@ export interface BillsForecast {
     count: number;
     currency: string;
   };
+  /** Moedas somadas sem conversão — os saldos previstos são aproximados. */
+  unconvertedCurrencies?: string[];
 }
 
 /** Subtotal pendente por moeda nativa. */

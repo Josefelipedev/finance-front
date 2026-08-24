@@ -4,6 +4,7 @@ import MonthForecastCard from './MonthForecastCard';
 import { DashboardData, FinanceSummary, useFinance } from '../../hooks/useFinance.ts';
 import FinanceTable from './ui/FinanceTable.tsx';
 import { endOfDayISO, startOfDayISO } from '../../utils/date-range';
+import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 
 interface FinanceDashboardProps {
   dateRange: { startDate: string; endDate: string };
@@ -139,6 +140,15 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
           </button>
         ))}
       </div>
+
+      {/* Sem taxas, os totais abaixo somam moeda com moeda pelo valor nativo.
+          O aviso já existia no relatório e no orçamento — faltava no ecrã que
+          toda a gente abre primeiro. */}
+      {summaryData && (
+        <MixedCurrencyWarning
+          currencies={summaryData.unconvertedCurrencies ?? []}
+        />
+      )}
 
       {/* Métricas */}
       {summaryData && (

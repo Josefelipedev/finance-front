@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import { BillsForecast } from '../../../hooks/useBills';
 import { formatMoney } from '../../../utils/currency';
 import { Surface } from '../../common/PageShell';
+import MixedCurrencyWarning from '../../common/MixedCurrencyWarning';
 
 interface Props {
   /** `null` num mês já fechado — a previsão parte do saldo de hoje. */
@@ -31,6 +32,12 @@ export default function AccountForecastCards({ forecast, currentUserId }: Props)
 
   const { items, unassigned } = forecast;
   const semAtribuicao = unassigned.count > 0;
+  const semTaxa = forecast.unconvertedCurrencies ?? [];
+
+  // Cada cartão soma contas de várias moedas na moeda da conta bancária. Sem
+  // taxa, essa soma junta valores de face — e "sobram 1.653,77 €" passa a ser
+  // um número plausível e errado, que é o que estes cartões existem para evitar.
+  if (semTaxa.length > 0) return <MixedCurrencyWarning currencies={semTaxa} />;
 
   // Sem contas bancárias registadas não há previsão possível — e um vazio mudo
   // deixava a pergunta ("quanto me fica na conta?") sem resposta nem caminho.

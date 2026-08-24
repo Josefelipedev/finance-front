@@ -123,6 +123,8 @@ export interface DashboardData {
   totalExpense: number;
   displayCurrency?: string;
   rateDate?: string | null;
+  /** Moedas que o servidor não converteu — os totais acima são aproximados. */
+  unconvertedCurrencies?: string[];
   byCurrency?: CurrencyBreakdown[];
   stats: {
     revenueLastWeek: number;

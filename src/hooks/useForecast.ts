@@ -7,6 +7,8 @@ export interface MonthForecast {
   pending: { income: number; expense: number };
   projectedBalance: number;
   displayCurrency: string;
+  /** Moedas somadas sem conversão — a previsão acima é aproximada. */
+  unconvertedCurrencies?: string[];
 }
 
 /**
