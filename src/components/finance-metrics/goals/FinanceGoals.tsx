@@ -8,6 +8,7 @@ import { Modal } from '../../ui/modal';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { formatMoney, currencyOption } from '../../../utils/currency';
 import Button from '../../ui/button/Button';
+import { formatCivilDate } from '../../../utils/civil-date';
 
 const FinanceGoals: React.FC = () => {
   const {
@@ -212,11 +213,13 @@ const FinanceGoals: React.FC = () => {
     return 'text-brand-600 dark:text-brand-400';
   };
 
-  // Formatar data
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
+  // Início e fim de uma meta são DIAS: formatados como tal, senão a oeste de
+  // Greenwich apareciam com um dia a menos.
+  const formatDate = (dateString?: string) => formatCivilDate(dateString);
+
+  /** `createdAt` é um instante de verdade — mostra-se na hora de quem lê. */
+  const formatInstant = (dateString?: string) =>
+    dateString ? new Date(dateString).toLocaleDateString('pt-BR') : '-';
 
   if (isLoading && !goals) {
     return (
@@ -495,7 +498,7 @@ const FinanceGoals: React.FC = () => {
                   <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                     <div className="flex items-center space-x-2">
                       <i className="fas fa-calendar-alt text-gray-400"></i>
-                      <span>Criada em: {formatDate(goal.createdAt)}</span>
+                      <span>Criada em: {formatInstant(goal.createdAt)}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className={`w-2 h-2 rounded-full ${colorClass}`}></span>

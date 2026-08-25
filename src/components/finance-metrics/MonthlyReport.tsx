@@ -9,6 +9,7 @@ import { formatMoney } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import Button from '../ui/button/Button';
 import { countableType, typeLabel } from '../../utils/finance-type';
+import { formatCivilDate } from '../../utils/civil-date';
 
 const MONTH_NAMES = [
   'Janeiro',
@@ -142,7 +143,7 @@ const MonthlyReport: React.FC = () => {
     const header = ['Data', 'Descrição', 'Tipo', 'Categoria', 'Valor', 'Moeda'].join(';');
     const rows = records.map((t) =>
       [
-        new Date(t.referenceDate || t.createdAt).toLocaleDateString('pt-BR'),
+        formatCivilDate(t.referenceDate || t.createdAt),
         `"${(t.description || '').replace(/"/g, '""')}"`,
         typeLabel(t.type),
         `"${(t.category?.name || 'Sem categoria').replace(/"/g, '""')}"`,

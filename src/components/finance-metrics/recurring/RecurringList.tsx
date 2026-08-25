@@ -4,6 +4,7 @@ import { OwnerNaming } from '../../../hooks/useOwner';
 import { formatMoney } from '../../../utils/currency';
 import { canSettle, remainingTotal } from '../../../utils/recurring';
 import OwnerChip from '../../common/OwnerChip';
+import { formatCivilDate } from '../../../utils/civil-date';
 
 interface RecurringListProps {
   transactions: RecurringTransaction[];
@@ -259,7 +260,7 @@ const RecurringList: React.FC<RecurringListProps> = ({
           {transaction.endDate && (
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Finaliza em: {new Date(transaction.endDate).toLocaleDateString('pt-BR')}
+                Finaliza em: {formatCivilDate(transaction.endDate)}
               </p>
             </div>
           )}

@@ -12,6 +12,7 @@ import { billDueLabel } from '../../utils/bill';
 import OriginBadge from '../common/OriginBadge';
 import { isTransfer, typeLabel, typeSign } from '../../utils/finance-type';
 import Button from '../ui/button/Button';
+import { formatCivilDate } from '../../utils/civil-date';
 
 interface TransactionsListProps {
   dateRange: { startDate: string; endDate: string };
@@ -162,9 +163,7 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ dateRange }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                  {new Date(transaction.referenceDate || transaction.createdAt).toLocaleDateString(
-                    'pt-BR'
-                  )}
+                  {formatCivilDate(transaction.referenceDate || transaction.createdAt)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span

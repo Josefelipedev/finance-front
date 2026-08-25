@@ -9,6 +9,7 @@ import { useUserProfile } from '../../hooks/useUserProfile';
 import { formatMoney, currencyOption } from '../../utils/currency';
 import PreferencesPanel from './PreferencesPanel';
 import OnboardingQuestionnaire from './OnboardingQuestionnaire';
+import { formatCivilDate } from '../../utils/civil-date';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -556,7 +557,7 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
             Cardápio da Semana
           </h3>
           <span className="text-xs text-gray-400">
-            Semana de {new Date(plan.weekStart).toLocaleDateString('pt-BR')}
+            Semana de {formatCivilDate(plan.weekStart)}
           </span>
         </div>
 
@@ -1359,7 +1360,7 @@ export default function MealPlannerPage() {
             ) : (
               <div className="flex flex-col gap-3">
                 {allPlans.map((p) => {
-                  const weekDate = new Date(p.weekStart).toLocaleDateString('pt-BR', {
+                  const weekDate = formatCivilDate(p.weekStart, 'pt-BR', {
                     day: '2-digit',
                     month: 'short',
                     year: 'numeric',

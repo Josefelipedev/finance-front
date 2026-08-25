@@ -5,6 +5,7 @@ import DateRangePicker from '../../components/ui/date-range-picker';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import { defaultDateRange } from '../../utils/date-range';
 import { useFinance } from '../../hooks/useFinance';
+import { formatCivilDate } from '../../utils/civil-date';
 
 export default function TransactionsPage() {
   const [dateRange, setDateRange] = useState(defaultDateRange);
@@ -27,7 +28,7 @@ export default function TransactionsPage() {
       const header = ['Data', 'Descrição', 'Tipo', 'Categoria', 'Moeda', 'Valor'].join(';');
       const rows = records.map((t) =>
         [
-          new Date(t.referenceDate || t.createdAt).toLocaleDateString('pt-BR'),
+          formatCivilDate(t.referenceDate || t.createdAt),
           `"${(t.description || '').replace(/"/g, '""')}"`,
           t.type === 'income' ? 'Receita' : 'Despesa',
           `"${(t.category?.name || 'Sem categoria').replace(/"/g, '""')}"`,
