@@ -72,6 +72,12 @@ interface MealShoppingList {
 interface MealPlan {
   id: number;
   weekStart: string;
+  /**
+   * A moeda em que os preços deste plano foram GERADOS — não a da conta hoje.
+   * Mudar de moeda não converte um cardápio antigo; só o símbolo mudava, e os
+   * mesmos números passavam a dizer outra coisa.
+   */
+  currency?: string;
   active: boolean;
   days: MealPlanDay[];
   shoppingList: MealShoppingList | null;
@@ -668,6 +674,7 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
 
 function ShoppingListView({
   list,
+  planCurrency,
   onToggle,
   onNotify,
   notifying,
@@ -676,6 +683,8 @@ function ShoppingListView({
   closing,
 }: {
   list: MealShoppingList;
+  /** A moeda do plano a que esta lista pertence. */
+  planCurrency?: string;
   onToggle: (id: number) => void;
   onNotify: () => void;
   notifying: boolean;
@@ -684,7 +693,9 @@ function ShoppingListView({
   closing: boolean;
 }) {
   const { profile: userProfile, getProfile } = useUserProfile();
-  const displayCurrency = userProfile?.currency;
+  // A do plano manda. A da conta só entra em planos antigos, gerados antes de
+  // a moeda passar a ser gravada.
+  const displayCurrency = planCurrency ?? userProfile?.currency;
 
   useEffect(() => {
     getProfile().catch(() => {});
@@ -1266,6 +1277,7 @@ export default function MealPlannerPage() {
         ) : plan?.shoppingList ? (
           <ShoppingListView
             list={plan.shoppingList}
+            planCurrency={plan.currency}
             onToggle={toggleItem}
             onNotify={sendNotification}
             notifying={notifying}

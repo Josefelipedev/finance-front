@@ -46,6 +46,8 @@ export interface MealShoppingList {
 export interface MealPlan {
   id: number;
   weekStart: string;
+  /** Moeda em que os preços do plano foram gerados — não a da conta hoje. */
+  currency?: string;
   active: boolean;
   days: MealPlanDay[];
   shoppingList: MealShoppingList | null;
