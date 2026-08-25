@@ -10,6 +10,8 @@ import { formatMoney, currencyOption } from '../../utils/currency';
 import PreferencesPanel from './PreferencesPanel';
 import OnboardingQuestionnaire from './OnboardingQuestionnaire';
 import { formatCivilDate } from '../../utils/civil-date';
+import OwnerChip from '../../components/common/OwnerChip';
+import { useOwnerNaming } from '../../hooks/useOwner';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -71,6 +73,8 @@ interface MealShoppingList {
 
 interface MealPlan {
   id: number;
+  /** Quem gerou o plano. O cardápio é do casal, mas gera-se um de cada vez. */
+  userId?: number;
   weekStart: string;
   /**
    * A moeda em que os preços deste plano foram GERADOS — não a da conta hoje.
@@ -544,6 +548,7 @@ function ScheduleConfig({
 // ── Week Plan View ────────────────────────────────────────────────────────────
 
 function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleItem[] }) {
+  const naming = useOwnerNaming();
   const [selectedDay, setSelectedDay] = useState<number>(
     plan.days[0]?.dayOfWeek ?? 0,
   );
@@ -562,8 +567,15 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
             Cardápio da Semana
           </h3>
-          <span className="text-xs text-gray-400">
+          <span className="flex items-center gap-2 text-xs text-gray-400">
             Semana de {formatCivilDate(plan.weekStart)}
+            {/* Quem gerou. O cardápio é do casal, mas cada plano sai das
+                preferências e da agenda de quem carregou no botão — saber de
+                quem é explica porque é o menu é o que é. */}
+            <OwnerChip
+              name={naming.ownerName(plan.userId)}
+              mine={naming.isMine(plan.userId)}
+            />
           </span>
         </div>
 
@@ -836,6 +848,7 @@ function ShoppingListView({
 type Tab = 'schedule' | 'plan' | 'shopping' | 'history' | 'preferences' | 'profile';
 
 export default function MealPlannerPage() {
+  const naming = useOwnerNaming();
   const [activeTab, setActiveTab] = useState<Tab>('plan');
   const [schedule, setSchedule] = useState<ScheduleItem[]>(DEFAULT_SCHEDULE);
   const [plan, setPlan] = useState<MealPlan | null>(null);
@@ -1391,6 +1404,10 @@ export default function MealPlannerPage() {
                           <span className="text-sm font-semibold text-gray-800 dark:text-white">
                             Semana de {weekDate}
                           </span>
+                          <OwnerChip
+                            name={naming.ownerName(p.userId)}
+                            mine={naming.isMine(p.userId)}
+                          />
                           {p.active && (
                             <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full font-medium">
                               ✓ Ativo
