@@ -13,10 +13,10 @@ jobs:
       deployments: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -29,9 +29,16 @@ jobs:
         run: npm run build
 
       # wrangler vem das devDependencies (npm ci) — sem isso o npx tenta baixar
-      # em runner não-interativo e falha com "npx canceled due to missing packages"
+      # em runner não-interativo e falha com "npx canceled due to missing packages".
+      # Sem CLOUDFLARE_API_TOKEN o wrangler não publica: em vez de pintar o push de
+      # vermelho, avisa e deixa passar — o build acima continua a ser a verificação.
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 46f2a7889afc9d49ec429792e23659bf
-        run: npx --no-install wrangler pages deploy dist --project-name=finploit-finance --branch=main
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::warning title=Nada foi publicado::Falta o secret CLOUDFLARE_API_TOKEN. O build passou, mas o site em produção continua na versão anterior. Criar o token em Cloudflare > My Profile > API Tokens (template 'Edit Cloudflare Workers') e correr: gh secret set CLOUDFLARE_API_TOKEN --repo Josefelipedev/finance-front. Entretanto, publicar à mão com: npm run deploy"
+            exit 0
+          fi
+          npx --no-install wrangler pages deploy dist --project-name=finploit-finance --branch=main
