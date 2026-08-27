@@ -1,7 +1,12 @@
 import React from 'react';
 import { ShoppingItem } from '../../../hooks/useShopping';
 import { formatMoney } from '../../../utils/currency';
-import { itemPrice, lineTotal } from '../../../utils/shopping-price';
+import {
+  itemPrice,
+  lineTotal,
+  scrapedAgeInDays,
+  isStalePrice,
+} from '../../../utils/shopping-price';
 
 interface ShoppingListItemProps {
   item: ShoppingItem;
@@ -27,6 +32,7 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
   onShowStorePrices,
 }) => {
   const formatCurrency = (amount: number) => formatMoney(amount, currency);
+  const idadeDoPreco = scrapedAgeInDays(item);
 
   const getUnitLabel = (unit: string) => {
     const units: Record<string, string> = {
@@ -104,7 +110,22 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
                           : '🏷️'}{' '}
                   {item.supermarket &&
                     item.supermarket.charAt(0).toUpperCase() + item.supermarket.slice(1)}{' '}
-                  {formatCurrency(item.scrapedPrice)}
+                  {/*
+                    O preço da loja é em euros (os supermercados ligados são
+                    portugueses) e mostrava-se com o símbolo de quem olha. E não
+                    dizia de quando era: o desta lista tinha 39 dias.
+                  */}
+                  {formatMoney(item.scrapedPrice, item.scrapedCurrency ?? currency)}
+                  {idadeDoPreco != null && (
+                    <span className={isStalePrice(item) ? 'text-warning-600 dark:text-warning-400' : ''}>
+                      {' · '}
+                      {idadeDoPreco === 0
+                        ? 'hoje'
+                        : idadeDoPreco === 1
+                          ? 'ontem'
+                          : `há ${idadeDoPreco} dias`}
+                    </span>
+                  )}
                 </span>
               </div>
             )}

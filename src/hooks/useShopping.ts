@@ -29,6 +29,7 @@ export interface ShoppingItem {
   updatedAt?: string;
   supermarket?: string;
   scrapedPrice?: number;
+  scrapedCurrency?: string;
   scrapedAt?: string;
 }
 

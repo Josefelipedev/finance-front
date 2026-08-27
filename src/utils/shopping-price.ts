@@ -24,7 +24,16 @@
 export type PricedItem = {
   price?: number | null;
   scrapedPrice?: number | null;
+  scrapedCurrency?: string | null;
+  scrapedAt?: string | null;
 };
+
+/**
+ * A partir de quantos dias o preço de um supermercado deixa de dizer alguma
+ * coisa sobre hoje. As promoções mudam à semana; o preço que estava em
+ * produção tinha 39 dias.
+ */
+export const MAX_SCRAPED_AGE_DAYS = 7;
 
 /** Preço de UMA unidade. */
 export function itemPrice(item: PricedItem): number {
@@ -49,4 +58,35 @@ export function isEstimatedPrice(item: PricedItem): boolean {
     item.scrapedPrice != null &&
     item.scrapedPrice > 0
   );
+}
+
+/**
+ * A moeda em que esta linha está expressa.
+ *
+ * O preço escrito à mão é na moeda de quem escreveu — a app não tem moeda por
+ * item. O do scraper é na do país da loja, que pode não ser nenhuma das duas:
+ * os supermercados ligados hoje são portugueses e falam euros.
+ */
+export function lineCurrency(item: PricedItem, fallback?: string | null): string | null | undefined {
+  if (isEstimatedPrice(item) && item.scrapedCurrency) return item.scrapedCurrency;
+  return fallback;
+}
+
+/** Há quantos dias este preço foi lido na loja. `null` se nunca foi. */
+export function scrapedAgeInDays(item: PricedItem, now: Date = new Date()): number | null {
+  if (!item.scrapedAt) return null;
+  const lido = new Date(item.scrapedAt).getTime();
+  if (Number.isNaN(lido)) return null;
+  return Math.floor((now.getTime() - lido) / 86_400_000);
+}
+
+/**
+ * true quando o valor desta linha é um preço de loja velho de mais para se
+ * apresentar como se fosse de hoje. Continua a contar — é a única estimativa
+ * que há —, mas quem o mostra tem de o dizer.
+ */
+export function isStalePrice(item: PricedItem, now: Date = new Date()): boolean {
+  if (!isEstimatedPrice(item)) return false;
+  const idade = scrapedAgeInDays(item, now);
+  return idade != null && idade > MAX_SCRAPED_AGE_DAYS;
 }
