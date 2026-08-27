@@ -6,6 +6,7 @@ import { Modal } from '../../ui/modal';
 import Button from '../../ui/button/Button';
 import DateField from '../../form/DateField';
 import { todayCivil } from '../../../utils/civil-date';
+import { itemPrice, isEstimatedPrice } from '../../../utils/shopping-price';
 
 interface ClosePurchaseModalProps {
   list: ShoppingList;
@@ -37,9 +38,14 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
 
   const purchased = useMemo(() => list.items.filter((i) => i.purchased), [list.items]);
   const total = useMemo(
-    () => purchased.reduce((sum, i) => sum + (i.scrapedPrice ?? i.price ?? 0), 0),
+    () => purchased.reduce((sum, i) => sum + itemPrice(i), 0),
     [purchased]
   );
+
+  // Parte do total pode não ser dinheiro que a pessoa confirmou: é o preço que
+  // a loja tinha no site quando os preços foram actualizados. Vale dizê-lo
+  // ANTES de a despesa existir, não depois de a ver no extrato.
+  const estimados = useMemo(() => purchased.filter(isEstimatedPrice), [purchased]);
 
   const semItens = purchased.length === 0;
   const semPreco = !semItens && total <= 0;
@@ -79,6 +85,14 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
                 {purchased.length} de {list.items.length}{' '}
                 {list.items.length === 1 ? 'item' : 'itens'} — os não marcados ficam de fora.
               </p>
+              {estimados.length > 0 && (
+                <p className="text-xs text-warning-600 dark:text-warning-400 mt-2">
+                  {estimados.length === 1
+                    ? `O preço de "${estimados[0].name}" é o da loja, não um que tenha escrito.`
+                    : `${estimados.length} itens entram com o preço da loja, não com um que tenha escrito.`}{' '}
+                  Escreva o preço que pagou se quiser que a despesa seja exata.
+                </p>
+              )}
             </div>
 
             <div className="mt-4 space-y-4">
