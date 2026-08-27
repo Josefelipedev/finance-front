@@ -10,7 +10,15 @@ import { useConfirm } from '../../components/ui/confirm/useConfirm';
 import CategorySelect from '../../components/form/CategorySelect';
 import BankAccountSelect from '../../components/form/BankAccountSelect';
 import AccountForecastCards from '../../components/finance-metrics/bills/AccountForecastCards';
-import { useBills, BillItem, BillType, BillsForecast } from '../../hooks/useBills';
+import MonthlyBillsForecast from '../../components/finance-metrics/bills/MonthlyBillsForecast';
+import CreditLimits from '../../components/finance-metrics/bills/CreditLimits';
+import {
+  useBills,
+  BillItem,
+  BillType,
+  BillsForecast,
+  BillsMonthlyForecast,
+} from '../../hooks/useBills';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useBankAccounts } from '../../hooks/useBankAccounts';
 import { ownerNaming } from '../../hooks/useOwner';
@@ -40,6 +48,21 @@ function formatMonthLabel(month: string): string {
     month: 'long',
     year: 'numeric',
   });
+}
+
+function formatInstallmentLabel(item: BillItem): string | null {
+  const parts: string[] = [];
+  if (item.installment != null && item.installments != null) {
+    parts.push(`${item.installment} de ${item.installments}`);
+  }
+  if (item.until) {
+    const match = /^(\d{4})-(\d{2})/.exec(item.until);
+    if (match) {
+      const shortMonths = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      parts.push(`até ${shortMonths[Number(match[2]) - 1]}/${match[1].slice(-2)}`);
+    }
+  }
+  return parts.length > 0 ? parts.join(' · ') : null;
 }
 
 /** "dd/MM" (pt-BR) a partir de uma ISO date. */
@@ -283,6 +306,10 @@ export default function BillsPage() {
   // O que fica em cada conta bancária depois de pagar o que falta.
   const [accountsForecast, setAccountsForecast] = useState<BillsForecast | null>(null);
   const [displayCurrency, setDisplayCurrency] = useState('BRL');
+  const [unconvertedCurrencies, setUnconvertedCurrencies] = useState<string[]>([]);
+  const [monthlyForecast, setMonthlyForecast] = useState<BillsMonthlyForecast | null>(null);
+  const [isForecastLoading, setIsForecastLoading] = useState(true);
+  const [forecastError, setForecastError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
@@ -305,7 +332,7 @@ export default function BillsPage() {
   const [editingItem, setEditingItem] = useState<BillItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { getBills, createBill, updateBill, deleteBill, payBill, unpayBill } = useBills();
+  const { getBills, getForecast, createBill, updateBill, deleteBill, payBill, unpayBill } = useBills();
   const { profile, getProfile } = useUserProfile();
   const naming = useMemo(() => ownerNaming(profile), [profile]);
   const { confirm, dialog } = useConfirm();
@@ -338,6 +365,7 @@ export default function BillsPage() {
         setRealizedBalance(res?.realizedBalance ?? 0);
         setAccountsForecast(res?.accounts ?? null);
         setDisplayCurrency(res?.displayCurrency ?? 'BRL');
+        setUnconvertedCurrencies(res?.unconvertedCurrencies ?? []);
       } catch (err) {
         setError((err as Error).message || 'Não foi possível carregar as contas.');
       } finally {
@@ -347,9 +375,25 @@ export default function BillsPage() {
     [getBills]
   );
 
+  const loadMonthlyForecast = useCallback(async () => {
+    setIsForecastLoading(true);
+    setForecastError(null);
+    try {
+      setMonthlyForecast(await getForecast(10));
+    } catch (err) {
+      setForecastError((err as Error).message || 'Não foi possível calcular os próximos meses.');
+    } finally {
+      setIsForecastLoading(false);
+    }
+  }, [getForecast]);
+
   useEffect(() => {
     load(month);
   }, [load, month]);
+
+  useEffect(() => {
+    void loadMonthlyForecast();
+  }, [loadMonthlyForecast]);
 
   // Clicar no checkbox: pago → despaga direto; pendente → abre o modal de valor.
   const handleToggle = (item: BillItem) => {
@@ -372,7 +416,7 @@ export default function BillsPage() {
           ? 'Recebimento marcado como pendente.'
           : 'Conta marcada como pendente.'
       );
-      await load(month);
+      await Promise.all([load(month), loadMonthlyForecast()]);
     } catch (err) {
       toast.error((err as Error).message || 'Não foi possível atualizar a conta.');
     } finally {
@@ -395,7 +439,7 @@ export default function BillsPage() {
         item.type === 'income' ? 'Recebimento registrado!' : 'Conta marcada como paga!'
       );
       setPayingItem(null);
-      await load(month);
+      await Promise.all([load(month), loadMonthlyForecast()]);
     } catch (err) {
       toast.error((err as Error).message || 'Não foi possível atualizar a conta.');
     } finally {
@@ -445,7 +489,7 @@ export default function BillsPage() {
       }
       setFormOpen(false);
       setEditingItem(null);
-      await load(month);
+      await Promise.all([load(month), loadMonthlyForecast()]);
     } catch (err) {
       toast.error((err as Error).message || 'Não foi possível guardar a conta.');
     } finally {
@@ -465,7 +509,7 @@ export default function BillsPage() {
     try {
       await deleteBill(item.id);
       toast.success('Conta removida.');
-      await load(month);
+      await Promise.all([load(month), loadMonthlyForecast()]);
     } catch (err) {
       toast.error((err as Error).message || 'Não foi possível remover a conta.');
     } finally {
@@ -480,6 +524,7 @@ export default function BillsPage() {
     const isPaid = item.status === 'paid';
     const isOverdue = item.overdue;
     const isToggling = togglingId === item.id;
+    const installmentLabel = formatInstallmentLabel(item);
     return (
       <div
         key={item.id}
@@ -551,6 +596,12 @@ export default function BillsPage() {
               <i className="fas fa-calendar-day text-[10px] text-gray-400 dark:text-gray-500"></i>
               {formatDueDate(item.dueDate)}
             </span>
+            {installmentLabel && (
+              <span className="inline-flex items-center gap-1 font-medium text-brand-600 dark:text-brand-400">
+                <i className="fas fa-layer-group text-[10px]"></i>
+                {installmentLabel}
+              </span>
+            )}
             {item.categoryName && (
               <span className="inline-flex items-center gap-1.5">
                 <span
@@ -724,6 +775,8 @@ export default function BillsPage() {
 
   const balanceClass = (v: number) =>
     v < 0 ? 'text-error-500 dark:text-error-400' : 'text-success-600 dark:text-success-400';
+  const totalsAreSafe = unconvertedCurrencies.length === 0;
+  const summaryMoney = (value: number) => (totalsAreSafe ? formatMoney(value, displayCurrency) : '—');
 
   return (
     <PageShell
@@ -767,6 +820,15 @@ export default function BillsPage() {
         </div>
       }
     >
+      <div className="px-1">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600 dark:text-brand-400">
+          Este mês
+        </p>
+        <h2 className="font-display text-lg font-semibold capitalize text-gray-900 dark:text-white">
+          {formatMonthLabel(month)}
+        </h2>
+      </div>
+
       {/* Resumo do mês: A Pagar / A Receber / Saldo Previsto / Saldo Realizado */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Surface className="p-4">
@@ -774,7 +836,7 @@ export default function BillsPage() {
             A Pagar
           </p>
           <p className="mt-1 font-display text-xl font-semibold tabular-nums text-error-500 dark:text-error-400">
-            {formatMoney(expense.pending, displayCurrency)}
+            {summaryMoney(expense.pending)}
           </p>
         </Surface>
         <Surface className="p-4">
@@ -782,7 +844,7 @@ export default function BillsPage() {
             A Receber
           </p>
           <p className="mt-1 font-display text-xl font-semibold tabular-nums text-success-600 dark:text-success-400">
-            {formatMoney(income.pending, displayCurrency)}
+            {summaryMoney(income.pending)}
           </p>
         </Surface>
         <Surface className="p-4">
@@ -792,7 +854,7 @@ export default function BillsPage() {
           <p
             className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(projectedBalance)}`}
           >
-            {formatMoney(projectedBalance, displayCurrency)}
+            {summaryMoney(projectedBalance)}
           </p>
         </Surface>
         <Surface className="p-4">
@@ -802,15 +864,16 @@ export default function BillsPage() {
           <p
             className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(realizedBalance)}`}
           >
-            {formatMoney(realizedBalance, displayCurrency)}
+            {summaryMoney(realizedBalance)}
           </p>
         </Surface>
       </div>
 
-      {/* Os quatro números acima são do casal inteiro. Estes dizem em que conta
-          é que o dinheiro fica — a pergunta de quem tem contas separadas. */}
-      {!isFetching && !error && (
-        <AccountForecastCards forecast={accountsForecast} currentUserId={profile?.id} />
+      {!totalsAreSafe && (
+        <Surface className="border-warning-200 bg-warning-50 px-5 py-3 text-sm text-warning-700 dark:border-warning-500/20 dark:bg-warning-500/10 dark:text-warning-400">
+          <i className="fas fa-triangle-exclamation mr-2"></i>
+          Falta câmbio para {unconvertedCurrencies.join(', ')}. Os totais ficam ocultos para não misturar moedas.
+        </Surface>
       )}
 
       {/* Lista de contas */}
@@ -949,6 +1012,34 @@ export default function BillsPage() {
             </div>
           )}
         </div>
+      )}
+
+      {!isFetching && !error && (
+        <Surface className="flex items-center justify-between gap-5 border-brand-200 bg-brand-50/60 p-5 dark:border-brand-400/20 dark:bg-brand-400/[0.06]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">
+              Total de contas do mês
+            </p>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Pago + ainda por pagar</p>
+          </div>
+          <p className="font-display text-2xl font-bold tabular-nums text-gray-900 dark:text-white">
+            {summaryMoney(expense.pending + expense.paid)}
+          </p>
+        </Surface>
+      )}
+
+      <MonthlyBillsForecast
+        forecast={monthlyForecast}
+        isLoading={isForecastLoading}
+        error={forecastError}
+        onRetry={() => void loadMonthlyForecast()}
+      />
+
+      <CreditLimits accounts={bankAccounts} />
+
+      {/* Além do mapa do papel, mostra em que conta bancária o dinheiro fica. */}
+      {!isFetching && !error && (
+        <AccountForecastCards forecast={accountsForecast} currentUserId={profile?.id} />
       )}
 
       {/* Modal: valor efetivamente pago/recebido ao marcar uma conta pendente como paga */}

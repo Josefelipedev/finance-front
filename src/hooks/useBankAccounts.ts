@@ -16,6 +16,8 @@ export interface BankAccount {
   initialBalance?: number;
   /** Ponto de partida + o que entrou − o que saiu, calculado no servidor. */
   currentBalance?: number;
+  /** Limite informado pelo utilizador. Nunca participa do saldo. */
+  creditLimit?: number | null;
   /** O que os lançamentos ligados a esta conta somam. */
   movements?: { income: number; expense: number; count: number };
   iconName?: string | null;
@@ -30,6 +32,7 @@ export interface CreateBankAccountDto {
   agency?: string;
   currency?: string;
   balance?: number;
+  creditLimit?: number | null;
 }
 
 export function useBankAccounts() {

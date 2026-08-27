@@ -25,6 +25,12 @@ export interface BillItem {
   paidAt: string | null;
   overdue: boolean; // pendente e já venceu
   carriedOver: boolean; // veio de um mês anterior (atrasada)
+  /** Posição desta ocorrência dentro do contrato recorrente. */
+  installment: number | null;
+  /** Total contratado; null quando a série só tem uma data de fim. */
+  installments: number | null;
+  /** Último dia da série recorrente, como data civil ISO. */
+  until: string | null;
 }
 
 /** Subtotais (JÁ convertidos para displayCurrency pelo servidor) por lado. */
@@ -92,6 +98,23 @@ export interface BillsForecast {
   unconvertedCurrencies?: string[];
 }
 
+export interface BillMonthForecast {
+  month: string;
+  expense: number;
+  income: number;
+  net: number;
+}
+
+/** A fila do casal, já convertida para a moeda de exibição. */
+export interface BillsMonthlyForecast {
+  months: BillMonthForecast[];
+  heaviest: string | null;
+  relief: string | null;
+  displayCurrency: string;
+  rateDate: string | null;
+  unconvertedCurrencies: string[];
+}
+
 /** Subtotal pendente por moeda nativa. */
 export interface BillCurrencySubtotal {
   currency: string;
@@ -133,6 +156,22 @@ export function useBills() {
     try {
       const query = month ? `?month=${encodeURIComponent(month)}` : '';
       return await api.get<BillsResponse>(`/bills${query}`);
+    } catch (err) {
+      const e = err instanceof Error ? err : new Error(String(err));
+      setError(e);
+      throw e;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const getForecast = useCallback(async (months = 10) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      return await api.get<BillsMonthlyForecast>(
+        `/bills/forecast?months=${encodeURIComponent(months)}`
+      );
     } catch (err) {
       const e = err instanceof Error ? err : new Error(String(err));
       setError(e);
@@ -213,5 +252,15 @@ export function useBills() {
     }
   }, []);
 
-  return { getBills, createBill, updateBill, deleteBill, payBill, unpayBill, isLoading, error };
+  return {
+    getBills,
+    getForecast,
+    createBill,
+    updateBill,
+    deleteBill,
+    payBill,
+    unpayBill,
+    isLoading,
+    error,
+  };
 }

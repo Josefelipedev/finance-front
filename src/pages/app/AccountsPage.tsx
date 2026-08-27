@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
-import { useBankAccounts } from '../../hooks/useBankAccounts';
+import MoneyInput from '../../components/form/MoneyInput';
+import { BankAccount, useBankAccounts } from '../../hooks/useBankAccounts';
 import { useAuth } from '../../context/AuthContext';
 import { CURRENCY_OPTIONS, currencyOption, formatMoney } from '../../utils/currency';
+import { parseAmountInput } from '../../utils/money';
 
 export default function AccountsPage() {
-  const { accounts, isLoading, loadAccounts, createAccount, archiveAccount } = useBankAccounts();
+  const { accounts, isLoading, loadAccounts, createAccount, updateAccount, archiveAccount } = useBankAccounts();
   const { user } = useAuth();
 
   const [showForm, setShowForm] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<BankAccount | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState<number | null>(null);
   const [form, setForm] = useState({
@@ -17,6 +20,7 @@ export default function AccountsPage() {
     accountNumber: '',
     currency: user?.currency || 'BRL',
     balance: '',
+    creditLimit: null as number | null,
   });
 
   useEffect(() => {
@@ -36,7 +40,40 @@ export default function AccountsPage() {
     return () => clearTimeout(timer);
   }, [confirmArchive]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setForm({
+      bankName: '',
+      accountNumber: '',
+      currency: user?.currency || 'BRL',
+      balance: '',
+      creditLimit: null,
+    });
+    setEditingAccount(null);
+  };
+
+  const openCreate = () => {
+    if (showForm && !editingAccount) {
+      setShowForm(false);
+      resetForm();
+      return;
+    }
+    resetForm();
+    setShowForm(true);
+  };
+
+  const openEdit = (account: BankAccount) => {
+    setEditingAccount(account);
+    setForm({
+      bankName: account.bankName,
+      accountNumber: account.accountNumber ?? '',
+      currency: account.currency,
+      balance: String(account.initialBalance ?? account.balance),
+      creditLimit: account.creditLimit ?? null,
+    });
+    setShowForm(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.bankName.trim()) {
       toast.error('Informe o nome do banco.');
@@ -44,18 +81,25 @@ export default function AccountsPage() {
     }
     setIsSaving(true);
     try {
-      await createAccount({
+      const payload = {
         bankName: form.bankName.trim(),
         accountNumber: form.accountNumber.trim() || undefined,
         currency: form.currency,
-        balance: form.balance ? parseFloat(form.balance.replace(',', '.')) || 0 : 0,
-      });
-      toast.success('Conta criada!');
-      setForm({ bankName: '', accountNumber: '', currency: user?.currency || 'BRL', balance: '' });
+        balance: form.balance ? (parseAmountInput(form.balance) ?? 0) : 0,
+        creditLimit: form.creditLimit,
+      };
+      if (editingAccount) {
+        await updateAccount(editingAccount.id, payload);
+        toast.success('Conta atualizada!');
+      } else {
+        await createAccount(payload);
+        toast.success('Conta criada!');
+      }
+      resetForm();
       setShowForm(false);
       await loadAccounts();
     } catch (err) {
-      toast.error((err as Error).message || 'Não foi possível criar a conta.');
+      toast.error((err as Error).message || 'Não foi possível guardar a conta.');
     } finally {
       setIsSaving(false);
     }
@@ -82,17 +126,20 @@ export default function AccountsPage() {
       description="As contas do casal, cada uma na sua moeda"
       actions={
         <button
-          onClick={() => setShowForm((v) => !v)}
+          onClick={openCreate}
           className="flex items-center gap-2 rounded-xl bg-brand-400 px-4 py-2.5 text-sm font-semibold text-gray-950 shadow-glow transition-colors hover:bg-brand-300"
         >
           <i className={`fas ${showForm ? 'fa-xmark' : 'fa-plus'} text-xs`}></i>
-          {showForm ? 'Fechar' : 'Nova conta'}
+          {showForm && !editingAccount ? 'Fechar' : 'Nova conta'}
         </button>
       }
     >
       {showForm && (
         <Surface className="p-5 sm:p-6">
-          <form onSubmit={handleCreate} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <form onSubmit={handleSave} className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <h2 className="font-display text-lg font-semibold text-gray-900 sm:col-span-2 xl:col-span-5 dark:text-white">
+              {editingAccount ? `Editar ${editingAccount.bankName}` : 'Nova conta'}
+            </h2>
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Banco
@@ -143,23 +190,59 @@ export default function AccountsPage() {
                   — o ponto de partida; os lançamentos somam-se a este valor
                 </span>
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={form.balance}
-                  onChange={(e) => setForm({ ...form, balance: e.target.value.replace(/[^\d,.]/g, '') })}
-                  placeholder="0,00"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
-                />
+              <input
+                type="text"
+                inputMode="decimal"
+                value={form.balance}
+                onChange={(e) => setForm({ ...form, balance: e.target.value.replace(/[^\d,.]/g, '') })}
+                placeholder="0,00"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+            <div>
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Limite de crédito
+                  <span className="ml-1 font-normal text-xs text-gray-400 dark:text-gray-500">— não é saldo</span>
+                </label>
                 <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="shrink-0 rounded-xl bg-brand-400 px-4 py-2.5 text-sm font-semibold text-gray-950 transition-colors hover:bg-brand-300 disabled:opacity-60"
+                  type="button"
+                  onClick={() => setForm({ ...form, creditLimit: form.creditLimit == null ? 0 : null })}
+                  className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
                 >
-                  {isSaving ? <i className="fas fa-spinner fa-spin"></i> : 'Salvar'}
+                  {form.creditLimit == null ? 'Informar' : 'Remover'}
                 </button>
               </div>
+              {form.creditLimit == null ? (
+                <div className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-400 dark:border-gray-600 dark:text-gray-500">
+                  Não informado
+                </div>
+              ) : (
+                <MoneyInput
+                  value={form.creditLimit}
+                  onChange={(creditLimit) => setForm({ ...form, creditLimit })}
+                  currencySymbol={currencyOption(form.currency).symbol}
+                />
+              )}
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-100 pt-4 sm:col-span-2 xl:col-span-5 dark:border-white/[0.06]">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  resetForm();
+                }}
+                className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:border-gray-600 dark:text-gray-300"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="rounded-xl bg-brand-400 px-5 py-2.5 text-sm font-semibold text-gray-950 transition-colors hover:bg-brand-300 disabled:opacity-60"
+              >
+                {isSaving ? <i className="fas fa-spinner fa-spin"></i> : editingAccount ? 'Guardar' : 'Salvar'}
+              </button>
             </div>
           </form>
         </Surface>
@@ -226,7 +309,24 @@ export default function AccountsPage() {
                     Saldo inicial · sem lançamentos ligados a esta conta
                   </p>
                 )}
-                <div className="mt-4 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
+                {account.creditLimit != null && (
+                  <div className="mt-4 rounded-xl bg-warning-50 px-3 py-2 dark:bg-warning-500/10">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-warning-600 dark:text-warning-400">
+                      Limite de crédito · não é saldo
+                    </p>
+                    <p className="mt-0.5 font-display font-semibold tabular-nums text-gray-900 dark:text-white">
+                      {formatMoney(account.creditLimit, account.currency)}
+                    </p>
+                  </div>
+                )}
+                <div className="mt-4 flex gap-4 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
+                  <button
+                    onClick={() => openEdit(account)}
+                    className="text-xs font-medium text-brand-600 transition-colors hover:text-brand-500 dark:text-brand-400"
+                  >
+                    <i className="fas fa-pen mr-1.5"></i>
+                    Editar
+                  </button>
                   <button
                     onClick={() => handleArchive(account.id)}
                     className={`text-xs font-medium transition-colors ${
