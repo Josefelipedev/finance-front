@@ -21,6 +21,7 @@ export default function AccountsPage() {
     currency: user?.currency || 'BRL',
     balance: '',
     creditLimit: null as number | null,
+    creditUsed: null as number | null,
   });
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function AccountsPage() {
       currency: user?.currency || 'BRL',
       balance: '',
       creditLimit: null,
+      creditUsed: null,
     });
     setEditingAccount(null);
   };
@@ -69,6 +71,7 @@ export default function AccountsPage() {
       currency: account.currency,
       balance: String(account.initialBalance ?? account.balance),
       creditLimit: account.creditLimit ?? null,
+      creditUsed: account.creditUsed ?? null,
     });
     setShowForm(true);
   };
@@ -87,6 +90,7 @@ export default function AccountsPage() {
         currency: form.currency,
         balance: form.balance ? (parseAmountInput(form.balance) ?? 0) : 0,
         creditLimit: form.creditLimit,
+        creditUsed: form.creditUsed,
       };
       if (editingAccount) {
         await updateAccount(editingAccount.id, payload);
@@ -225,6 +229,46 @@ export default function AccountsPage() {
                 />
               )}
             </div>
+            <div>
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Em débito
+                  <span className="ml-1 font-normal text-xs text-gray-400 dark:text-gray-500">— o que já deve</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, creditUsed: form.creditUsed == null ? 0 : null })}
+                  className="text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+                >
+                  {form.creditUsed == null ? 'Informar' : 'Remover'}
+                </button>
+              </div>
+              {form.creditUsed == null ? (
+                <div className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-400 dark:border-gray-600 dark:text-gray-500">
+                  Não informado
+                </div>
+              ) : (
+                <MoneyInput
+                  value={form.creditUsed}
+                  onChange={(creditUsed) => setForm({ ...form, creditUsed })}
+                  currencySymbol={currencyOption(form.currency).symbol}
+                />
+              )}
+              {/*
+                Disponível é conta, não um número decorado. Mostra-se aqui
+                enquanto se escreve, para se ver logo se bate com o que o banco
+                diz — que é a forma de apanhar um dos dois números errado.
+              */}
+              {form.creditLimit != null && form.creditUsed != null && (
+                <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                  Disponível:{' '}
+                  <strong className="font-semibold text-gray-800 dark:text-gray-200">
+                    {formatMoney(form.creditLimit - form.creditUsed, form.currency)}
+                  </strong>
+                </p>
+              )}
+            </div>
+
             <div className="flex justify-end gap-3 border-t border-gray-100 pt-4 sm:col-span-2 xl:col-span-5 dark:border-white/[0.06]">
               <button
                 type="button"

@@ -33,9 +33,22 @@ export default function CreditLimits({ accounts }: { accounts: BankAccount[] }) 
                   {[account.user?.name, account.currency].filter(Boolean).join(' · ')}
                 </p>
               </div>
-              <p className="shrink-0 font-display text-lg font-semibold tabular-nums text-gray-900 dark:text-white">
-                {formatMoney(account.creditLimit!, account.currency)}
-              </p>
+              {/*
+                Quando se sabe a dívida, o número grande é o que ainda dá para
+                gastar — o limite fica pequeno, por baixo. Sem dívida escrita,
+                mostra-se só o limite: dizer "disponível" sem saber o que já se
+                deve seria inventar.
+              */}
+              <div className="shrink-0 text-right">
+                <p className="font-display text-lg font-semibold tabular-nums text-gray-900 dark:text-white">
+                  {formatMoney(account.creditAvailable ?? account.creditLimit!, account.currency)}
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  {account.creditAvailable != null
+                    ? `disponível de ${formatMoney(account.creditLimit!, account.currency)}`
+                    : 'limite · débito não informado'}
+                </p>
+              </div>
             </div>
           ))}
         </div>

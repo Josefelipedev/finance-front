@@ -18,6 +18,10 @@ export interface BankAccount {
   currentBalance?: number;
   /** Limite informado pelo utilizador. Nunca participa do saldo. */
   creditLimit?: number | null;
+  /** Quanto do limite já está em dívida. */
+  creditUsed?: number | null;
+  /** `creditLimit − creditUsed`, quando os dois se sabem. */
+  creditAvailable?: number | null;
   /** O que os lançamentos ligados a esta conta somam. */
   movements?: { income: number; expense: number; count: number };
   iconName?: string | null;
@@ -33,6 +37,10 @@ export interface CreateBankAccountDto {
   currency?: string;
   balance?: number;
   creditLimit?: number | null;
+  /** Quanto do limite já está em dívida. */
+  creditUsed?: number | null;
+  /** `creditLimit − creditUsed`, quando os dois se sabem. */
+  creditAvailable?: number | null;
 }
 
 export function useBankAccounts() {
