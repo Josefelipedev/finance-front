@@ -37,7 +37,11 @@ export default function AccountForecastCards({ forecast, currentUserId }: Props)
   // Cada cartão soma contas de várias moedas na moeda da conta bancária. Sem
   // taxa, essa soma junta valores de face — e "sobram 1.653,77 €" passa a ser
   // um número plausível e errado, que é o que estes cartões existem para evitar.
-  if (semTaxa.length > 0) return <MixedCurrencyWarning currencies={semTaxa} />;
+  if (semTaxa.length > 0) return <MixedCurrencyWarning
+        currencies={semTaxa}
+        outOfRange={forecast?.outOfRangeDates}
+        rateDate={forecast?.rateDate}
+      />;
 
   // Sem contas bancárias registadas não há previsão possível — e um vazio mudo
   // deixava a pergunta ("quanto me fica na conta?") sem resposta nem caminho.

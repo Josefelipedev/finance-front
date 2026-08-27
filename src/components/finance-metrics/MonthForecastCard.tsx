@@ -25,7 +25,11 @@ const MonthForecastCard: React.FC = () => {
 
   // O realizado e o pendente são convertidos em separado: basta um deles ter
   // ficado por converter para o saldo previsto ser uma soma de moedas.
-  if (semTaxa.length > 0) return <MixedCurrencyWarning currencies={semTaxa} />;
+  if (semTaxa.length > 0) return <MixedCurrencyWarning
+        currencies={semTaxa}
+        outOfRange={forecast?.outOfRangeDates}
+        rateDate={forecast?.rateDate}
+      />;
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm dark:border-white/[0.06] dark:bg-gray-900">

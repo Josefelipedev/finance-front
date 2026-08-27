@@ -96,6 +96,9 @@ export interface BillsForecast {
   };
   /** Moedas somadas sem conversão — os saldos previstos são aproximados. */
   unconvertedCurrencies?: string[];
+  rateDate?: string | null;
+  /** Alguma conversão usou a taxa mais antiga que temos. */
+  outOfRangeDates?: boolean;
 }
 
 export interface BillMonthForecast {
@@ -113,6 +116,8 @@ export interface BillsMonthlyForecast {
   displayCurrency: string;
   rateDate: string | null;
   unconvertedCurrencies: string[];
+  /** Alguma conversão usou a taxa mais antiga que temos. */
+  outOfRangeDates?: boolean;
 }
 
 /** Subtotal pendente por moeda nativa. */
@@ -138,7 +143,9 @@ export interface BillsResponse {
   displayCurrency: string; // moeda de exibição do usuário, ex. "EUR" | "BRL"
   rateDate: string | null; // data da taxa de câmbio usada
   byCurrency: BillCurrencySubtotal[]; // subtotais pendentes por moeda nativa
-  unconvertedCurrencies: string[]; // moedas sem cobertura de taxa
+  unconvertedCurrencies: string[];
+  /** Alguma conversão usou a taxa mais antiga que temos. */
+  outOfRangeDates?: boolean; // moedas sem cobertura de taxa
 }
 
 /**

@@ -9,6 +9,9 @@ export interface MonthForecast {
   displayCurrency: string;
   /** Moedas somadas sem conversão — a previsão acima é aproximada. */
   unconvertedCurrencies?: string[];
+  /** Alguma conversão usou a taxa mais antiga que temos. */
+  outOfRangeDates?: boolean;
+  rateDate?: string | null;
 }
 
 /**

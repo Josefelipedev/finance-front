@@ -132,7 +132,11 @@ const TransactionsCalendar: React.FC = () => {
 
   return (
     <div className="space-y-4 px-2 sm:px-0">
-      <MixedCurrencyWarning currencies={semTaxa} />
+      <MixedCurrencyWarning
+        currencies={semTaxa}
+        outOfRange={listMeta?.outOfRangeDates}
+        rateDate={listMeta?.rateDate}
+      />
 
       {error && (
         <div className="rounded-2xl border border-error-200 bg-error-50 p-4 text-center dark:border-error-500/20 dark:bg-error-500/10">

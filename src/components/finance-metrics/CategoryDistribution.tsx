@@ -205,7 +205,11 @@ const CategoryDistribution: React.FC<CategoryDistributionProps> = ({ dateRange }
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
         </div>
       ) : semTaxa.length > 0 ? (
-        <MixedCurrencyWarning currencies={semTaxa} />
+        <MixedCurrencyWarning
+        currencies={semTaxa}
+        outOfRange={listMeta?.outOfRangeDates}
+        rateDate={listMeta?.rateDate}
+      />
       ) : error ? (
         <div className="h-64 flex flex-col items-center justify-center text-error-500 dark:text-red-400">
           <i className="fas fa-exclamation-triangle text-4xl mb-2"></i>

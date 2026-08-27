@@ -108,6 +108,8 @@ export interface Projection {
   displayCurrency: string;
   rateDate: string | null;
   unconvertedCurrencies: string[];
+  /** Alguma conversão usou a taxa mais antiga que temos. */
+  outOfRangeDates?: boolean;
 }
 
 export interface GoalPace {
@@ -174,6 +176,8 @@ export interface YearPlan {
   displayCurrency: string;
   rateDate: string | null;
   unconvertedCurrencies: string[];
+  /** Alguma conversão usou a taxa mais antiga que temos. */
+  outOfRangeDates?: boolean;
 }
 
 export interface ScenarioInput {

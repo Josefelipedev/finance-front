@@ -234,7 +234,11 @@ const MonthlyReport: React.FC = () => {
           </Button>
         </div>
       ) : semTaxa.length > 0 ? (
-        <MixedCurrencyWarning currencies={semTaxa} />
+        <MixedCurrencyWarning
+        currencies={semTaxa}
+        outOfRange={listMeta?.outOfRangeDates}
+        rateDate={listMeta?.rateDate}
+      />
       ) : (
         <>
           {/* Resumo do mês */}

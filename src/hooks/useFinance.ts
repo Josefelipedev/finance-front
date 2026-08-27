@@ -92,6 +92,8 @@ export interface FinanceListMeta {
   /** Data da taxa aplicada — com a regra da data, a mais recente das aplicadas. */
   rateDate?: string | null;
   unconvertedCurrencies?: string[];
+  /** Alguma conversão usou a taxa mais antiga que temos. */
+  outOfRangeDates?: boolean;
 }
 
 interface FinanceListResponse {
@@ -116,6 +118,8 @@ export interface FinanceSummary {
   /** Somas nativas por moeda, sem conversão */
   byCurrency?: CurrencyBreakdown[];
   unconvertedCurrencies?: string[];
+  /** Alguma conversão usou a taxa mais antiga que temos. */
+  outOfRangeDates?: boolean;
 }
 
 export interface DashboardData {
@@ -125,6 +129,8 @@ export interface DashboardData {
   rateDate?: string | null;
   /** Moedas que o servidor não converteu — os totais acima são aproximados. */
   unconvertedCurrencies?: string[];
+  /** Alguma conversão usou a taxa mais antiga que temos. */
+  outOfRangeDates?: boolean;
   byCurrency?: CurrencyBreakdown[];
   stats: {
     revenueLastWeek: number;
