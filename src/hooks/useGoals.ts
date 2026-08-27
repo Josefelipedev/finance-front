@@ -28,6 +28,8 @@ export interface Goal {
 export interface CreateGoalDto {
   name: string;
   description?: string;
+  /** A moeda em que a meta soma. Omitida, o servidor herda a do utilizador. */
+  currency?: string;
   targetValue: number;
   currentValue?: number;
   monthlyContribution?: number | null;

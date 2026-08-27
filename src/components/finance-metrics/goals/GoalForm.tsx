@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { CreateGoalDto, UpdateGoalDto } from '../../../hooks/useGoals.ts';
 import DateRangePicker from '../../ui/date-range-picker';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { currencyOption } from '../../../utils/currency';
+import { CURRENCY_OPTIONS, currencyOption } from '../../../utils/currency';
 import Button from '../../ui/button/Button';
 import MoneyInput from '../../form/MoneyInput';
 
@@ -33,11 +33,23 @@ const GoalForm: React.FC<GoalFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { profile, getProfile } = useUserProfile();
-  const currencySymbol = currencyOption(profile?.currency).symbol;
+  // A moeda é da META, não de quem olha: o símbolo ao lado do valor tem de ser
+  // o mesmo em que ela vai somar. Escrevia-se aqui o do PERFIL e gravava-se o
+  // `@default(BRL)` do servidor — uma meta de 5000 € ficava de 5000 reais.
+  const currency = formData.currency ?? profile?.currency;
+  const currencySymbol = currencyOption(currency).symbol;
 
   useEffect(() => {
     getProfile().catch(() => {});
   }, [getProfile]);
+
+  useEffect(() => {
+    if (!initialData && profile?.currency) {
+      setFormData((prev) =>
+        prev.currency ? prev : { ...prev, currency: profile.currency },
+      );
+    }
+  }, [initialData, profile?.currency]);
 
   useEffect(() => {
     if (initialData) {
@@ -133,6 +145,32 @@ const GoalForm: React.FC<GoalFormProps> = ({
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-none transition-colors"
           placeholder="Descreva sua meta..."
         />
+      </div>
+
+      <div>
+        <label
+          htmlFor="goal-currency"
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+        >
+          Moeda
+        </label>
+        <select
+          id="goal-currency"
+          name="currency"
+          value={currency ?? ''}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        >
+          {CURRENCY_OPTIONS.map((c) => (
+            <option key={c.code} value={c.code}>
+              {c.flag} {c.code} — {c.symbol}
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Depois de a meta receber o primeiro depósito, a moeda deixa de poder
+          mudar.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -25,8 +25,14 @@ const FinanceGoals: React.FC = () => {
   } = useGoals();
 
   const { profile, getProfile } = useUserProfile();
-  const displayCurrency = profile?.currency;
-  const currencySymbol = currencyOption(displayCurrency).symbol;
+  /**
+   * Cada meta soma na SUA moeda (é o que o servidor grava, e um depósito só
+   * pode vincular um lançamento na mesma moeda). Formatar tudo com a moeda do
+   * perfil fazia a "Caixinha", de 5000 BRL, ler-se `5000,00 €`. A do perfil
+   * fica só como recuo para as metas gravadas antes de haver o campo.
+   */
+  const moedaDa = (goal?: { currency?: string } | null) =>
+    goal?.currency ?? profile?.currency;
 
   // Modais
   const createModal = useModal();
@@ -103,8 +109,8 @@ const FinanceGoals: React.FC = () => {
         alcancada
           ? 'Meta concluída! Parabéns! 🎉'
           : depositToLedger
-            ? `${formatMoney(amount, displayCurrency)} depositados — e lançados como despesa.`
-            : `${formatMoney(amount, displayCurrency)} depositados com sucesso!`
+            ? `${formatMoney(amount, moedaDa(depositingGoal))} depositados — e lançados como despesa.`
+            : `${formatMoney(amount, moedaDa(depositingGoal))} depositados com sucesso!`
       );
       depositModal.closeModal();
       setDepositingGoal(null);
@@ -140,6 +146,7 @@ const FinanceGoals: React.FC = () => {
       fetchGoals();
     } catch (error) {
       console.error('Erro ao criar meta:', error);
+      toast.error((error as Error).message || 'Erro ao criar meta.');
     } finally {
       setIsSubmitting(false);
     }
@@ -157,7 +164,10 @@ const FinanceGoals: React.FC = () => {
       setEditingGoal(null);
       fetchGoals();
     } catch (error) {
+      // É aqui que aparece o "esta meta já tem depósitos em BRL" quando se
+      // tenta trocar a moeda de uma meta que já recebeu dinheiro.
       console.error('Erro ao atualizar meta:', error);
+      toast.error((error as Error).message || 'Erro ao atualizar meta.');
     } finally {
       setIsSubmitting(false);
     }
@@ -394,8 +404,8 @@ const FinanceGoals: React.FC = () => {
                         Progresso
                       </span>
                       <span className="font-semibold text-gray-800 dark:text-white">
-                        {formatMoney(goal.currentValue, displayCurrency)} /{' '}
-                        {formatMoney(goal.targetValue, displayCurrency)}
+                        {formatMoney(goal.currentValue, moedaDa(goal))} /{' '}
+                        {formatMoney(goal.targetValue, moedaDa(goal))}
                       </span>
                     </div>
 
@@ -411,7 +421,7 @@ const FinanceGoals: React.FC = () => {
                         <span className="font-medium">{percentage.toFixed(1)}% concluído</span>
                         <span>
                           Falta:{' '}
-                          {formatMoney(goal.targetValue - goal.currentValue, displayCurrency)}
+                          {formatMoney(goal.targetValue - goal.currentValue, moedaDa(goal))}
                         </span>
                       </div>
                       {isOverdue && goal.status === 'ACTIVE' && (
@@ -572,14 +582,14 @@ const FinanceGoals: React.FC = () => {
                 <strong>
                   {formatMoney(
                     depositingGoal.targetValue - depositingGoal.currentValue,
-                    displayCurrency
+                    moedaDa(depositingGoal)
                   )}
                 </strong>
               </p>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Valor a depositar ({currencySymbol})
+                  Valor a depositar ({currencyOption(moedaDa(depositingGoal)).symbol})
                 </label>
                 <input
                   type="text"
@@ -616,10 +626,10 @@ const FinanceGoals: React.FC = () => {
                       {formatMoney(
                         depositingGoal.currentValue +
                           (parseFloat(depositAmount.replace(',', '.')) || 0),
-                        displayCurrency
+                        moedaDa(depositingGoal)
                       )}
                     </strong>{' '}
-                    de {formatMoney(depositingGoal.targetValue, displayCurrency)}
+                    de {formatMoney(depositingGoal.targetValue, moedaDa(depositingGoal))}
                   </p>
                 </div>
               )}
