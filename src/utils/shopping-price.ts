@@ -29,11 +29,14 @@ export type PricedItem = {
 };
 
 /**
- * A partir de quantos dias o preço de um supermercado deixa de dizer alguma
- * coisa sobre hoje. As promoções mudam à semana; o preço que estava em
- * produção tinha 39 dias.
+ * A partir de quantos dias o preço de um supermercado deixa de servir.
+ *
+ * Um mês: as promoções mudam à semana, mas um preço de há dez dias ainda diz
+ * mais do que nada. Passado um mês já não é estimativa, é palpite — e deixa de
+ * contar para o total (o `lineTotal` devolve 0), embora continue à vista na
+ * linha com a idade ao lado.
  */
-export const MAX_SCRAPED_AGE_DAYS = 7;
+export const MAX_SCRAPED_AGE_DAYS = 30;
 
 /** Preço de UMA unidade. */
 export function itemPrice(item: PricedItem): number {
@@ -46,7 +49,13 @@ export function itemPrice(item: PricedItem): number {
  * negativa conta como 1 — melhor assumir o óbvio do que encolher um total por
  * causa de um campo mal preenchido.
  */
-export function lineTotal(item: PricedItem & { quantity?: number | null }): number {
+export function lineTotal(
+  item: PricedItem & { quantity?: number | null },
+  now: Date = new Date(),
+): number {
+  // Preço de loja com mais de um mês não é dinheiro contado: quem soma fica
+  // sem o número, que é a verdade. A linha continua a mostrá-lo.
+  if (isStalePrice(item, now)) return 0;
   const quantity = item.quantity != null && item.quantity > 0 ? item.quantity : 1;
   return itemPrice(item) * quantity;
 }

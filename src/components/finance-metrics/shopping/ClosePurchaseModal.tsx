@@ -12,6 +12,7 @@ import {
   isEstimatedPrice,
   isStalePrice,
   scrapedAgeInDays,
+  MAX_SCRAPED_AGE_DAYS,
 } from '../../../utils/shopping-price';
 import { convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
 import { useExchangeRates } from '../../../hooks/useExchangeRates';
@@ -131,9 +132,11 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
               {velhos.length > 0 && (
                 <p className="text-xs text-warning-600 dark:text-warning-400 mt-2">
                   {velhos.length === 1
-                    ? `O preço de "${velhos[0].name}" foi lido na loja há ${scrapedAgeInDays(velhos[0])} dias`
-                    : `${velhos.length} desses preços foram lidos na loja há mais de uma semana`}{' '}
-                  — actualize-os se quiser o valor de hoje.
+                    ? `"${velhos[0].name}" não entra neste total: o preço da loja foi lido há ${scrapedAgeInDays(
+                        velhos[0],
+                      )} dias`
+                    : `${velhos.length} itens não entram neste total: os preços da loja têm mais de ${MAX_SCRAPED_AGE_DAYS} dias`}
+                  . Actualize os preços ou escreva o que pagou.
                 </p>
               )}
               {convertidos.length > 0 && semCambio.length === 0 && (
