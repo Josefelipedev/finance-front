@@ -110,7 +110,15 @@ const GoalForm: React.FC<GoalFormProps> = ({
       return;
     }
 
-    await onSubmit(formData);
+    // Datas por preencher são `''`, e o `@IsDateString()` do servidor recusa a
+    // string vazia: criar uma meta sem datas dava 400 e — até haver toast — o
+    // modal ficava aberto sem dizer nada. Campo vazio é campo que não vai.
+    const payload = { ...formData };
+    if (!payload.startDate) delete payload.startDate;
+    if (!payload.endDate) delete payload.endDate;
+    if (!payload.description) delete payload.description;
+
+    await onSubmit(payload);
   };
 
   return (
