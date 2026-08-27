@@ -6,6 +6,7 @@ import Button from '../../components/ui/button/Button';
 import { useFiscal, FiscalChatMessage, FiscalData, FiscalTag } from '../../hooks/useFiscal';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import DateField from '../../components/form/DateField';
+import MoneyInput from '../../components/form/MoneyInput';
 
 // ===== Assistente Fiscal — sugestões iniciais =====
 const FISCAL_SUGGESTIONS = [
@@ -460,14 +461,10 @@ export default function FiscalPage() {
               <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Volume de negócios no ano atual (€)
               </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.annualRevenue}
-                onChange={(e) => setForm({ ...form, annualRevenue: e.target.value })}
-                placeholder="0,00"
-                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-brand-400 focus:outline-none dark:border-white/[0.08] dark:bg-gray-700 dark:text-white"
+              <MoneyInput
+                value={Number(form.annualRevenue) || 0}
+                onChange={(v) => setForm({ ...form, annualRevenue: v ? String(v) : '' })}
+                currencySymbol="€"
               />
               <p className="mt-1.5 text-xs text-gray-400">
                 Só é usado enquanto não marcar categorias de receita como

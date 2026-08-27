@@ -14,11 +14,16 @@ import { formatMoney } from '../../utils/currency';
 import type { FinanceRecord } from '../../types/finance';
 import { Modal } from '../ui/modal';
 import { countableType, typeSign } from '../../utils/finance-type';
+import { localDay } from '../../utils/civil-date';
 
 const recordCurrency = (record: FinanceRecord) => (record as { currency?: string }).currency;
 
+// O `referenceDate` é um DIA do calendário (meia-noite UTC): lê-se como texto.
+// O `createdAt` é um instante de verdade e cai no dia de quem está a ver.
 const dayKey = (record: FinanceRecord) =>
-  new Date(record.referenceDate || record.createdAt).toISOString().split('T')[0];
+  record.referenceDate
+    ? record.referenceDate.slice(0, 10)
+    : localDay(new Date(record.createdAt));
 
 const TransactionsCalendar: React.FC = () => {
   const { getAllFinances, listMeta } = useFinance();

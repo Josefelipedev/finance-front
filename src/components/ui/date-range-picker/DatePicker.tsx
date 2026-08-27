@@ -3,6 +3,7 @@ import React, { useId } from 'react';
 import { format, parseISO, isValid } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import DateField from '../../form/DateField';
+import { localDay } from '../../../utils/civil-date';
 
 export interface DatePickerProps {
   value: string; // ISO string
@@ -66,7 +67,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
         return localDate.toISOString().slice(0, 16);
       }
 
-      return date.toISOString().split('T')[0];
+      // O `value` é um instante que representa a MEIA-NOITE LOCAL. Lê-lo em UTC
+      // devolve o dia anterior a leste de Greenwich, e o campo passava a
+      // discordar da legenda logo por baixo (que já formatava em local). Pior:
+      // confirmar no calendário o dia que ele mostrava recuava o período um dia
+      // de cada vez.
+      return localDay(date);
     } catch {
       return '';
     }

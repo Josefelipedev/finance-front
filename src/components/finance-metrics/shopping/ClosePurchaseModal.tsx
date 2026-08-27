@@ -5,6 +5,7 @@ import CategorySelect from '../../form/CategorySelect';
 import { Modal } from '../../ui/modal';
 import Button from '../../ui/button/Button';
 import DateField from '../../form/DateField';
+import { todayCivil } from '../../../utils/civil-date';
 
 interface ClosePurchaseModalProps {
   list: ShoppingList;
@@ -15,7 +16,7 @@ interface ClosePurchaseModalProps {
   onCancel: () => void;
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => todayCivil();
 
 /**
  * Confirmação do fecho da compra.

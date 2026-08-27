@@ -16,6 +16,7 @@ import { useBankAccounts } from '../../hooks/useBankAccounts';
 import { ownerNaming } from '../../hooks/useOwner';
 import { currencyOption, formatMoney } from '../../utils/currency';
 import DateField from '../../components/form/DateField';
+import MoneyInput from '../../components/form/MoneyInput';
 
 // ===== Helpers de mês / data =====
 
@@ -90,7 +91,7 @@ function BillFormModal({
   onSubmit,
 }: BillFormModalProps) {
   const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(0);
   const [dueDate, setDueDate] = useState('');
   const [type, setType] = useState<BillType>('expense');
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
@@ -101,14 +102,14 @@ function BillFormModal({
     if (!isOpen) return;
     if (mode === 'edit' && initial) {
       setDescription(initial.description);
-      setAmount(String(initial.amount));
+      setAmount(Number(initial.amount));
       setDueDate(initial.dueDate.slice(0, 10));
       setType(initial.type);
       setCategoryId(initial.categoryId ?? undefined);
       setAccountId(initial.accountId ?? undefined);
     } else {
       setDescription('');
-      setAmount('');
+      setAmount(0);
       setDueDate(defaultDueDate);
       setType(defaultType);
       setCategoryId(undefined);
@@ -122,7 +123,7 @@ function BillFormModal({
       toast.error('Informe uma descrição.');
       return;
     }
-    const amountValue = Number.parseFloat(amount.replace(',', '.'));
+    const amountValue = amount;
     if (!Number.isFinite(amountValue) || amountValue <= 0) {
       toast.error('Informe um valor válido.');
       return;
@@ -203,21 +204,12 @@ function BillFormModal({
         <label htmlFor="bill-form-amount" className={labelClass}>
           Valor
         </label>
-        <div className="relative">
-          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-sm font-medium text-gray-400 dark:text-gray-500">
-            {currencySymbol}
-          </span>
-          <input
-            id="bill-form-amount"
-            type="number"
-            step="0.01"
-            min="0"
-            inputMode="decimal"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className={`${inputClass} pl-12 tabular-nums`}
-          />
-        </div>
+        <MoneyInput
+          id="bill-form-amount"
+          value={amount}
+          onChange={setAmount}
+          currencySymbol={currencySymbol}
+        />
       </div>
 
       {/* Vencimento */}
@@ -297,7 +289,7 @@ export default function BillsPage() {
 
   // Modal "valor pago/recebido" ao marcar uma conta pendente como paga.
   const [payingItem, setPayingItem] = useState<BillItem | null>(null);
-  const [payAmount, setPayAmount] = useState('');
+  const [payAmount, setPayAmount] = useState(0);
 
   // Modal de criação / edição.
   // Filtros do ecrã. Vivem no cliente: a lista do mês já vem toda, e filtrar
@@ -367,7 +359,7 @@ export default function BillsPage() {
     } else {
       setPayingItem(item);
       // Pré-preenche com o previsto, na moeda nativa da conta.
-      setPayAmount(String(item.amount));
+      setPayAmount(Number(item.amount));
     }
   };
 
@@ -390,7 +382,7 @@ export default function BillsPage() {
 
   const confirmPay = async () => {
     if (!payingItem) return;
-    const amountValue = Number.parseFloat(payAmount.replace(',', '.'));
+    const amountValue = payAmount;
     if (!Number.isFinite(amountValue) || amountValue < 0) {
       toast.error('Informe um valor válido.');
       return;
@@ -989,26 +981,23 @@ export default function BillsPage() {
                   >
                     {isIncome ? 'Valor recebido' : 'Valor pago'}
                   </label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-sm font-medium text-gray-400 dark:text-gray-500">
-                      {currencyOption(payingItem.currency).symbol}
-                    </span>
-                    <input
+                  {/*
+                    `type="number"` deixava cair a vírgula: quem escrevia
+                    355,50 pagava 35.550 — e a conta ficava marcada como paga.
+                    O `MoneyInput` é o campo de dinheiro do projeto e já lê o
+                    que se escreve em português.
+                  */}
+                  <div onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      void confirmPay();
+                    }
+                  }}>
+                    <MoneyInput
                       id="bill-pay-amount"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      inputMode="decimal"
-                      autoFocus
                       value={payAmount}
-                      onChange={(e) => setPayAmount(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          void confirmPay();
-                        }
-                      }}
-                      className="h-11 w-full rounded-lg border border-gray-300 bg-white pl-12 pr-3.5 text-sm tabular-nums text-gray-900 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-400"
+                      onChange={setPayAmount}
+                      currencySymbol={currencyOption(payingItem.currency).symbol}
                     />
                   </div>
                   <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">

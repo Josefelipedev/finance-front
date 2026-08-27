@@ -33,3 +33,22 @@ export function formatCivilDate(
   if (Number.isNaN(date.getTime())) return '-';
   return date.toLocaleDateString(locale, options);
 }
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/**
+ * O dia (civil) de um instante, no relógio de quem está a ver, em `YYYY-MM-DD`.
+ *
+ * É o inverso do `civilDate`: aqui a entrada é um INSTANTE real e o que se quer
+ * é o dia em que ele cai para este utilizador. `toISOString().split('T')[0]`
+ * responde a outra pergunta — em que dia caiu em Londres — e a leste de
+ * Greenwich isso é o dia anterior durante a primeira hora de cada dia.
+ */
+export function localDay(date: Date): string {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** Hoje, no relógio de quem está a ver. O default de qualquer campo de data. */
+export function todayCivil(): string {
+  return localDay(new Date());
+}

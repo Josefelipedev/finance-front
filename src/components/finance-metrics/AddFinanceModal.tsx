@@ -11,6 +11,7 @@ import { useAuth } from '../../context/AuthContext.tsx';
 import { useBankAccounts } from '../../hooks/useBankAccounts.ts';
 import Button from '../ui/button/Button';
 import DateField from '../form/DateField';
+import { todayCivil } from '../../utils/civil-date';
 
 export interface FinancePrefill {
   amount?: number;
@@ -34,7 +35,7 @@ const defaultValues: CreateFinanceDto = {
   description: '',
   categoryId: undefined,
   iconName: 'pricetag',
-  referenceDate: new Date().toISOString().split('T')[0],
+  referenceDate: todayCivil(),
 };
 
 const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
@@ -85,7 +86,7 @@ const AddFinanceModal: React.FC<AddFinanceModalProps> = ({
           iconName: editRecord.iconName || 'pricetag',
           referenceDate: editRecord.referenceDate
             ? editRecord.referenceDate.split('T')[0]
-            : new Date().toISOString().split('T')[0],
+            : todayCivil(),
         };
         reset(prefill);
         setAmountDisplay(formatBRL(editRecord.amount));
