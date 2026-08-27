@@ -5,7 +5,7 @@ import { Modal } from '../../ui/modal';
 import Button from '../../ui/button/Button';
 import MoneyInput from '../../form/MoneyInput';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import { currencyOption } from '../../../utils/currency';
+import { currencyOption, formatMoney } from '../../../utils/currency';
 
 interface ShoppingItemFormProps {
   listId: number;
@@ -21,7 +21,8 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
   onCancel,
 }) => {
   const { profile } = useUserProfile();
-  const currencySymbol = currencyOption(profile?.currency).symbol;
+  const currency = profile?.currency;
+  const currencySymbol = currencyOption(currency).symbol;
   const { createOrUpdateItem, updateItem, isLoading } = useShopping();
   const [formData, setFormData] = useState({
     name: '',
@@ -164,14 +165,26 @@ const ShoppingItemForm: React.FC<ShoppingItemFormProps> = ({
           {/* Preço */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Preço Total
+              Preço por unidade
             </label>
             <MoneyInput
               value={formData.price || 0}
               onChange={(v) => handleChange('price', v)}
               currencySymbol={currencySymbol}
             />
-            <p className="text-xs text-gray-400 mt-1">Preço total para a quantidade indicada</p>
+            {/*
+              Era "Preço Total" e a quantidade não multiplicava nada — três pães
+              a 10,00 € somavam 10,00 €. Agora pede-se o preço de UM e mostra-se
+              a conta feita, para não haver dúvida sobre o que se está a escrever.
+            */}
+            <p className="text-xs text-gray-400 mt-1">
+              {formData.price > 0 && formData.quantity > 0
+                ? `${formData.quantity} × ${formatMoney(formData.price, currency)} = ${formatMoney(
+                    formData.price * formData.quantity,
+                    currency,
+                  )}`
+                : 'Preço de uma unidade — o total da linha é este valor × quantidade'}
+            </p>
           </div>
 
           {formError && <div className="text-error-500 text-sm">{formError}</div>}

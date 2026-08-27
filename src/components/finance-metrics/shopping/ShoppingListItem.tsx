@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShoppingItem } from '../../../hooks/useShopping';
 import { formatMoney } from '../../../utils/currency';
+import { itemPrice, lineTotal } from '../../../utils/shopping-price';
 
 interface ShoppingListItemProps {
   item: ShoppingItem;
@@ -79,7 +80,15 @@ const ShoppingListItem: React.FC<ShoppingListItemProps> = ({
               {item.name}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {item.quantity} {getUnitLabel(item.unit)} · {formatCurrency(item.price)}
+              {item.quantity} {getUnitLabel(item.unit)}
+              {itemPrice(item) > 0 && (
+                <>
+                  {' · '}
+                  {item.quantity > 1
+                    ? `${formatCurrency(itemPrice(item))} cada · ${formatCurrency(lineTotal(item))}`
+                    : formatCurrency(lineTotal(item))}
+                </>
+              )}
             </p>
             {item.scrapedPrice != null && item.scrapedPrice > 0 && (
               <div className="flex items-center gap-1 mt-1">

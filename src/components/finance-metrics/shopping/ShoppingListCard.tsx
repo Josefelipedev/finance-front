@@ -2,7 +2,7 @@ import React from 'react';
 import { ShoppingList, ShoppingItem } from '../../../hooks/useShopping';
 import { formatMoney } from '../../../utils/currency';
 import ShoppingListItem from './ShoppingListItem';
-import { itemPrice } from '../../../utils/shopping-price';
+import { lineTotal } from '../../../utils/shopping-price';
 
 interface ShoppingListCardProps {
   list: ShoppingList;
@@ -44,7 +44,7 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   const formatCurrency = (amount: number) => formatMoney(amount, currency);
 
   const calculateTotal = () =>
-    list.items.reduce((total, item) => total + itemPrice(item), 0);
+    list.items.reduce((total, item) => total + lineTotal(item), 0);
 
   /** Fechada = já virou despesa; a lista passa a ser histórico. */
   const isClosed = !!list.closedAt;
@@ -61,7 +61,7 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   const pendingItems = list.items.filter((item) => !item.purchased);
   // Mesma regra do servidor: é este o valor que vira despesa ao fechar.
   const purchasedTotal = purchasedItems.reduce(
-    (total, item) => total + itemPrice(item),
+    (total, item) => total + lineTotal(item),
     0
   );
 

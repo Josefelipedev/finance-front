@@ -6,7 +6,7 @@ import { Modal } from '../../ui/modal';
 import Button from '../../ui/button/Button';
 import DateField from '../../form/DateField';
 import { todayCivil } from '../../../utils/civil-date';
-import { itemPrice, isEstimatedPrice } from '../../../utils/shopping-price';
+import { lineTotal, isEstimatedPrice } from '../../../utils/shopping-price';
 
 interface ClosePurchaseModalProps {
   list: ShoppingList;
@@ -38,7 +38,7 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
 
   const purchased = useMemo(() => list.items.filter((i) => i.purchased), [list.items]);
   const total = useMemo(
-    () => purchased.reduce((sum, i) => sum + itemPrice(i), 0),
+    () => purchased.reduce((sum, i) => sum + lineTotal(i), 0),
     [purchased]
   );
 

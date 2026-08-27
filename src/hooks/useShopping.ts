@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
-import { itemPrice } from '../utils/shopping-price';
+import { lineTotal } from '../utils/shopping-price';
 
 // ===================== TYPES =====================
 
@@ -427,13 +427,13 @@ export function useShopping() {
   // ===================== UTILITIES =====================
 
   const calculateListTotal = (list: ShoppingList): number =>
-    list.items.reduce((total, item) => total + itemPrice(item), 0);
+    list.items.reduce((total, item) => total + lineTotal(item), 0);
 
   const calculatePurchasedTotal = (list: ShoppingList): number =>
-    list.items.filter((i) => i.purchased).reduce((t, i) => t + itemPrice(i), 0);
+    list.items.filter((i) => i.purchased).reduce((t, i) => t + lineTotal(i), 0);
 
   const calculatePendingTotal = (list: ShoppingList): number =>
-    list.items.filter((i) => !i.purchased).reduce((t, i) => t + itemPrice(i), 0);
+    list.items.filter((i) => !i.purchased).reduce((t, i) => t + lineTotal(i), 0);
 
   const calculateListProgress = (list: ShoppingList): number =>
     list.items.length === 0
