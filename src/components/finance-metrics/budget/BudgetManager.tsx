@@ -272,6 +272,22 @@ const BudgetManager: React.FC = () => {
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                       {formatCurrency(spent)} de {formatCurrency(limit.monthlyLimit)}
                     </p>
+                    {/*
+                      O limite do cônjuge chega já convertido (C4). Dizer em que
+                      moeda foi escrito evita a pergunta "porque é que o meu
+                      limite de 500 aparece 83?" — o número está certo, e o
+                      original explica-o.
+                    */}
+                    {limit.originalCurrency &&
+                      limit.originalCurrency !== (limit.currency ?? displayCurrency) && (
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                          definido em{' '}
+                          {formatMoney(
+                            limit.originalMonthlyLimit ?? limit.monthlyLimit,
+                            limit.originalCurrency
+                          )}
+                        </p>
+                      )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {alerting && (

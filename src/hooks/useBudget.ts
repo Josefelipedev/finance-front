@@ -10,8 +10,14 @@ import api from '../services/api';
 export interface BudgetLimit {
   categoryId: number;
   categoryName: string;
+  /** Já convertido pelo servidor para a moeda de quem está a ler (C4). */
   monthlyLimit: number;
   alertAt: number; // percentual (default 80)
+  /** Moeda em que os valores acima vêm — a de quem lê. */
+  currency?: string;
+  /** O que foi mesmo escrito, na moeda em que foi escrito. */
+  originalMonthlyLimit?: number;
+  originalCurrency?: string;
 }
 
 /** Chave da migração única do que estava guardado no browser. */
