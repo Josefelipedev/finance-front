@@ -8,11 +8,21 @@ export interface TimeSeries {
   summary: { income: number; expense: number };
 }
 
+/** A parte de cada pessoa numa categoria (C6). */
+export interface CategoryOwnerSplit {
+  userId: number;
+  name: string | null;
+  income: number;
+  expense: number;
+}
+
 export interface CategorySummaryItem {
   category: string;
   icon: string | null;
   income: number;
   expense: number;
+  /** De quem é este número. Uma entrada só = não há com quem repartir. */
+  byOwner?: CategoryOwnerSplit[];
 }
 
 export interface AnalysisResponse {

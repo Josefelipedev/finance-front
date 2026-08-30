@@ -159,6 +159,7 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
           displayCurrency={summaryData.displayCurrency}
           rateDate={summaryData.rateDate}
           byCurrency={summaryData.byCurrency}
+          byOwner={summaryData.byOwner}
           dateRange={dateRange}
         />
       )}

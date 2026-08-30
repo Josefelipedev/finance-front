@@ -107,6 +107,14 @@ export interface CurrencyBreakdown {
   despesas: number;
 }
 
+/** A parte de cada pessoa num total do casal (C6). */
+export interface OwnerSplit {
+  userId: number;
+  name: string | null;
+  ganhos: number;
+  despesas: number;
+}
+
 export interface FinanceSummary {
   totalGanhos: number;
   totalDespesas: number;
@@ -117,6 +125,8 @@ export interface FinanceSummary {
   rateDate?: string | null;
   /** Somas nativas por moeda, sem conversão */
   byCurrency?: CurrencyBreakdown[];
+  /** De quem são estes totais. Uma entrada só = não há com quem repartir. */
+  byOwner?: OwnerSplit[];
   unconvertedCurrencies?: string[];
   /** Alguma conversão usou a taxa mais antiga que temos. */
   outOfRangeDates?: boolean;
@@ -132,6 +142,7 @@ export interface DashboardData {
   /** Alguma conversão usou a taxa mais antiga que temos. */
   outOfRangeDates?: boolean;
   byCurrency?: CurrencyBreakdown[];
+  byOwner?: OwnerSplit[];
   stats: {
     revenueLastWeek: number;
     foodLastWeek: number;

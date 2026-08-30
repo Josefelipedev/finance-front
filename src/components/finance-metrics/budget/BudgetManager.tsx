@@ -98,6 +98,35 @@ const BudgetManager: React.FC = () => {
     return spend;
   }, [transactions]);
 
+  /**
+   * De quem é o gasto de cada categoria (C6).
+   *
+   * O `userId` já vinha em cada lançamento e parava aqui: o casal via "gastou
+   * 300 de 500" sem saber de quem eram os 300. É a mesma soma de cima, também
+   * guardada por dono — por construção fecha com ela.
+   */
+  const spendByOwner = useMemo(() => {
+    const porCategoria: Record<number, Record<number, number>> = {};
+    for (const tx of transactions) {
+      if (tx.type !== 'expense') continue;
+      const catId = tx.categoryId ?? tx.category?.id;
+      if (catId == null || tx.userId == null) continue;
+      const donos = porCategoria[catId] ?? {};
+      donos[tx.userId] =
+        (donos[tx.userId] || 0) + (tx.convertedAmount ?? tx.amount ?? 0);
+      porCategoria[catId] = donos;
+    }
+    return porCategoria;
+  }, [transactions]);
+
+  /** "Maria Silva" → "Maria". O apelido não cabe e não desambigua nada. */
+  const primeiroNome = (nome?: string | null) =>
+    (nome ?? '').trim().split(/\s+/)[0] || null;
+  const nomeDoDono = (userId: number) =>
+    userId === profile?.id
+      ? (primeiroNome(profile?.name) ?? 'Você')
+      : (primeiroNome(profile?.spouse?.name) ?? 'Cônjuge');
+
   const openCreate = () => {
     setEditing(null);
     setFormCategoryId('');
@@ -288,6 +317,25 @@ const BudgetManager: React.FC = () => {
                           )}
                         </p>
                       )}
+                    {/* De quem é o gasto (C6). As partes somam o total acima. */}
+                    {(() => {
+                      const donos = Object.entries(spendByOwner[limit.categoryId] ?? {})
+                        .map(([id, valor]) => ({ id: Number(id), valor }))
+                        .filter((d) => d.valor > 0);
+                      if (donos.length < 2) return null;
+                      return (
+                        <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+                          {donos.map((d) => (
+                            <span key={d.id}>
+                              {nomeDoDono(d.id)}{' '}
+                              <span className="font-medium tabular-nums text-gray-700 dark:text-gray-300">
+                                {formatCurrency(d.valor)}
+                              </span>
+                            </span>
+                          ))}
+                        </p>
+                      );
+                    })()}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {alerting && (

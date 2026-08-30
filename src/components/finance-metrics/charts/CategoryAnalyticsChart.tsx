@@ -44,6 +44,9 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({
       value: c.expense,
       color: categoryColors[c.category]?.color || '#6B7280',
       icon: categoryColors[c.category]?.icon || 'tag',
+      // De quem é esta fatia (C6). Só interessa quando há mais do que um a
+      // gastar nela — senão é dizer "100% teu" com mais palavras.
+      byOwner: (c.byOwner ?? []).filter((o) => o.expense > 0),
     }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 8);
@@ -206,6 +209,22 @@ const CategoryAnalyticsChart: React.FC<CategoryAnalyticsChartProps> = ({
                         }}
                       ></div>
                     </div>
+
+                    {item.byOwner.length > 1 && (
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 pl-5">
+                        {item.byOwner.map((dono) => (
+                          <span
+                            key={dono.userId}
+                            className="text-xs text-gray-500 dark:text-gray-400"
+                          >
+                            {(dono.name ?? `#${dono.userId}`).split(' ')[0]}{' '}
+                            <span className="font-medium tabular-nums text-gray-700 dark:text-gray-300">
+                              {formatMoney(dono.expense, displayCurrency)}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}

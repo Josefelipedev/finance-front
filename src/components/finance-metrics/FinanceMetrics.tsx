@@ -16,6 +16,16 @@ interface MetricItem {
   badgeColor: BadgeColor;
   /** O que este número conta, para quem quiser saber ao certo (T6.6). */
   hint?: string;
+  /** De quem é este número (C6). Só se desenha quando há mais do que um. */
+  split?: { name: string; value: number }[];
+}
+
+/** A parte de cada pessoa nos totais, como vem da API (C6). */
+export interface OwnerSplit {
+  userId: number;
+  name: string | null;
+  ganhos: number;
+  despesas: number;
 }
 interface FinanceMetricsProps {
   totalIncome: number;
@@ -24,6 +34,7 @@ interface FinanceMetricsProps {
   displayCurrency?: string;
   rateDate?: string | null;
   byCurrency?: CurrencyBreakdown[];
+  byOwner?: OwnerSplit[];
   dateRange?: {
     startDate: string;
     endDate: string;
@@ -37,6 +48,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
   displayCurrency = 'BRL',
   rateDate,
   byCurrency = [],
+  byOwner = [],
   dateRange,
 }) => {
   // Garantir que os valores não sejam undefined
@@ -58,6 +70,20 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
     });
   };
 
+  // De quem é este número (C6). As listas já diziam de quem era cada linha;
+  // os totais não, e o casal via "gastou 1.430 €" sem saber que parte era sua.
+  // Uma pessoa só = não há repartição para desenhar.
+  const temReparticao = byOwner.length > 1;
+  const primeiroNome = (nome: string | null, id: number) =>
+    (nome ?? `#${id}`).trim().split(/\s+/)[0];
+  const repartir = (de: (o: OwnerSplit) => number) =>
+    temReparticao
+      ? byOwner.map((o) => ({
+          name: primeiroNome(o.name, o.userId),
+          value: de(o),
+        }))
+      : undefined;
+
   const metrics: MetricItem[] = [
     // Havia aqui um cartão "Saldo Total / Disponível" que mostrava
     // `totalBalance` do `/finance/dashboard` — ganhos menos despesas do MESMO
@@ -76,6 +102,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
       valueColor: 'text-green-600 dark:text-green-400',
       iconChip: 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400',
       badgeColor: 'success',
+      split: repartir((o) => o.ganhos),
     },
     {
       id: 3,
@@ -105,6 +132,7 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
           : 'text-yellow-600 dark:text-yellow-400',
       iconChip: 'bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-300',
       badgeColor: safeNetBalance >= 0 ? 'success' : 'warning',
+      split: repartir((o) => o.ganhos - o.despesas),
     },
   ];
 
@@ -157,6 +185,24 @@ const FinanceMetrics: React.FC<FinanceMetricsProps> = ({
             >
               {item.value}
             </h4>
+
+            {/* De quem é este número (C6). As partes somam o total acima —
+                é a mesma soma, guardada por dono pelo caminho. */}
+            {item.split && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+                {item.split.map((parte) => (
+                  <span
+                    key={parte.name}
+                    className="text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    {parte.name}{' '}
+                    <span className="font-medium tabular-nums text-gray-700 dark:text-gray-200">
+                      {formatMoney(parte.value, displayCurrency)}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div className="mt-3 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
               <span className="text-xs text-gray-400 dark:text-gray-500">
