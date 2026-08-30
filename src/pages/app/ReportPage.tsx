@@ -1,12 +1,13 @@
 import MonthlyReport from '../../components/finance-metrics/MonthlyReport';
-import PageShell, { Surface } from '../../components/common/PageShell';
+import PageShell from '../../components/common/PageShell';
 
 export default function ReportPage() {
   return (
-    <PageShell title="Relatório mensal" description="Fechamento do mês: receitas, despesas e saldo">
-      <Surface className="p-4 sm:p-6">
-        <MonthlyReport />
-      </Surface>
+    <PageShell
+      title="Relatório financeiro"
+      description="Entenda o que mudou, para onde foi o dinheiro e como o mês está evoluindo"
+    >
+      <MonthlyReport />
     </PageShell>
   );
 }

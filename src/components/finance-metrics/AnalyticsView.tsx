@@ -3,6 +3,7 @@ import { useAnalysis } from '../../hooks/useAnalysisData';
 import MonthlyComparisonChart from './charts/MonthlyComparisonChart.tsx';
 import CategoryAnalyticsChart from './charts/CategoryAnalyticsChart.tsx';
 import TrendAnalyticsChart from './charts/TrendAnalyticsChart.tsx';
+import MixedCurrencyWarning from '../common/MixedCurrencyWarning';
 
 /**
  * As datas do período chegam como ISO completo ("2026-08-02T22:59:59.999Z"),
@@ -127,10 +128,20 @@ const AnalyticsView: React.FC<{ dateRange: { startDate: string; endDate: string 
               </span>
             </div>
             {data ? (
-              <CategoryAnalyticsChart
-                categories={data.categorySummary}
-                displayCurrency={data.displayCurrency}
-              />
+              <>
+                {/* Sem taxa, os totais deste ecrã somam moeda com moeda pelo
+                    valor nativo. O aviso já existia no dashboard, no relatório
+                    e no orçamento — faltava aqui (C4). */}
+                <MixedCurrencyWarning
+                  currencies={data.unconvertedCurrencies ?? []}
+                  outOfRange={data.outOfRangeDates}
+                  rateDate={data.rateDate}
+                />
+                <CategoryAnalyticsChart
+                  categories={data.categorySummary}
+                  displayCurrency={data.displayCurrency}
+                />
+              </>
             ) : (
               vazio
             )}

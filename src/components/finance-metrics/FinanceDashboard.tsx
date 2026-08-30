@@ -147,6 +147,8 @@ const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ dateRange, setDateR
       {summaryData && (
         <MixedCurrencyWarning
           currencies={summaryData.unconvertedCurrencies ?? []}
+          outOfRange={summaryData.outOfRangeDates}
+          rateDate={summaryData.rateDate}
         />
       )}
 

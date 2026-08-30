@@ -5,6 +5,9 @@ import api from '../services/api';
 
 export interface InsightResponse {
   insight: string;
+  scope: 'individual' | 'couple';
+  scopeLabel: string;
+  periodLabel: string;
 }
 
 // ===================== HOOK =====================
@@ -30,7 +33,7 @@ export function useAnalysis() {
       const res = await api.get<InsightResponse>('/analysis/insight', {
         params: { startDate: period?.startDate, endDate: period?.endDate },
       });
-      return res?.insight ?? '';
+      return res;
     } catch (err) {
       setError(err as Error);
       throw err;

@@ -34,6 +34,8 @@ export interface AnalysisResponse {
   displayCurrency: string;
   rateDate: string | null;
   unconvertedCurrencies: string[];
+  /** Alguma conversão usou a taxa mais antiga que há — o total é aproximado. */
+  outOfRangeDates?: boolean;
 }
 
 /**
