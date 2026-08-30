@@ -2,7 +2,13 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
 import MoneyInput from '../../components/form/MoneyInput';
-import { BankAccount, useBankAccounts } from '../../hooks/useBankAccounts';
+import {
+  ACCOUNT_TYPE_OPTIONS,
+  AccountType,
+  BankAccount,
+  accountTypeLabel,
+  useBankAccounts,
+} from '../../hooks/useBankAccounts';
 import { useAuth } from '../../context/AuthContext';
 import { CURRENCY_OPTIONS, currencyOption, formatMoney } from '../../utils/currency';
 import { parseAmountInput } from '../../utils/money';
@@ -19,6 +25,7 @@ export default function AccountsPage() {
     bankName: '',
     accountNumber: '',
     currency: user?.currency || 'BRL',
+    accountType: 'CHECKING' as AccountType,
     balance: '',
     creditLimit: null as number | null,
     creditUsed: null as number | null,
@@ -46,6 +53,7 @@ export default function AccountsPage() {
       bankName: '',
       accountNumber: '',
       currency: user?.currency || 'BRL',
+      accountType: 'CHECKING',
       balance: '',
       creditLimit: null,
       creditUsed: null,
@@ -69,6 +77,7 @@ export default function AccountsPage() {
       bankName: account.bankName,
       accountNumber: account.accountNumber ?? '',
       currency: account.currency,
+      accountType: account.accountType ?? 'CHECKING',
       balance: String(account.initialBalance ?? account.balance),
       creditLimit: account.creditLimit ?? null,
       creditUsed: account.creditUsed ?? null,
@@ -88,6 +97,7 @@ export default function AccountsPage() {
         bankName: form.bankName.trim(),
         accountNumber: form.accountNumber.trim() || undefined,
         currency: form.currency,
+        accountType: form.accountType,
         balance: form.balance ? (parseAmountInput(form.balance) ?? 0) : 0,
         creditLimit: form.creditLimit,
         creditUsed: form.creditUsed,
@@ -183,6 +193,39 @@ export default function AccountsPage() {
                   </option>
                 ))}
               </select>
+            </div>
+            <div>
+              {/* O campo que faltava: até aqui a única maneira de dizer "isto é
+                  um cartão" era preencher o limite, e quem só queria marcar o
+                  tipo não tinha onde. */}
+              <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Tipo de conta
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {ACCOUNT_TYPE_OPTIONS.map((opt) => {
+                  const ativo = form.accountType === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, accountType: opt.value })}
+                      aria-pressed={ativo}
+                      className={`rounded-xl border px-3 py-2 text-left transition-colors ${
+                        ativo
+                          ? 'border-brand-400 bg-brand-50 dark:border-brand-400 dark:bg-brand-500/10'
+                          : 'border-gray-200 bg-white hover:border-gray-300 dark:border-white/[0.08] dark:bg-gray-700 dark:hover:border-white/20'
+                      }`}
+                    >
+                      <span className="block text-sm font-medium text-gray-900 dark:text-white">
+                        {opt.label}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] leading-tight text-gray-400 dark:text-gray-500">
+                        {opt.hint}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div>
               {/* Já não é "saldo atual": os lançamentos ligados à conta somam-se
@@ -317,7 +360,15 @@ export default function AccountsPage() {
               <Surface key={account.id} className="p-5">
                 <div className="flex items-start justify-between">
                   <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-400/10 dark:text-brand-300">
-                    <i className="fas fa-building-columns"></i>
+                    <i
+                      className={`fas ${
+                        account.accountType === 'CREDIT'
+                          ? 'fa-credit-card'
+                          : account.accountType === 'SAVINGS'
+                            ? 'fa-piggy-bank'
+                            : 'fa-building-columns'
+                      }`}
+                    ></i>
                   </span>
                   <span className="rounded-full border border-gray-200 px-2.5 py-1 text-xs font-medium text-gray-500 dark:border-white/[0.08] dark:text-gray-400">
                     {opt.flag} {account.currency}
@@ -325,7 +376,8 @@ export default function AccountsPage() {
                 </div>
                 <p className="mt-3 font-medium text-gray-900 dark:text-white">{account.bankName}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500">
-                  {account.accountNumber ? `Conta ${account.accountNumber}` : 'Sem número'}
+                  {accountTypeLabel(account.accountType)}
+                  {account.accountNumber ? ` · ${account.accountNumber}` : ''}
                   {account.user?.name ? ` · ${account.user.name}` : ''}
                 </p>
                 {/* O saldo é derivado (C5): o valor escrito à mão é só o ponto
