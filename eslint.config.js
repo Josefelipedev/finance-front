@@ -23,5 +23,33 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
+  },
+  /**
+   * A listagem de lançamentos passa toda pelo `getAllFinances` (T5.4).
+   *
+   * `/finance` é paginado e o servidor assume **50** quando não se lhe pede
+   * limite. Quem chamar a rota à mão para SOMAR fica pela primeira página e o
+   * ecrã mostra menos dinheiro do que existe — enquanto o dashboard, que soma
+   * no servidor, mostra o total certo. Já aconteceu, em cinco ecrãs ao mesmo
+   * tempo, e o número mais baixo é o que parece inofensivo.
+   *
+   * O `getAllFinances` percorre as páginas todas; é o único sítio autorizado a
+   * falar com a rota. Não há testes na web para amarrar isto, por isso amarra-o
+   * o lint, que já corre.
+   */
+  {
+    files: ['**/*.{ts,tsx}'],
+    ignores: ['src/hooks/useFinance.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.object.name='api'][callee.property.name='get'] > Literal[value='/finance']",
+          message:
+            'Para somar lançamentos usa getAllFinances() do useFinance — /finance é paginado e a chamada direta fica pela primeira página (T5.4).',
+        },
+      ],
+    },
   }
 );
