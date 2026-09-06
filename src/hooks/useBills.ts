@@ -108,7 +108,12 @@ export interface BillMonthForecast {
   net: number;
 }
 
-/** A fila do casal, já convertida para a moeda de exibição. */
+/**
+ * De quem é a fila que se está a ver: o workspace todo, ou só quem pergunta.
+ */
+export type ForecastScope = 'couple' | 'mine';
+
+/** A fila do casal (ou só a minha), já convertida para a moeda de exibição. */
 export interface BillsMonthlyForecast {
   months: BillMonthForecast[];
   heaviest: string | null;
@@ -118,6 +123,10 @@ export interface BillsMonthlyForecast {
   unconvertedCurrencies: string[];
   /** Alguma conversão usou a taxa mais antiga que temos. */
   outOfRangeDates?: boolean;
+  /** O âmbito que o servidor usou — pode não ser o pedido. */
+  scope?: ForecastScope;
+  /** `false` num workspace de uma pessoa só: não há duas vistas a escolher. */
+  isCouple?: boolean;
 }
 
 /** Subtotal pendente por moeda nativa. */
@@ -172,12 +181,12 @@ export function useBills() {
     }
   }, []);
 
-  const getForecast = useCallback(async (months = 10) => {
+  const getForecast = useCallback(async (months = 10, scope: ForecastScope = 'couple') => {
     setIsLoading(true);
     setError(null);
     try {
       return await api.get<BillsMonthlyForecast>(
-        `/bills/forecast?months=${encodeURIComponent(months)}`
+        `/bills/forecast?months=${encodeURIComponent(months)}&scope=${scope}`
       );
     } catch (err) {
       const e = err instanceof Error ? err : new Error(String(err));

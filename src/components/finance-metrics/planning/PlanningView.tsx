@@ -6,23 +6,30 @@ import ProjectionTab from './ProjectionTab';
 import ScenariosTab from './ScenariosTab';
 import LongTermGoalsTab from './LongTermGoalsTab';
 import YearPlanTab from './YearPlanTab';
+import RuleTab from './RuleTab';
 
-type TabKey = 'projection' | 'scenarios' | 'goals' | 'year';
+type TabKey = 'projection' | 'scenarios' | 'goals' | 'year' | 'rule';
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: 'projection', label: 'Projeção' },
   { key: 'scenarios', label: 'Cenários' },
   { key: 'goals', label: 'Metas de longo prazo' },
   { key: 'year', label: 'Plano anual' },
+  { key: 'rule', label: 'Regra' },
 ];
 
 /**
  * O ecrã de planeamento.
  *
- * As quatro abas respondem a perguntas diferentes sobre o mesmo dinheiro: onde
- * é que este rumo vai dar, o que muda se algo mudar, se as metas cabem no que
- * sobra, e quanto se decide gastar em cada categoria por ano. Todas partem da
- * mesma projeção — trocar de cenário numa muda todas.
+ * As abas respondem a perguntas diferentes sobre o mesmo dinheiro: onde é que
+ * este rumo vai dar, o que muda se algo mudar, se as metas cabem no que sobra,
+ * e quanto se decide gastar em cada categoria por ano. As quatro primeiras
+ * partem da mesma projeção — trocar de cenário numa muda todas.
+ *
+ * A **Regra** é a excepção, e de propósito: não olha para o futuro nenhum, olha
+ * para os últimos meses fechados e pergunta se o que entra está a ser dividido
+ * como se quis. Um cenário não muda o que já se gastou, por isso o seletor de
+ * cenário não lhe diz respeito e desaparece quando ela está aberta.
  */
 export default function PlanningView() {
   const [tab, setTab] = useState<TabKey>('projection');
@@ -45,6 +52,10 @@ export default function PlanningView() {
     deleteEvent,
     saveYearPlan,
     deleteYearPlanItem,
+    spendingRule,
+    loadRule,
+    saveRule,
+    setCategoryBuckets,
   } = usePlanning();
 
   const { updateGoal } = useGoals();
@@ -61,6 +72,12 @@ export default function PlanningView() {
   useEffect(() => {
     if (tab === 'year') loadYearPlan(year).catch(() => {});
   }, [tab, year, loadYearPlan]);
+
+  // Só quando se abre a aba: a análise da regra lê o histórico todo e não tem
+  // nada a dizer a quem está a olhar para a projeção.
+  useEffect(() => {
+    if (tab === 'rule' && !spendingRule) loadRule().catch(() => {});
+  }, [tab, spendingRule, loadRule]);
 
   // Uma alteração de cenário muda a projeção, que muda o excedente, que muda o
   // veredicto das metas — por isso qualquer gravação recarrega tudo.
@@ -113,7 +130,7 @@ export default function PlanningView() {
         ))}
       </nav>
 
-      {overview.scenarios.length > 0 && (
+      {tab !== 'rule' && overview.scenarios.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <label htmlFor="scenario-picker" className="text-gray-500 dark:text-gray-400">
             Cenário:
@@ -195,6 +212,19 @@ export default function PlanningView() {
             await loadYearPlan(y);
             await refresh();
           }}
+        />
+      )}
+
+      {tab === 'rule' && (
+        <RuleTab
+          data={spendingRule}
+          isLoading={isLoading}
+          isSaving={isSaving}
+          // As duas escritas devolvem a análise já refeita, e o hook guarda-a:
+          // não há segundo pedido a fazer nem um instante em que o ecrã mostre
+          // o alvo novo com o veredicto velho.
+          onSaveRule={saveRule}
+          onSetBuckets={setCategoryBuckets}
         />
       )}
     </div>

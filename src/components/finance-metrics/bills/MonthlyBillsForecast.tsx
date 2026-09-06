@@ -1,4 +1,4 @@
-import { BillsMonthlyForecast } from '../../../hooks/useBills';
+import { BillsMonthlyForecast, ForecastScope } from '../../../hooks/useBills';
 import { formatMoney } from '../../../utils/currency';
 import { monthLabel } from '../../../utils/month';
 import { Surface } from '../../common/PageShell';
@@ -8,11 +8,38 @@ type Props = {
   isLoading: boolean;
   error: string | null;
   onRetry: () => void;
+  /** Âmbito escolhido — o servidor soma a fila já filtrada por ele. */
+  scope: ForecastScope;
+  onChangeScope: (scope: ForecastScope) => void;
+  /** Só num workspace partilhado é que há duas vistas a escolher. */
+  isShared: boolean;
 };
 
-export default function MonthlyBillsForecast({ forecast, isLoading, error, onRetry }: Props) {
+const SCOPES: { key: ForecastScope; label: string; hint: string }[] = [
+  { key: 'couple', label: 'Do casal', hint: 'Tudo o que o casal paga' },
+  { key: 'mine', label: 'Só o meu', hint: 'Só as contas em teu nome' },
+];
+
+/**
+ * A fila dos próximos meses.
+ *
+ * O total do casal responde a "quanto sai desta casa"; não responde a "quanto
+ * sai de mim". Eram a mesma coisa até haver duas pessoas a pagar — a partir
+ * daí, o mês mais pesado do casal podia ser um mês em que a pessoa que está a
+ * olhar não paga nada. Daí o par de vistas, e não um número só.
+ */
+export default function MonthlyBillsForecast({
+  forecast,
+  isLoading,
+  error,
+  onRetry,
+  scope,
+  onChangeScope,
+  isShared,
+}: Props) {
   const missing = forecast?.unconvertedCurrencies ?? [];
   const totalsAreSafe = missing.length === 0;
+  const active = SCOPES.find((s) => s.key === scope) ?? SCOPES[0];
 
   return (
     <section aria-labelledby="next-months-title">
@@ -25,8 +52,38 @@ export default function MonthlyBillsForecast({ forecast, isLoading, error, onRet
             Próximos meses
           </h2>
         </div>
-        <span className="text-xs text-gray-400 dark:text-gray-500">Tudo o que o casal paga</span>
+        {isShared ? (
+          <div
+            role="group"
+            aria-label="De quem são as contas"
+            className="flex shrink-0 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900"
+          >
+            {SCOPES.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => onChangeScope(item.key)}
+                aria-pressed={scope === item.key}
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  scope === item.key
+                    ? 'bg-white text-gray-900 shadow-theme-xs dark:bg-white/[0.08] dark:text-white'
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <span className="text-xs text-gray-400 dark:text-gray-500">
+            Tudo o que está por pagar
+          </span>
+        )}
       </div>
+
+      {isShared && (
+        <p className="mb-2 px-1 text-xs text-gray-400 dark:text-gray-500">{active.hint}</p>
+      )}
 
       <Surface className="overflow-hidden">
         {isLoading ? (

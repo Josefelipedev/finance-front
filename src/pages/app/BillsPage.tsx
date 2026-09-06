@@ -18,6 +18,7 @@ import {
   BillType,
   BillsForecast,
   BillsMonthlyForecast,
+  ForecastScope,
 } from '../../hooks/useBills';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { useBankAccounts } from '../../hooks/useBankAccounts';
@@ -310,6 +311,10 @@ export default function BillsPage() {
   const [monthlyForecast, setMonthlyForecast] = useState<BillsMonthlyForecast | null>(null);
   const [isForecastLoading, setIsForecastLoading] = useState(true);
   const [forecastError, setForecastError] = useState<string | null>(null);
+  // A fila dos próximos meses é do casal por omissão. Este âmbito vive no
+  // servidor (e não como um filtro do cliente, como os da lista) porque a fila
+  // já vem somada: filtrar por dono aqui obrigaria a receber conta a conta.
+  const [forecastScope, setForecastScope] = useState<ForecastScope>('couple');
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null);
@@ -379,13 +384,13 @@ export default function BillsPage() {
     setIsForecastLoading(true);
     setForecastError(null);
     try {
-      setMonthlyForecast(await getForecast(10));
+      setMonthlyForecast(await getForecast(10, forecastScope));
     } catch (err) {
       setForecastError((err as Error).message || 'Não foi possível calcular os próximos meses.');
     } finally {
       setIsForecastLoading(false);
     }
-  }, [getForecast]);
+  }, [getForecast, forecastScope]);
 
   useEffect(() => {
     load(month);
@@ -1033,6 +1038,9 @@ export default function BillsPage() {
         isLoading={isForecastLoading}
         error={forecastError}
         onRetry={() => void loadMonthlyForecast()}
+        scope={forecastScope}
+        onChangeScope={setForecastScope}
+        isShared={naming.isShared}
       />
 
       <CreditLimits accounts={bankAccounts} />

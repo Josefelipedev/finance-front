@@ -180,6 +180,76 @@ export interface YearPlan {
   outOfRangeDates?: boolean;
 }
 
+// ===================== REGRA DO DINHEIRO =====================
+
+/** Os três baldes em que a regra divide o que sai. */
+export type Bucket = 'needs' | 'wants' | 'savings';
+
+/** De onde veio o balde de uma categoria. Um palpite não é uma decisão. */
+export type BucketSource = 'manual' | 'guess' | 'unknown';
+
+export interface RulePreset {
+  key: string;
+  name: string;
+  description: string;
+  needsPct: number;
+  wantsPct: number;
+  savingsPct: number;
+}
+
+export interface BucketVerdict {
+  bucket: Bucket;
+  targetPct: number;
+  targetAmount: number;
+  actualAmount: number;
+  /** Nulo quando não há receita no período — não há com que comparar. */
+  actualPct: number | null;
+  /** Positivo = acima do alvo, em dinheiro. */
+  deltaAmount: number;
+}
+
+export interface RuleCategory {
+  categoryId: number | null;
+  name: string;
+  color: string | null;
+  monthlyAmount: number;
+  bucket: Bucket | null;
+  source: BucketSource;
+}
+
+export interface SpendingRule {
+  rule: {
+    preset: string;
+    needsPct: number;
+    wantsPct: number;
+    savingsPct: number;
+    /** Ninguém escolheu ainda — o ecrã convida em vez de afirmar. */
+    isDefault: boolean;
+  };
+  presets: RulePreset[];
+  verdict: {
+    income: number;
+    buckets: BucketVerdict[];
+    unclassifiedAmount: number;
+    leftover: number;
+    hasIncome: boolean;
+  };
+  categories: RuleCategory[];
+  /** Gasto sem categoria nenhuma — não é classificável enquanto for assim. */
+  uncategorizedAmount: number;
+  basis: {
+    monthsCovered: number;
+    lookbackMonths: number;
+    window: { start: string; end: string };
+    /** A janela caiu no mês corrente, que ainda vai a meio. */
+    partialMonth: boolean;
+  };
+  displayCurrency: string;
+  rateDate: string | null;
+  unconvertedCurrencies: string[];
+  outOfRangeDates?: boolean;
+}
+
 export interface ScenarioInput {
   name: string;
   description?: string | null;
@@ -216,6 +286,7 @@ export interface EventInput {
 export function usePlanning() {
   const [overview, setOverview] = useState<PlanningOverview | null>(null);
   const [yearPlan, setYearPlan] = useState<YearPlan | null>(null);
+  const [spendingRule, setSpendingRule] = useState<SpendingRule | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -352,9 +423,67 @@ export function usePlanning() {
     }
   }, []);
 
+  // ===================== REGRA DO DINHEIRO =====================
+
+  const loadRule = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await api.get<SpendingRule>('/planning/rule');
+      setSpendingRule(data);
+      return data;
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  /**
+   * As duas escritas devolvem a análise **inteira**, já refeita — mudar o alvo
+   * ou arrumar uma categoria muda todos os três baldes, e um segundo pedido
+   * para ir buscar o resultado deixava o ecrã um instante a contradizer-se.
+   */
+  const saveRule = useCallback(
+    async (input: {
+      preset?: string;
+      needsPct?: number;
+      wantsPct?: number;
+      savingsPct?: number;
+    }) => {
+      setIsSaving(true);
+      try {
+        const data = await api.put<SpendingRule>('/planning/rule', input);
+        setSpendingRule(data);
+        return data;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [],
+  );
+
+  const setCategoryBuckets = useCallback(
+    async (items: { categoryId: number; bucket: Bucket | null }[]) => {
+      setIsSaving(true);
+      try {
+        const data = await api.put<SpendingRule>('/planning/rule/categories', {
+          items,
+        });
+        setSpendingRule(data);
+        return data;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [],
+  );
+
   return {
     overview,
     yearPlan,
+    spendingRule,
     isLoading,
     isSaving,
     error,
@@ -368,6 +497,9 @@ export function usePlanning() {
     deleteEvent,
     saveYearPlan,
     deleteYearPlanItem,
+    loadRule,
+    saveRule,
+    setCategoryBuckets,
     resetError: () => setError(null),
   };
 }
