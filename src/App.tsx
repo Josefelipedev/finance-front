@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router';
 
 import SignIn from './pages/AuthPages/SignIn';
 import SignUp from './pages/AuthPages/SignUp';
@@ -34,7 +34,6 @@ const AccountsPage = lazy(() => import('./pages/app/AccountsPage'));
 const FiscalPage = lazy(() => import('./pages/app/FiscalPage'));
 const MealPlannerPage = lazy(() => import('./pages/MealPlanner/MealPlannerPage'));
 const GoalsPage = lazy(() => import('./pages/app/GoalsPage'));
-const PlanningPage = lazy(() => import('./pages/app/PlanningPage'));
 const UserProfiles = lazy(() => import('./pages/UserProfiles'));
 
 export default function App() {
@@ -74,7 +73,13 @@ export default function App() {
               <Route path="/fiscal" element={<FiscalPage />} />
               <Route path="/meal-planner" element={<MealPlannerPage />} />
               <Route path="/metas" element={<GoalsPage />} />
-              <Route path="/planejamento" element={<PlanningPage />} />
+              {/*
+                O Planeamento foi dissolvido: as abas foram para casa (Metas,
+                Orçamento, Análises). A rota fica como reencaminhamento porque
+                havia quem a tivesse nos favoritos — e um 404 seria uma maneira
+                pior de dizer "isto mudou de sítio".
+              */}
+              <Route path="/planejamento" element={<Navigate to="/orcamento" replace />} />
               <Route path="/profile" element={<UserProfiles />} />
             </Route>
           </Route>

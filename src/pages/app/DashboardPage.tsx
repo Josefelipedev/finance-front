@@ -2,6 +2,7 @@ import { useState } from 'react';
 import FinanceDashboard from '../../components/finance-metrics/FinanceDashboard';
 import CategoryDistribution from '../../components/finance-metrics/CategoryDistribution';
 import FinanceGoals from '../../components/finance-metrics/goals/FinanceGoals';
+import RulesCard from '../../components/finance-metrics/rules/RulesCard';
 import DateRangePicker from '../../components/ui/date-range-picker';
 import PageShell from '../../components/common/PageShell';
 import { defaultDateRange } from '../../utils/date-range';
@@ -29,10 +30,17 @@ export default function DashboardPage() {
     >
       <FinanceDashboard dateRange={dateRange} setDateRange={setDateRange} />
 
+      {/*
+        A regra não obedece ao período escolhido em cima, e é de propósito: ela
+        compara-se sempre com os últimos meses FECHADOS. Um período de duas
+        semanas daria uma divisão que não quer dizer nada.
+      */}
       <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         <CategoryDistribution dateRange={dateRange} />
-        <FinanceGoals />
+        <RulesCard />
       </div>
+
+      <FinanceGoals />
     </PageShell>
   );
 }

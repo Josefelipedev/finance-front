@@ -18,6 +18,10 @@ export interface BillItem {
   categoryId: number | null;
   categoryName: string | null;
   categoryColor: string | null;
+  /** O balde da regra a que esta conta pertence. Null = ninguém sabe. */
+  bucket: 'needs' | 'wants' | 'savings' | null;
+  /** "manual" | "guess" | "unknown" — um palpite não é uma decisão. */
+  bucketSource: 'manual' | 'guess' | 'unknown';
   /** Conta bancária de onde sai (ou onde entra). Null = não foi dito. */
   accountId: number | null;
   dueDate: string; // ISO date
@@ -142,6 +146,12 @@ export interface BillsResponse {
   totalPaid: number; // = expense.paid (compat) — JÁ convertido para displayCurrency
   expense: BillSideTotals; // a pagar (convertido)
   income: BillSideTotals; // a receber (convertido)
+  /**
+   * A despesa do mês repartida pelos baldes da regra — pago e por pagar.
+   * O que não tem balde fica em `unclassified`, à parte e não dentro de um
+   * deles: é o que impede o total de parecer completo quando não está.
+   */
+  byBucket?: { needs: number; wants: number; savings: number; unclassified: number };
   projectedBalance: number; // previsto: income(todo) - expense(todo), convertido
   realizedBalance: number; // realizado: income.paid - expense.paid, convertido
   /**

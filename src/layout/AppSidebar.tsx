@@ -30,7 +30,11 @@ const sections: NavSection[] = [
   {
     label: 'Planejamento',
     items: [
-      { name: 'Planejamento', path: '/planejamento', icon: 'chart-line' },
+      // O ecrã "Planejamento" foi dissolvido: as metas de longo prazo estão
+      // dentro de Metas, o plano anual e a regra dentro de Orçamento, e a
+      // projeção dentro de Análises. Era um beco — nenhum dos outros vinte
+      // ecrãs apontava para lá, e ninguém tinha de adivinhar qual dos sete
+      // itens desta secção respondia à pergunta que trazia.
       { name: 'Metas', path: '/metas', icon: 'trophy' },
       { name: 'Orçamento', path: '/orcamento', icon: 'wallet' },
       { name: 'Contas', path: '/contas', icon: 'building-columns' },

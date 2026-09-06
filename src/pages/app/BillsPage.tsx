@@ -11,6 +11,8 @@ import CategorySelect from '../../components/form/CategorySelect';
 import BankAccountSelect from '../../components/form/BankAccountSelect';
 import AccountForecastCards from '../../components/finance-metrics/bills/AccountForecastCards';
 import MonthlyBillsForecast from '../../components/finance-metrics/bills/MonthlyBillsForecast';
+import BillsBucketSplit from '../../components/finance-metrics/bills/BillsBucketSplit';
+import { BUCKET_CHIP, BUCKET_SHORT } from '../../components/finance-metrics/rules/buckets';
 import CreditLimits from '../../components/finance-metrics/bills/CreditLimits';
 import {
   useBills,
@@ -18,6 +20,7 @@ import {
   BillType,
   BillsForecast,
   BillsMonthlyForecast,
+  BillsResponse,
   ForecastScope,
 } from '../../hooks/useBills';
 import { useUserProfile } from '../../hooks/useUserProfile';
@@ -308,6 +311,7 @@ export default function BillsPage() {
   const [accountsForecast, setAccountsForecast] = useState<BillsForecast | null>(null);
   const [displayCurrency, setDisplayCurrency] = useState('BRL');
   const [unconvertedCurrencies, setUnconvertedCurrencies] = useState<string[]>([]);
+  const [byBucket, setByBucket] = useState<BillsResponse['byBucket']>(undefined);
   const [monthlyForecast, setMonthlyForecast] = useState<BillsMonthlyForecast | null>(null);
   const [isForecastLoading, setIsForecastLoading] = useState(true);
   const [forecastError, setForecastError] = useState<string | null>(null);
@@ -371,6 +375,7 @@ export default function BillsPage() {
         setAccountsForecast(res?.accounts ?? null);
         setDisplayCurrency(res?.displayCurrency ?? 'BRL');
         setUnconvertedCurrencies(res?.unconvertedCurrencies ?? []);
+        setByBucket(res?.byBucket);
       } catch (err) {
         setError((err as Error).message || 'Não foi possível carregar as contas.');
       } finally {
@@ -614,6 +619,22 @@ export default function BillsPage() {
                   style={{ backgroundColor: item.categoryColor ?? '#9ca3af' }}
                 ></span>
                 {item.categoryName}
+              </span>
+            )}
+            {/* O balde da regra: é o que distingue a renda do streaming numa
+                lista ordenada por data. Só nas despesas — repartir o que se
+                recebe em necessidade e desejo não quer dizer nada. */}
+            {item.type === 'expense' && item.bucket && (
+              <span
+                className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ${BUCKET_CHIP[item.bucket]}`}
+                title={
+                  item.bucketSource === 'guess'
+                    ? 'Palpite pelo nome da categoria — ainda ninguém confirmou'
+                    : undefined
+                }
+              >
+                {BUCKET_SHORT[item.bucket]}
+                {item.bucketSource === 'guess' && '?'}
               </span>
             )}
             {/* Quem lançou — só aparece no workspace do casal */}
@@ -1031,6 +1052,14 @@ export default function BillsPage() {
             {summaryMoney(expense.pending + expense.paid)}
           </p>
         </Surface>
+      )}
+
+      {!isFetching && !error && (
+        <BillsBucketSplit
+          byBucket={byBucket}
+          currency={displayCurrency}
+          isSafe={unconvertedCurrencies.length === 0}
+        />
       )}
 
       <MonthlyBillsForecast
