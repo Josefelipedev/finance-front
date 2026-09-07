@@ -12,6 +12,8 @@ import OnboardingQuestionnaire from './OnboardingQuestionnaire';
 import { formatCivilDate } from '../../utils/civil-date';
 import OwnerChip from '../../components/common/OwnerChip';
 import { useOwnerNaming } from '../../hooks/useOwner';
+import { useBankAccounts } from '../../hooks/useBankAccounts';
+import type { BankAccount } from '../../hooks/useBankAccounts';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -693,6 +695,9 @@ function ShoppingListView({
   onClose,
   onReopen,
   closing,
+  accounts,
+  accountId,
+  onAccountChange,
 }: {
   list: MealShoppingList;
   /** A moeda do plano a que esta lista pertence. */
@@ -703,6 +708,10 @@ function ShoppingListView({
   onClose: () => void;
   onReopen: () => void;
   closing: boolean;
+  /** Só as contas na moeda do plano: o saldo soma sem converter (C5). */
+  accounts: BankAccount[];
+  accountId: number | '';
+  onAccountChange: (id: number | '') => void;
 }) {
   const { profile: userProfile, getProfile } = useUserProfile();
   // A do plano manda. A da conta só entra em planos antigos, gerados antes de
@@ -753,18 +762,44 @@ function ShoppingListView({
               ↩︎ {closing ? 'A reabrir...' : 'Reabrir lista'}
             </button>
           ) : (
-            <button
-              onClick={onClose}
-              disabled={closing || purchased.length === 0}
-              className="flex items-center gap-2 rounded-lg bg-brand-400 px-4 py-2 text-sm font-semibold text-gray-950 transition hover:bg-brand-300 disabled:opacity-50"
-              title={
-                purchased.length === 0
-                  ? 'Marque os itens que comprou antes de fechar'
-                  : 'Cria a despesa em Alimentação com o total do que comprou'
-              }
-            >
-              💸 {closing ? 'A fechar...' : 'Fechar e lançar despesa'}
-            </button>
+            <>
+              {/* De que conta saiu o dinheiro: sem isto a despesa entrava no
+                  razão e nenhum saldo bancário se mexia. */}
+              <select
+                value={accountId}
+                onChange={(e) =>
+                  onAccountChange(e.target.value ? Number(e.target.value) : '')
+                }
+                disabled={closing || accounts.length === 0}
+                title={
+                  accounts.length === 0
+                    ? `Nenhuma conta em ${displayCurrency ?? 'na moeda do plano'}`
+                    : 'De que conta saiu o dinheiro'
+                }
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300"
+              >
+                <option value="">Sem conta (só no razão)</option>
+                {accounts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.bankName}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={onClose}
+                disabled={closing || purchased.length === 0}
+                className="flex items-center gap-2 rounded-lg bg-brand-400 px-4 py-2 text-sm font-semibold text-gray-950 transition hover:bg-brand-300 disabled:opacity-50"
+                title={
+                  purchased.length === 0
+                    ? 'Marque os itens que comprou antes de fechar'
+                    : accountId
+                      ? 'Cria a despesa em Alimentação e desconta-a da conta escolhida'
+                      : 'Cria a despesa em Alimentação com o total do que comprou'
+                }
+              >
+                💸 {closing ? 'A fechar...' : 'Fechar e lançar despesa'}
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -862,6 +897,8 @@ export default function MealPlannerPage() {
   const [generating, setGenerating] = useState(false);
   const [notifying, setNotifying] = useState(false);
   const [closingList, setClosingList] = useState(false);
+  /** A conta de onde saiu o dinheiro das compras. Vazio = só no razão. */
+  const [closeAccountId, setCloseAccountId] = useState<number | ''>('');
   const [budget, setBudget] = useState('');
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
@@ -891,6 +928,7 @@ export default function MealPlannerPage() {
     deletePlan: removePlan,
     clearHistory: removeAllHistory,
   } = useMealPlanner();
+  const { accounts, loadAccounts } = useBankAccounts();
   const currencySymbol = currencyOption(userProfile?.currency).symbol;
 
   useEffect(() => {
@@ -898,6 +936,7 @@ export default function MealPlannerPage() {
     loadActivePlan();
     loadPreferences();
     getProfile().catch(() => {});
+    loadAccounts().catch(() => {});
     fetchPreferenceOptions().then(setPrefOptions).catch(() => {});
   }, []);
 
@@ -1046,9 +1085,14 @@ export default function MealPlannerPage() {
   async function closeShopping() {
     setClosingList(true);
     try {
-      await closeList();
+      await closeList(closeAccountId ? { accountId: closeAccountId } : undefined);
       await loadActivePlan();
-      flash('success', 'Lista fechada e despesa lançada.');
+      flash(
+        'success',
+        closeAccountId
+          ? 'Lista fechada — despesa lançada e descontada da conta.'
+          : 'Lista fechada e despesa lançada.'
+      );
     } catch (e: unknown) {
       flash('error', e instanceof Error ? e.message : 'Não foi possível fechar a lista.');
     } finally {
@@ -1297,6 +1341,9 @@ export default function MealPlannerPage() {
             onClose={closeShopping}
             onReopen={reopenShopping}
             closing={closingList}
+            accounts={accounts.filter((a) => a.currency === plan.currency)}
+            accountId={closeAccountId}
+            onAccountChange={setCloseAccountId}
           />
         ) : (
           <div className="rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-16 text-center">

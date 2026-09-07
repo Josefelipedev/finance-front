@@ -240,12 +240,17 @@ export function useMealPlanner() {
   /**
    * Fecha a lista e regista a despesa do que se comprou (C4). O total é somado
    * no servidor, a partir do preço pago (ou do estimado, quando falta).
+   *
+   * Com `accountId`, a despesa sai também do saldo dessa conta bancária — sem
+   * ele, o dinheiro saía do razão e nenhuma conta dava por isso.
    */
-  const closeShoppingList = useCallback(async () => {
+  const closeShoppingList = useCallback(async (options?: { accountId?: number }) => {
     setIsLoading(true);
     setError(null);
     try {
-      return await api.post('/meal-planner/shopping/close', {});
+      return await api.post('/meal-planner/shopping/close', {
+        ...(options?.accountId ? { accountId: options.accountId } : {}),
+      });
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
       throw err;
