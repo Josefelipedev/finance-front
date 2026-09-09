@@ -34,6 +34,7 @@ const AccountsPage = lazy(() => import('./pages/app/AccountsPage'));
 const FiscalPage = lazy(() => import('./pages/app/FiscalPage'));
 const MealPlannerPage = lazy(() => import('./pages/MealPlanner/MealPlannerPage'));
 const GoalsPage = lazy(() => import('./pages/app/GoalsPage'));
+const AdvisorPage = lazy(() => import('./pages/app/AdvisorPage'));
 const UserProfiles = lazy(() => import('./pages/UserProfiles'));
 
 export default function App() {
@@ -73,6 +74,7 @@ export default function App() {
               <Route path="/fiscal" element={<FiscalPage />} />
               <Route path="/meal-planner" element={<MealPlannerPage />} />
               <Route path="/metas" element={<GoalsPage />} />
+              <Route path="/assistente" element={<AdvisorPage />} />
               {/*
                 As Dívidas foram para dentro das Contas a Pagar — são a mesma
                 pergunta a duas distâncias, e um ecrã só delas era um beco que

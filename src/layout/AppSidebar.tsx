@@ -11,6 +11,10 @@ const sections: NavSection[] = [
     label: 'Visão geral',
     items: [
       { name: 'Dashboard', path: '/', icon: 'chart-line' },
+      // O assistente fica na Visão geral e não dentro de um ecrã: fala dos
+      // quatro assuntos (dívidas, orçamento, comida, contas) e não pertence a
+      // nenhum deles em particular.
+      { name: 'Assistente', path: '/assistente', icon: 'comments-dollar' },
       { name: 'Análises', path: '/analises', icon: 'chart-pie' },
       { name: 'Relatório', path: '/relatorio', icon: 'file-lines' },
       { name: 'Calendário', path: '/calendario', icon: 'calendar-days' },
