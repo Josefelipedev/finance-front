@@ -14,6 +14,7 @@ import api from '../services/api';
 // BROWSER, o que a oeste de Greenwich deixava as despesas do dia 1 de fora.
 
 export interface BudgetLimit {
+  userId: number;
   categoryId: number;
   categoryName: string;
   /** Já convertido pelo servidor para a moeda de quem está a ler (C4). */
@@ -41,7 +42,11 @@ export interface BudgetLimit {
 
 /** Quanto se gastou em comida este mês, pela definição da app. */
 export interface FoodSpend {
+  budget: number | null;
   spent: number;
+  delta: number | null;
+  usedPct: number | null;
+  status: 'no_budget' | 'under' | 'close' | 'over';
   currency: string;
   unconvertedCurrencies: string[];
   rateDate: string | null;
@@ -113,7 +118,9 @@ export function useBudget() {
   }, []);
 
   const upsert = useCallback(
-    async (limit: BudgetLimit) => {
+    async (
+      limit: Pick<BudgetLimit, 'categoryId' | 'categoryName' | 'monthlyLimit' | 'alertAt'>
+    ) => {
       await api.put(`/budget/${limit.categoryId}`, {
         monthlyLimit: limit.monthlyLimit,
         alertAt: limit.alertAt,

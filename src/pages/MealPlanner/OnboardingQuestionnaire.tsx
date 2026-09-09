@@ -241,10 +241,9 @@ export default function OnboardingQuestionnaire({
     },
     {
       title: 'Quanto contas gastar em comida por mês?',
-      // Num casal, cada pessoa responde no seu dispositivo e a meta da casa é a
-      // soma das duas — há uma lista e uma ida ao supermercado, mas quem põe
-      // dinheiro são dois.
-      hint: 'Só a tua parte. Se vivem em casal, cada um responde a sua — a meta da casa é a soma.',
+      // Num casal, cada pessoa responde no seu dispositivo. Os dois tectos
+      // ficam separados e uma compra consome o de quem a registou.
+      hint: 'Este é o teu teto pessoal. Se vivem em casal, cada um define o seu — os valores não são somados.',
       body: (
         <div className="flex flex-col gap-3">
           <div className="w-48">

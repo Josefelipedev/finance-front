@@ -324,7 +324,7 @@ export function useShopping() {
     try {
       const result = await api.post<{ list: ShoppingList; enriched: number; failed: string[] }>(
         `/shopping/enrich-prices/${listId}`,
-        {},
+        {}
       );
       if (result?.list) {
         setData((prev) => prev.map((l) => (l.id === result.list.id ? result.list : l)));
@@ -341,7 +341,7 @@ export function useShopping() {
   const getPricesByStore = async (itemName: string) => {
     try {
       return await api.get<{ supermarket: string; name: string; price: number; brand?: string }[]>(
-        `/shopping/prices/${encodeURIComponent(itemName)}`,
+        `/shopping/prices/${encodeURIComponent(itemName)}`
       );
     } catch {
       return [];
@@ -395,7 +395,7 @@ export function useShopping() {
    */
   const closePurchase = async (
     listId: number,
-    payload?: { categoryId?: number; referenceDate?: string },
+    payload?: { categoryId?: number; accountId?: number; referenceDate?: string }
   ) => {
     setIsLoading(true);
     setError(null);

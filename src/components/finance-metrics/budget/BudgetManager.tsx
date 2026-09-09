@@ -69,10 +69,7 @@ const BudgetManager: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const [cats, txs] = await Promise.all([
-        getAllCategories(),
-        getAllFinances(monthRange()),
-      ]);
+      const [cats, txs] = await Promise.all([getAllCategories(), getAllFinances(monthRange())]);
       setCategories(cats || []);
       setTransactions(txs || []);
     } catch (err) {
@@ -134,16 +131,14 @@ const BudgetManager: React.FC = () => {
       const catId = tx.categoryId ?? tx.category?.id;
       if (catId == null || tx.userId == null) continue;
       const donos = porCategoria[catId] ?? {};
-      donos[tx.userId] =
-        (donos[tx.userId] || 0) + (tx.convertedAmount ?? tx.amount ?? 0);
+      donos[tx.userId] = (donos[tx.userId] || 0) + (tx.convertedAmount ?? tx.amount ?? 0);
       porCategoria[catId] = donos;
     }
     return porCategoria;
   }, [transactions]);
 
   /** "Maria Silva" → "Maria". O apelido não cabe e não desambigua nada. */
-  const primeiroNome = (nome?: string | null) =>
-    (nome ?? '').trim().split(/\s+/)[0] || null;
+  const primeiroNome = (nome?: string | null) => (nome ?? '').trim().split(/\s+/)[0] || null;
   const nomeDoDono = (userId: number) =>
     userId === profile?.id
       ? (primeiroNome(profile?.name) ?? 'Você')
@@ -305,9 +300,12 @@ const BudgetManager: React.FC = () => {
         <div className="space-y-3">
           {limits.map((limit) => {
             const spent = spendByCategory[limit.categoryId] || 0;
-            const pct = limit.monthlyLimit > 0 ? (spent / limit.monthlyLimit) * 100 : 0;
-            const over = pct >= 100;
-            const alerting = pct >= limit.alertAt;
+            const pct =
+              limit.monthlyLimit > 0 ? (spent / limit.monthlyLimit) * 100 : spent > 0 ? 100 : 0;
+            // Igual ao limite ainda cabe; zero continua a ser uma meta válida e
+            // qualquer cêntimo gasto ultrapassa-a.
+            const over = spent > limit.monthlyLimit;
+            const alerting = over || (limit.monthlyLimit > 0 && pct >= limit.alertAt);
             const barColor = over ? 'bg-rose-500' : alerting ? 'bg-amber-500' : 'bg-emerald-500';
 
             return (
@@ -319,6 +317,7 @@ const BudgetManager: React.FC = () => {
                   <div className="min-w-0">
                     <h3 className="font-semibold text-gray-800 dark:text-white truncate">
                       {limit.categoryName}
+                      {limit.source === 'food_budget' ? ` · ${nomeDoDono(limit.userId)}` : ''}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                       {formatCurrency(spent)} de {formatCurrency(limit.monthlyLimit)}
@@ -342,7 +341,7 @@ const BudgetManager: React.FC = () => {
                     {limit.source === 'food_budget' && (
                       <p className="mt-0.5 text-xs text-brand-600 dark:text-brand-400">
                         <i className="fas fa-utensils mr-1 text-[10px]"></i>
-                        da tua meta de alimentação
+                        meta alimentar de {nomeDoDono(limit.userId)}
                       </p>
                     )}
                     {/* De quem é o gasto (C6). As partes somam o total acima. */}
@@ -384,7 +383,7 @@ const BudgetManager: React.FC = () => {
                       um caminho que acaba num erro. O atalho leva ao sítio onde
                       o número existe de facto.
                     */}
-                    {limit.source === 'food_budget' ? (
+                    {limit.source === 'food_budget' && limit.userId === profile?.id ? (
                       <Link
                         to="/meal-planner"
                         className="p-2 text-gray-400 transition-colors hover:text-brand-500"
@@ -393,7 +392,7 @@ const BudgetManager: React.FC = () => {
                       >
                         <i className="fas fa-arrow-up-right-from-square text-sm"></i>
                       </Link>
-                    ) : (
+                    ) : limit.source !== 'food_budget' ? (
                       <button
                         onClick={() => openEdit(limit)}
                         className="p-2 text-gray-400 hover:text-brand-500 transition-colors"
@@ -401,14 +400,16 @@ const BudgetManager: React.FC = () => {
                       >
                         <i className="fas fa-pen text-sm"></i>
                       </button>
+                    ) : null}
+                    {limit.source !== 'food_budget' && (
+                      <button
+                        onClick={() => setDeleting(limit)}
+                        className="p-2 text-gray-400 hover:text-rose-500 transition-colors"
+                        aria-label="Remover"
+                      >
+                        <i className="fas fa-trash text-sm"></i>
+                      </button>
                     )}
-                    <button
-                      onClick={() => setDeleting(limit)}
-                      className="p-2 text-gray-400 hover:text-rose-500 transition-colors"
-                      aria-label="Remover"
-                    >
-                      <i className="fas fa-trash text-sm"></i>
-                    </button>
                   </div>
                 </div>
 

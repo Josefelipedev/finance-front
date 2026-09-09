@@ -135,16 +135,15 @@ function OptionGrid({
 }
 
 /**
- * A meta de comida — a desta pessoa, e a da casa.
+ * A meta de comida desta pessoa.
  *
  * Havia cinco números na app a dizer que eram "o orçamento da comida" e nenhum
  * falava com os outros: uma caixa que se apagava a cada geração, um preset fixo
  * no telemóvel, o tecto da categoria, o que a geração usou e o que o razão diz
  * que se gastou. Este é o único que fica.
  *
- * Num casal pergunta-se a **cada um**, e a meta da casa é a soma — há uma lista
- * e uma ida ao supermercado, mas quem põe dinheiro são dois. As parcelas ficam
- * à vista para o total não parecer imposto a quem não o escreveu.
+ * Num casal pergunta-se a **cada um** e os dois tectos continuam separados.
+ * Quem paga uma compra consome o próprio tecto, nunca o do cônjuge.
  */
 function FoodBudgetSection({
   value,
@@ -159,7 +158,6 @@ function FoodBudgetSection({
 }) {
   const symbol = currencyOption(currency).symbol;
   const money = (v: number) => formatMoney(v, household?.currency ?? currency);
-  const outros = (household?.parts ?? []).filter((p) => p.amount !== value);
   const emCasal = (household?.parts.length ?? 0) > 1;
 
   return (
@@ -197,7 +195,7 @@ function FoodBudgetSection({
       {emCasal && household && (
         <div className="mt-4 rounded-lg bg-gray-50 px-4 py-3 dark:bg-white/[0.03]">
           <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            A meta da casa
+            Tetos individuais do casal
           </p>
           <dl className="space-y-1 text-sm">
             {household.parts.map((p) => (
@@ -212,23 +210,10 @@ function FoodBudgetSection({
                 </dd>
               </div>
             ))}
-            <div className="!mt-2 flex items-baseline justify-between gap-3 border-t border-gray-200 pt-2 dark:border-white/[0.06]">
-              <dt className="font-medium text-gray-800 dark:text-white">Por mês</dt>
-              <dd className="font-semibold tabular-nums text-gray-900 dark:text-white">
-                {household.monthly === null ? '—' : money(household.monthly)}
-              </dd>
-            </div>
           </dl>
-          {household.weekly !== null && (
-            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              São {money(household.weekly)} por semana — é este o valor que chega ao cardápio.
-            </p>
-          )}
-          {household.partial && (
-            <p className="mt-2 text-xs text-warning-600 dark:text-warning-400">
-              Falta a resposta de alguém: a meta da casa ainda não está completa.
-            </p>
-          )}
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            Estes valores não são somados. Cada compra conta para a pessoa que a registrou.
+          </p>
         </div>
       )}
     </section>

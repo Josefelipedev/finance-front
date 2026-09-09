@@ -119,12 +119,16 @@ const ShoppingManager: React.FC = () => {
     }
   };
 
-  const handleClosePurchase = async (payload: { categoryId?: number; referenceDate: string }) => {
+  const handleClosePurchase = async (payload: {
+    categoryId?: number;
+    accountId?: number;
+    referenceDate: string;
+  }) => {
     if (!closingList) return;
     setIsClosing(true);
     try {
       await closePurchase(closingList.id, payload);
-      toast.success('Compra fechada. A despesa já está nas suas transações.');
+      toast.success('Compra registrada. A despesa já está nas suas transações.');
       setClosingList(null);
       loadLists();
     } catch (err) {

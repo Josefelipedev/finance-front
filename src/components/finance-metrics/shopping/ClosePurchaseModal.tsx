@@ -16,13 +16,14 @@ import {
 } from '../../../utils/shopping-price';
 import { convertAmount, unconvertibleCurrencies } from '../../../utils/currency';
 import { useExchangeRates } from '../../../hooks/useExchangeRates';
+import BankAccountSelect from '../../form/BankAccountSelect';
 
 interface ClosePurchaseModalProps {
   list: ShoppingList;
   /** Moeda em que a despesa vai ser criada (a do perfil). */
   currency?: string | null;
   isSaving?: boolean;
-  onConfirm: (payload: { categoryId?: number; referenceDate: string }) => void;
+  onConfirm: (payload: { categoryId?: number; accountId?: number; referenceDate: string }) => void;
   onCancel: () => void;
 }
 
@@ -43,6 +44,7 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
   onCancel,
 }) => {
   const [categoryId, setCategoryId] = useState<number | undefined>(undefined);
+  const [accountId, setAccountId] = useState<number | undefined>(undefined);
   const [referenceDate, setReferenceDate] = useState(today());
 
   const purchased = useMemo(() => list.items.filter((i) => i.purchased), [list.items]);
@@ -54,7 +56,12 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
   */
   const rates = useExchangeRates();
   const semCambio = useMemo(
-    () => unconvertibleCurrencies(purchased.map((i) => lineCurrency(i, currency)), currency, rates),
+    () =>
+      unconvertibleCurrencies(
+        purchased.map((i) => lineCurrency(i, currency)),
+        currency,
+        rates
+      ),
     [purchased, currency, rates]
   );
   const total = useMemo(
@@ -82,7 +89,9 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
   return (
     <Modal isOpen onClose={onCancel} className="max-w-md">
       <div className="p-6">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Fechar compra</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+          Registrar nas transações
+        </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
           Os itens comprados de <strong>{list.name}</strong> passam a ser uma despesa.
         </p>
@@ -133,7 +142,7 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
                 <p className="text-xs text-warning-600 dark:text-warning-400 mt-2">
                   {velhos.length === 1
                     ? `"${velhos[0].name}" não entra neste total: o preço da loja foi lido há ${scrapedAgeInDays(
-                        velhos[0],
+                        velhos[0]
                       )} dias`
                     : `${velhos.length} itens não entram neste total: os preços da loja têm mais de ${MAX_SCRAPED_AGE_DAYS} dias`}
                   . Actualize os preços ou escreva o que pagou.
@@ -141,14 +150,27 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
               )}
               {convertidos.length > 0 && semCambio.length === 0 && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  {convertidos.length === 1 ? 'Um preço vem' : `${convertidos.length} preços vêm`} em{' '}
-                  {[...new Set(convertidos.map((i) => i.scrapedCurrency))].join(', ')} e{' '}
-                  {convertidos.length === 1 ? 'foi convertido' : 'foram convertidos'} para {currency}.
+                  {convertidos.length === 1 ? 'Um preço vem' : `${convertidos.length} preços vêm`}{' '}
+                  em {[...new Set(convertidos.map((i) => i.scrapedCurrency))].join(', ')} e{' '}
+                  {convertidos.length === 1 ? 'foi convertido' : 'foram convertidos'} para{' '}
+                  {currency}.
                 </p>
               )}
             </div>
 
             <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Conta que pagou
+                </label>
+                <BankAccountSelect
+                  value={accountId}
+                  onChange={setAccountId}
+                  currency={currency}
+                  placeholder="Sem conta vinculada"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Categoria
@@ -190,9 +212,9 @@ const ClosePurchaseModal: React.FC<ClosePurchaseModalProps> = ({
             variant="primary"
             type="button"
             disabled={isSaving || semItens || semPreco || semCambio.length > 0}
-            onClick={() => onConfirm({ categoryId, referenceDate })}
+            onClick={() => onConfirm({ categoryId, accountId, referenceDate })}
           >
-            {isSaving ? 'A fechar...' : 'Fechar compra'}
+            {isSaving ? 'A registrar...' : 'Registrar transação'}
           </Button>
         </div>
       </div>

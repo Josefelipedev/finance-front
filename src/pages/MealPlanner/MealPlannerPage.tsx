@@ -15,6 +15,7 @@ import OwnerChip from '../../components/common/OwnerChip';
 import { useOwnerNaming } from '../../hooks/useOwner';
 import { useBankAccounts } from '../../hooks/useBankAccounts';
 import type { BankAccount } from '../../hooks/useBankAccounts';
+import ManualPlanModal from './ManualPlanModal';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -108,9 +109,21 @@ const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 
 const DAY_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 const DAY_TYPE_OPTIONS: { value: DayType; label: string; color: string }[] = [
-  { value: 'WORK', label: 'Trabalho (só café)', color: 'bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300' },
-  { value: 'HALF_OFF', label: 'Meia folga', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
-  { value: 'OFF', label: 'Folga', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+  {
+    value: 'WORK',
+    label: 'Trabalho (só café)',
+    color: 'bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300',
+  },
+  {
+    value: 'HALF_OFF',
+    label: 'Meia folga',
+    color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
+  },
+  {
+    value: 'OFF',
+    label: 'Folga',
+    color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  },
 ];
 
 const MEAL_TYPE_COLORS: Record<string, string> = {
@@ -156,7 +169,9 @@ function groupByCategory(items: MealShoppingItem[]) {
 
 function BreakfastCard({ meal, isWorkDay }: { meal: MealDetail; isWorkDay: boolean }) {
   const [showSteps, setShowSteps] = useState(false);
-  const typeColor = meal.mealType ? (MEAL_TYPE_COLORS[meal.mealType.toLowerCase()] ?? 'bg-gray-100 text-gray-600') : null;
+  const typeColor = meal.mealType
+    ? (MEAL_TYPE_COLORS[meal.mealType.toLowerCase()] ?? 'bg-gray-100 text-gray-600')
+    : null;
 
   return (
     <div className="rounded-xl border border-amber-100 dark:border-amber-900/30 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 p-4">
@@ -176,7 +191,9 @@ function BreakfastCard({ meal, isWorkDay }: { meal: MealDetail; isWorkDay: boole
           </div>
         </div>
         {typeColor && meal.mealType && (
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize whitespace-nowrap ${typeColor}`}>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize whitespace-nowrap ${typeColor}`}
+          >
             {meal.mealType}
           </span>
         )}
@@ -195,13 +212,28 @@ function BreakfastCard({ meal, isWorkDay }: { meal: MealDetail; isWorkDay: boole
         <div className="grid grid-cols-4 gap-1.5 mb-3">
           {[
             { label: 'kcal', value: meal.calories, color: 'text-orange-600 dark:text-orange-400' },
-            { label: 'prot', value: meal.protein ? `${meal.protein}g` : null, color: 'text-error-600 dark:text-red-400' },
-            { label: 'carb', value: meal.carbs ? `${meal.carbs}g` : null, color: 'text-brand-600 dark:text-brand-400' },
-            { label: 'fibra', value: meal.fiber ? `${meal.fiber}g` : null, color: 'text-green-600 dark:text-green-400' },
+            {
+              label: 'prot',
+              value: meal.protein ? `${meal.protein}g` : null,
+              color: 'text-error-600 dark:text-red-400',
+            },
+            {
+              label: 'carb',
+              value: meal.carbs ? `${meal.carbs}g` : null,
+              color: 'text-brand-600 dark:text-brand-400',
+            },
+            {
+              label: 'fibra',
+              value: meal.fiber ? `${meal.fiber}g` : null,
+              color: 'text-green-600 dark:text-green-400',
+            },
           ]
             .filter((m) => m.value)
             .map((m) => (
-              <div key={m.label} className="bg-white/60 dark:bg-white/5 rounded-lg py-1.5 text-center">
+              <div
+                key={m.label}
+                className="bg-white/60 dark:bg-white/5 rounded-lg py-1.5 text-center"
+              >
                 <div className={`text-sm font-bold ${m.color}`}>{m.value}</div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">{m.label}</div>
               </div>
@@ -285,7 +317,9 @@ function MealCard({ label, meal, emoji }: { label: string; meal: MealDetail; emo
         <p className="text-xs text-gray-500 dark:text-gray-400 italic mt-0.5">{meal.description}</p>
       )}
       {meal.ingredients.length > 0 && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{meal.ingredients.join(', ')}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          {meal.ingredients.join(', ')}
+        </p>
       )}
       <div className="flex gap-3 mt-1.5 text-xs text-gray-400">
         {meal.calories > 0 && <span>{meal.calories} kcal</span>}
@@ -372,16 +406,16 @@ function ProfilePanel({
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
-        Perfil Dietético
-      </h3>
+      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">Perfil Dietético</h3>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">
         A IA usa estes dados para ajustar calorias e restrições do seu cardápio. Tudo é opcional.
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Altura (cm)</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Altura (cm)
+          </label>
           <input
             type="number"
             inputMode="numeric"
@@ -411,14 +445,18 @@ function ProfilePanel({
       </div>
 
       <div className="flex flex-col gap-1 mb-5">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nível de atividade</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Nível de atividade
+        </label>
         <select
           value={activityLevel}
           onChange={(e) => setActivityLevel(e.target.value)}
           className="text-sm rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
         >
           {ACTIVITY_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
           ))}
         </select>
       </div>
@@ -472,7 +510,7 @@ function ProfilePanel({
         </div>
         <div className="flex flex-wrap gap-1.5 mt-1">
           {DIET_SUGGESTIONS.filter(
-            (s) => !prefs.some((p) => p.toLowerCase() === s.toLowerCase()),
+            (s) => !prefs.some((p) => p.toLowerCase() === s.toLowerCase())
           ).map((s) => (
             <button
               key={s}
@@ -524,7 +562,10 @@ function ScheduleConfig({
         {schedule.map((s) => {
           const opt = DAY_TYPE_OPTIONS.find((o) => o.value === s.dayType)!;
           return (
-            <div key={s.dayOfWeek} className="flex flex-col gap-2 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
+            <div
+              key={s.dayOfWeek}
+              className="flex flex-col gap-2 p-3 rounded-lg border border-gray-100 dark:border-gray-700"
+            >
               <span className="font-semibold text-gray-700 dark:text-gray-300 text-sm">
                 {DAY_NAMES[s.dayOfWeek]}
               </span>
@@ -534,7 +575,9 @@ function ScheduleConfig({
                 className="text-xs rounded-md border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {DAY_TYPE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
                 ))}
               </select>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium w-fit ${opt.color}`}>
@@ -546,7 +589,8 @@ function ScheduleConfig({
       </div>
 
       <div className="bg-brand-50 dark:bg-brand-900/20 rounded-lg p-3 mb-4 text-sm text-brand-700 dark:text-brand-300">
-        <strong>Sua configuração atual:</strong> Qui e Dom = Folga completa · Sex = Meia-folga · Demais = Trabalho (só café em casa)
+        <strong>Sua configuração atual:</strong> Qui e Dom = Folga completa · Sex = Meia-folga ·
+        Demais = Trabalho (só café em casa)
       </div>
 
       <button
@@ -564,9 +608,7 @@ function ScheduleConfig({
 
 function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleItem[] }) {
   const naming = useOwnerNaming();
-  const [selectedDay, setSelectedDay] = useState<number>(
-    plan.days[0]?.dayOfWeek ?? 0,
-  );
+  const [selectedDay, setSelectedDay] = useState<number>(plan.days[0]?.dayOfWeek ?? 0);
 
   const dayData = plan.days.find((d) => d.dayOfWeek === selectedDay);
   const breakfast = dayData ? parseMeal(dayData.breakfast) : null;
@@ -587,10 +629,7 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
             {/* Quem gerou. O cardápio é do casal, mas cada plano sai das
                 preferências e da agenda de quem carregou no botão — saber de
                 quem é explica porque é o menu é o que é. */}
-            <OwnerChip
-              name={naming.ownerName(plan.userId)}
-              mine={naming.isMine(plan.userId)}
-            />
+            <OwnerChip name={naming.ownerName(plan.userId)} mine={naming.isMine(plan.userId)} />
           </span>
         </div>
 
@@ -599,7 +638,8 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
           {plan.days.map((d) => {
             const dt = schedule.find((s) => s.dayOfWeek === d.dayOfWeek)?.dayType ?? 'WORK';
             const isActive = d.dayOfWeek === selectedDay;
-            const dotColor = dt === 'OFF' ? 'bg-green-400' : dt === 'HALF_OFF' ? 'bg-yellow-400' : 'bg-brand-400';
+            const dotColor =
+              dt === 'OFF' ? 'bg-green-400' : dt === 'HALF_OFF' ? 'bg-yellow-400' : 'bg-brand-400';
             return (
               <button
                 key={d.dayOfWeek}
@@ -611,7 +651,9 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
                 }`}
               >
                 <span className="text-xs font-medium">{DAY_SHORT[d.dayOfWeek]}</span>
-                <span className={`w-2 h-2 rounded-full mt-1 ${isActive ? 'bg-white/60' : dotColor}`} />
+                <span
+                  className={`w-2 h-2 rounded-full mt-1 ${isActive ? 'bg-white/60' : dotColor}`}
+                />
               </button>
             );
           })}
@@ -648,9 +690,7 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
             </div>
 
             {/* Café da manhã — card rico */}
-            {breakfast && (
-              <BreakfastCard meal={breakfast} isWorkDay={dayType === 'WORK'} />
-            )}
+            {breakfast && <BreakfastCard meal={breakfast} isWorkDay={dayType === 'WORK'} />}
 
             {/* Almoço */}
             {lunch ? (
@@ -699,10 +739,56 @@ function WeekPlanView({ plan, schedule }: { plan: MealPlan; schedule: ScheduleIt
 
 // ── Shopping List ─────────────────────────────────────────────────────────────
 
+function PaidPriceEditor({
+  item,
+  currency,
+  onSave,
+}: {
+  item: MealShoppingItem;
+  currency?: string;
+  onSave: (value: number) => Promise<void>;
+}) {
+  const [value, setValue] = useState(item.actualPrice ?? item.estimatedPrice ?? 0);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setValue(item.actualPrice ?? item.estimatedPrice ?? 0);
+  }, [item.actualPrice, item.estimatedPrice]);
+
+  return (
+    <div className="ml-10 mb-2 flex max-w-xs items-center gap-2">
+      <div className="flex-1">
+        <MoneyInput
+          value={value}
+          onChange={setValue}
+          currencySymbol={currencyOption(currency).symbol}
+          placeholder="Preço pago"
+        />
+      </div>
+      <button
+        type="button"
+        disabled={saving}
+        onClick={async () => {
+          setSaving(true);
+          try {
+            await onSave(value);
+          } finally {
+            setSaving(false);
+          }
+        }}
+        className="rounded-lg border border-gray-300 px-3 py-2 text-xs font-medium text-gray-700 hover:border-brand-400 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300"
+      >
+        {saving ? 'A salvar...' : 'Salvar preço pago'}
+      </button>
+    </div>
+  );
+}
+
 function ShoppingListView({
   list,
   planCurrency,
   onToggle,
+  onPriceChange,
   onNotify,
   notifying,
   onClose,
@@ -716,6 +802,7 @@ function ShoppingListView({
   /** A moeda do plano a que esta lista pertence. */
   planCurrency?: string;
   onToggle: (id: number) => void;
+  onPriceChange: (id: number, value: number) => Promise<void>;
   onNotify: () => void;
   notifying: boolean;
   onClose: () => void;
@@ -780,9 +867,7 @@ function ShoppingListView({
                   razão e nenhum saldo bancário se mexia. */}
               <select
                 value={accountId}
-                onChange={(e) =>
-                  onAccountChange(e.target.value ? Number(e.target.value) : '')
-                }
+                onChange={(e) => onAccountChange(e.target.value ? Number(e.target.value) : '')}
                 disabled={closing || accounts.length === 0}
                 title={
                   accounts.length === 0
@@ -810,7 +895,7 @@ function ShoppingListView({
                       : 'Cria a despesa em Alimentação com o total do que comprou'
                 }
               >
-                💸 {closing ? 'A fechar...' : 'Fechar e lançar despesa'}
+                💸 {closing ? 'A registrar...' : 'Registrar nas transações'}
               </button>
             </>
           )}
@@ -819,8 +904,15 @@ function ShoppingListView({
 
       {isClosed && (
         <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm text-brand-700 dark:border-brand-400/20 dark:bg-brand-400/10 dark:text-brand-300">
-          Lista fechada — os {formatMoney(totalPurchased, displayCurrency)} já estão
-          lançados como despesa. Reabra para a voltar a editar (a despesa é apagada).
+          Lista fechada — os {formatMoney(totalPurchased, displayCurrency)} já estão lançados como
+          despesa. Reabra para a voltar a editar (a despesa é apagada).
+        </div>
+      )}
+
+      {!isClosed && purchased.length > 0 && (
+        <div className="mb-4 rounded-lg border border-brand-200 bg-brand-50 px-4 py-2 text-sm text-brand-700 dark:border-brand-400/20 dark:bg-brand-400/10 dark:text-brand-300">
+          Os itens marcados ainda não são uma despesa. Registre a compra para atualizar as
+          transações, a conta escolhida e o teu teto alimentar.
         </div>
       )}
 
@@ -901,29 +993,41 @@ function ShoppingListView({
             </h4>
             <div className="flex flex-col gap-0.5">
               {items.map((item) => (
-                <label
-                  key={item.id}
-                  className={`flex items-center gap-3 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition ${
-                    item.purchased ? 'opacity-40' : ''
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={item.purchased}
-                    onChange={() => onToggle(item.id)}
-                    disabled={isClosed}
-                    className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 shrink-0 disabled:opacity-50"
-                  />
-                  <span className={`flex-1 text-sm text-gray-800 dark:text-white ${item.purchased ? 'line-through' : ''}`}>
-                    {item.name}
-                  </span>
-                  <span className="text-xs text-gray-400">{item.quantity} {item.unit}</span>
-                  {item.estimatedPrice && (
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
-                      {formatMoney(item.estimatedPrice, displayCurrency)}
+                <div key={item.id}>
+                  <label
+                    className={`flex items-center gap-3 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition ${
+                      item.purchased ? 'opacity-60' : ''
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={item.purchased}
+                      onChange={() => onToggle(item.id)}
+                      disabled={isClosed}
+                      className="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 shrink-0 disabled:opacity-50"
+                    />
+                    <span
+                      className={`flex-1 text-sm text-gray-800 dark:text-white ${item.purchased ? 'line-through' : ''}`}
+                    >
+                      {item.name}
                     </span>
+                    <span className="text-xs text-gray-400">
+                      {item.quantity} {item.unit}
+                    </span>
+                    {item.estimatedPrice && (
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                        {formatMoney(item.estimatedPrice, displayCurrency)}
+                      </span>
+                    )}
+                  </label>
+                  {item.purchased && !isClosed && (
+                    <PaidPriceEditor
+                      item={item}
+                      currency={displayCurrency}
+                      onSave={(value) => onPriceChange(item.id, value)}
+                    />
                   )}
-                </label>
+                </div>
               ))}
             </div>
           </div>
@@ -955,8 +1059,8 @@ export default function MealPlannerPage() {
   /** A conta de onde saiu o dinheiro das compras. Vazio = só no razão. */
   const [closeAccountId, setCloseAccountId] = useState<number | ''>('');
   /**
-   * O orçamento desta geração. Nasce da meta de alimentação (a fatia semanal
-   * da meta da casa) em vez de vazio — antes, a caixa apagava-se a cada
+   * O orçamento desta geração. Nasce da fatia semanal da meta pessoal
+   * em vez de vazio — antes, a caixa apagava-se a cada
    * geração e a meta não chegava cá: o cardápio decidia sozinho mesmo quando
    * alguém já tinha dito quanto podia gastar.
    *
@@ -974,6 +1078,7 @@ export default function MealPlannerPage() {
   const [prefOptions, setPrefOptions] = useState<PreferenceOptions | null>(null);
   const [savingPrefs, setSavingPrefs] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showManualPlan, setShowManualPlan] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const { profile: userProfile, getProfile } = useUserProfile();
@@ -987,7 +1092,9 @@ export default function MealPlannerPage() {
     getPreferenceOptions: fetchPreferenceOptions,
     saveSchedule: persistSchedule,
     generatePlan: requestPlan,
+    createManualPlan: requestManualPlan,
     toggleItem: toggleShoppingItem,
+    updateItemPrice: persistItemPrice,
     closeShoppingList: closeList,
     reopenShoppingList: reopenList,
     sendNotification: requestNotification,
@@ -1004,7 +1111,9 @@ export default function MealPlannerPage() {
     loadPreferences();
     getProfile().catch(() => {});
     loadAccounts().catch(() => {});
-    fetchPreferenceOptions().then(setPrefOptions).catch(() => {});
+    fetchPreferenceOptions()
+      .then(setPrefOptions)
+      .catch(() => {});
   }, []);
 
   const flash = (type: 'success' | 'error', text: string) => {
@@ -1016,9 +1125,13 @@ export default function MealPlannerPage() {
     try {
       const data = await getSchedule();
       if (data?.length) {
-        setSchedule(DEFAULT_SCHEDULE.map((def) => data.find((d) => d.dayOfWeek === def.dayOfWeek) ?? def));
+        setSchedule(
+          DEFAULT_SCHEDULE.map((def) => data.find((d) => d.dayOfWeek === def.dayOfWeek) ?? def)
+        );
       }
-    } catch { /* usa padrão */ }
+    } catch {
+      /* usa padrão */
+    }
   }
 
   async function loadActivePlan() {
@@ -1066,7 +1179,7 @@ export default function MealPlannerPage() {
    */
   function aplicarMetaNoOrcamento(data: MealPreferences | null) {
     if (!budgetFromMeta) return;
-    setBudget(data?.foodBudget?.weekly ?? 0);
+    setBudget(data?.weeklyFoodBudget ?? 0);
   }
 
   async function loadPreferences() {
@@ -1076,7 +1189,9 @@ export default function MealPlannerPage() {
       aplicarMetaNoOrcamento(data);
       // First visit: ask what the household is and what they like to eat.
       if (data && !data.onboarded) setShowOnboarding(true);
-    } catch { /* mantém os defaults */ }
+    } catch {
+      /* mantém os defaults */
+    }
   }
 
   async function savePreferences(data: SavePreferencesBody, successMsg = 'Preferências salvas!') {
@@ -1106,7 +1221,9 @@ export default function MealPlannerPage() {
     try {
       const updated = await persistPreferences({ markOnboarded: true });
       setPreferences(updated);
-    } catch { /* tenta de novo na próxima visita */ }
+    } catch {
+      /* tenta de novo na próxima visita */
+    }
   }
 
   async function saveSchedule() {
@@ -1124,11 +1241,11 @@ export default function MealPlannerPage() {
   async function generatePlan() {
     setGenerating(true);
     try {
-      // Zero não é "sem orçamento": é um orçamento de zero, e o servidor
-      // trataria isso como a meta a dizer que não se come. Sem valor, deixa-se
-      // o servidor usar a meta (que é o mesmo número, mas sempre fresco).
+      // Zero não é "sem orçamento": é uma meta explícita de não gastar. Se a
+      // caixa ainda representa uma ausência de meta, omite-se o campo; se veio
+      // de uma meta zero ou foi tocada pela pessoa, envia-se o zero também.
       const body: { budget?: number } = {};
-      if (budget > 0) body.budget = budget;
+      if (!budgetFromMeta || preferences?.weeklyFoodBudget != null) body.budget = budget;
       const data = await requestPlan(body);
       setPlan(data);
       setActiveTab('plan');
@@ -1140,23 +1257,34 @@ export default function MealPlannerPage() {
     }
   }
 
+  async function createManualPlan(body: Parameters<typeof requestManualPlan>[0]) {
+    const data = await requestManualPlan(body);
+    setPlan(data);
+    setShowManualPlan(false);
+    setActiveTab('plan');
+    flash('success', 'O teu plano foi criado e já está ligado à lista de compras.');
+  }
+
   async function toggleItem(itemId: number) {
     try {
       await toggleShoppingItem(itemId);
-      setPlan((prev) => {
-        if (!prev?.shoppingList) return prev;
-        return {
-          ...prev,
-          shoppingList: {
-            ...prev.shoppingList,
-            items: prev.shoppingList.items.map((i) =>
-              i.id === itemId ? { ...i, purchased: !i.purchased } : i,
-            ),
-          },
-        };
-      });
+      // A API é quem soma preços reais/estimados e compara com o orçamento.
+      // Recarregar mantém a barra sincronizada imediatamente depois do clique,
+      // sem duplicar essa regra de dinheiro no browser.
+      await loadActivePlan();
     } catch {
       flash('error', 'Erro ao atualizar item.');
+    }
+  }
+
+  async function updateItemPrice(itemId: number, value: number) {
+    try {
+      await persistItemPrice(itemId, value);
+      await loadActivePlan();
+      flash('success', 'Preço pago atualizado.');
+    } catch (error) {
+      flash('error', error instanceof Error ? error.message : 'Não foi possível salvar o preço.');
+      throw error;
     }
   }
 
@@ -1200,7 +1328,10 @@ export default function MealPlannerPage() {
     setNotifying(true);
     try {
       const r = await requestNotification();
-      flash(r.sent ? 'success' : 'error', r.sent ? 'Lista enviada via WhatsApp!' : (r.reason ?? 'Não foi possível enviar.'));
+      flash(
+        r.sent ? 'success' : 'error',
+        r.sent ? 'Lista enviada via WhatsApp!' : (r.reason ?? 'Não foi possível enviar.')
+      );
     } catch {
       flash('error', 'Erro ao enviar notificação.');
     } finally {
@@ -1315,7 +1446,7 @@ export default function MealPlannerPage() {
               vale só para esta semana.
             */}
             <p className="mt-1 text-[11px] leading-tight text-gray-500 dark:text-gray-400">
-              {budgetFromMeta && (preferences?.foodBudget?.weekly ?? 0) > 0 ? (
+              {budgetFromMeta && (preferences?.weeklyFoodBudget ?? 0) > 0 ? (
                 <>
                   da tua meta ·{' '}
                   <button
@@ -1343,6 +1474,13 @@ export default function MealPlannerPage() {
             </p>
           </div>
           <button
+            type="button"
+            onClick={() => setShowManualPlan(true)}
+            className="flex items-center gap-2 px-5 py-2 border border-brand-400 text-brand-600 dark:text-brand-300 text-sm font-medium rounded-lg transition hover:bg-brand-50 dark:hover:bg-brand-900/20 whitespace-nowrap"
+          >
+            ✍️ Criar meu plano
+          </button>
+          <button
             onClick={generatePlan}
             disabled={generating}
             className="flex items-center gap-2 px-5 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition disabled:opacity-50 whitespace-nowrap"
@@ -1350,22 +1488,33 @@ export default function MealPlannerPage() {
             {generating ? (
               <>
                 <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                 </svg>
                 Gerando IA...
               </>
-            ) : '✨ Gerar Planejamento'}
+            ) : (
+              '✨ Gerar Planejamento'
+            )}
           </button>
         </div>
       </div>
 
       {msg && (
-        <div className={`rounded-lg px-4 py-3 text-sm font-medium ${
-          msg.type === 'success'
-            ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
-            : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-        }`}>
+        <div
+          className={`rounded-lg px-4 py-3 text-sm font-medium ${
+            msg.type === 'success'
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+              : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+          }`}
+        >
           {msg.text}
         </div>
       )}
@@ -1393,12 +1542,19 @@ export default function MealPlannerPage() {
 
       {/* Content */}
       {activeTab === 'schedule' && (
-        <ScheduleConfig schedule={schedule} onChange={setSchedule} onSave={saveSchedule} saving={saving} />
+        <ScheduleConfig
+          schedule={schedule}
+          onChange={setSchedule}
+          onSave={saveSchedule}
+          saving={saving}
+        />
       )}
 
-      {activeTab === 'preferences' && (
-        preferences === null ? (
-          <div className="flex items-center justify-center py-20 text-gray-400">Carregando preferências...</div>
+      {activeTab === 'preferences' &&
+        (preferences === null ? (
+          <div className="flex items-center justify-center py-20 text-gray-400">
+            Carregando preferências...
+          </div>
         ) : (
           <PreferencesPanel
             initial={preferences}
@@ -1406,22 +1562,29 @@ export default function MealPlannerPage() {
             saving={savingPrefs}
             onSave={(data) => savePreferences(data)}
           />
-        )
-      )}
+        ))}
 
-      {activeTab === 'profile' && (
-        loadingProfile && profile === null ? (
-          <div className="flex items-center justify-center py-20 text-gray-400">Carregando perfil...</div>
+      {activeTab === 'profile' &&
+        (loadingProfile && profile === null ? (
+          <div className="flex items-center justify-center py-20 text-gray-400">
+            Carregando perfil...
+          </div>
         ) : (
           <ProfilePanel initial={profile} onSave={saveProfile} saving={savingProfile} />
-        )
-      )}
+        ))}
 
-      {activeTab === 'plan' && (
-        loading ? (
+      {activeTab === 'plan' &&
+        (loading ? (
           <div className="flex items-center justify-center py-20 text-gray-400">
             <svg className="animate-spin w-7 h-7 mr-3" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
             </svg>
             Carregando...
@@ -1444,17 +1607,17 @@ export default function MealPlannerPage() {
               Configurar Agenda
             </button>
           </div>
-        )
-      )}
+        ))}
 
-      {activeTab === 'shopping' && (
-        loading ? (
+      {activeTab === 'shopping' &&
+        (loading ? (
           <div className="flex items-center justify-center py-20 text-gray-400">Carregando...</div>
         ) : plan?.shoppingList ? (
           <ShoppingListView
             list={plan.shoppingList}
             planCurrency={plan.currency}
             onToggle={toggleItem}
+            onPriceChange={updateItemPrice}
             onNotify={sendNotification}
             notifying={notifying}
             onClose={closeShopping}
@@ -1474,8 +1637,7 @@ export default function MealPlannerPage() {
               Gere um planejamento para ver a lista de compras.
             </p>
           </div>
-        )
-      )}
+        ))}
 
       {activeTab === 'history' && (
         <>
@@ -1516,7 +1678,8 @@ export default function MealPlannerPage() {
                   Histórico de Planos
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {allPlans.length} plano{allPlans.length !== 1 ? 's' : ''} guardado{allPlans.length !== 1 ? 's' : ''}
+                  {allPlans.length} plano{allPlans.length !== 1 ? 's' : ''} guardado
+                  {allPlans.length !== 1 ? 's' : ''}
                 </p>
               </div>
               {allPlans.length > 0 && (
@@ -1533,7 +1696,14 @@ export default function MealPlannerPage() {
             {loadingHistory ? (
               <div className="flex items-center justify-center py-16 text-gray-400">
                 <svg className="animate-spin w-6 h-6 mr-3" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                 </svg>
                 Carregando histórico...
@@ -1581,7 +1751,10 @@ export default function MealPlannerPage() {
                           )}
                         </div>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                          {p.days.length} dias · {p.shoppingList ? `${p.shoppingList.items.length} itens na lista` : 'Sem lista de compras'}
+                          {p.days.length} dias ·{' '}
+                          {p.shoppingList
+                            ? `${p.shoppingList.items.length} itens na lista`
+                            : 'Sem lista de compras'}
                         </p>
                       </div>
                       <button
@@ -1591,10 +1764,23 @@ export default function MealPlannerPage() {
                       >
                         {isConfirming ? (
                           <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8v8z"
+                            />
                           </svg>
-                        ) : '🗑'}
+                        ) : (
+                          '🗑'
+                        )}
                         {isConfirming ? 'Apagando...' : 'Apagar'}
                       </button>
                     </div>
@@ -1614,6 +1800,14 @@ export default function MealPlannerPage() {
         onFinish={finishOnboarding}
         onSkip={skipOnboarding}
       />
+      {showManualPlan && (
+        <ManualPlanModal
+          currencySymbol={currencySymbol}
+          initialBudget={budget}
+          onClose={() => setShowManualPlan(false)}
+          onSave={createManualPlan}
+        />
+      )}
     </div>
   );
 }

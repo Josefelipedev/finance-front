@@ -43,8 +43,7 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   // despesa que o fecho da compra cria.
   const formatCurrency = (amount: number) => formatMoney(amount, currency);
 
-  const calculateTotal = () =>
-    list.items.reduce((total, item) => total + lineTotal(item), 0);
+  const calculateTotal = () => list.items.reduce((total, item) => total + lineTotal(item), 0);
 
   /** Fechada = já virou despesa; a lista passa a ser histórico. */
   const isClosed = !!list.closedAt;
@@ -60,10 +59,7 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
   const purchasedItems = list.items.filter((item) => item.purchased);
   const pendingItems = list.items.filter((item) => !item.purchased);
   // Mesma regra do servidor: é este o valor que vira despesa ao fechar.
-  const purchasedTotal = purchasedItems.reduce(
-    (total, item) => total + lineTotal(item),
-    0
-  );
+  const purchasedTotal = purchasedItems.reduce((total, item) => total + lineTotal(item), 0);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
@@ -129,7 +125,7 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
                     title="Lançar os itens comprados como despesa"
                   >
                     <i className="fas fa-receipt" />
-                    Fechar compra
+                    Registrar nas transações
                   </button>
                 )}
 
@@ -192,6 +188,14 @@ const ShoppingListCard: React.FC<ShoppingListCardProps> = ({
           </div>
         </div>
       </div>
+
+      {!isClosed && purchasedItems.length > 0 && (
+        <div className="mx-4 mt-4 sm:mx-6 rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 text-sm text-brand-800 dark:border-brand-800 dark:bg-brand-900/20 dark:text-brand-200">
+          <strong>{purchasedItems.length} item(ns) comprado(s)</strong> ainda não aparecem nas
+          transações. Use “Registrar nas transações” para lançar a despesa e atualizar o teu teto
+          alimentar.
+        </div>
+      )}
 
       {/* Items */}
       <div className="p-4 sm:p-6">

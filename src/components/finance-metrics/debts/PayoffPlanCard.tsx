@@ -6,6 +6,8 @@ import MoneyInput from '../../form/MoneyInput';
 import { currencyOption, formatMoney } from '../../../utils/currency';
 import { monthLabel } from '../../../utils/month';
 import type { PayoffPlan, PayoffStrategy } from '../../../hooks/useDebts';
+import type { FoodSpend } from '../../../hooks/useBudget';
+import api from '../../../services/api';
 import { monthsLabel } from './kinds';
 
 interface Props {
@@ -112,12 +114,30 @@ function Linha({
 
 export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
   const [extra, setExtra] = useState(plan.extraMonthly);
+  const [foodComparison, setFoodComparison] = useState<FoodSpend | null>(null);
   const money = (v: number) => formatMoney(v, plan.displayCurrency);
   const symbol = currencyOption(plan.displayCurrency).symbol;
 
   // O campo é de quem escreve enquanto está a escrever; quando o plano muda por
   // outra via (importar uma dívida, o cônjuge mexer), acompanha.
   useEffect(() => setExtra(plan.extraMonthly), [plan.extraMonthly]);
+
+  // A linha da sobra usa uma média histórica; logo abaixo mostramos o mês
+  // corrente contra a meta, vindo da mesma resposta central do Orçamento.
+  useEffect(() => {
+    let active = true;
+    api
+      .get<FoodSpend>('/budget/food')
+      .then((result) => {
+        if (active) setFoodComparison(result);
+      })
+      .catch(() => {
+        if (active) setFoodComparison(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [plan.displayCurrency]);
 
   const { comparison } = plan;
   const afford = plan.affordability;
@@ -197,6 +217,26 @@ export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
               <Linha label="Entra por mês" value={money(afford.income)} />
               <Linha label="Contas e prestações" value={`− ${money(afford.bills)}`} />
               <Linha label="Alimentação" value={`− ${money(afford.food)}`} />
+              {foodComparison?.status !== 'no_budget' && foodComparison?.budget != null && (
+                <div
+                  className={`flex items-baseline justify-between gap-3 pl-3 text-xs ${
+                    foodComparison.status === 'over'
+                      ? 'text-error-600 dark:text-error-400'
+                      : foodComparison.status === 'close'
+                        ? 'text-warning-600 dark:text-warning-400'
+                        : 'text-gray-500 dark:text-gray-400'
+                  }`}
+                >
+                  <dt>Neste mês, contra a meta</dt>
+                  <dd className="tabular-nums">
+                    {money(foodComparison.spent)} de {money(foodComparison.budget)}
+                    {foodComparison.delta != null &&
+                      (foodComparison.status === 'over'
+                        ? ` · passou ${money(Math.abs(foodComparison.delta))}`
+                        : ` · sobram ${money(foodComparison.delta)}`)}
+                  </dd>
+                </div>
+              )}
               <Linha label="Tudo o resto" value={`− ${money(afford.other)}`} />
               <Linha label="Mínimos das dívidas" value={`− ${money(afford.minimums)}`} />
               <div className="!mt-2 border-t border-gray-100 pt-2 dark:border-white/[0.06]">

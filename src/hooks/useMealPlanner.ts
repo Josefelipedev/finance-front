@@ -87,7 +87,26 @@ export interface GeneratePlanBody {
   budget?: number;
 }
 
-/** A parcela de uma pessoa na meta de comida da casa. */
+export interface ManualPlanBody {
+  budget?: number;
+  notes?: string;
+  days: Array<{
+    dayOfWeek: number;
+    breakfast?: string;
+    lunch?: string;
+    dinner?: string;
+    snacks?: string;
+  }>;
+  shoppingList?: Array<{
+    name: string;
+    quantity?: number;
+    unit?: string;
+    estimatedPrice?: number;
+    category?: string;
+  }>;
+}
+
+/** O teto alimentar de uma pessoa do casal. */
 export interface FoodBudgetPart {
   userId: number;
   name: string;
@@ -99,19 +118,14 @@ export interface FoodBudgetPart {
   answered: boolean;
 }
 
-/**
- * A meta de comida da CASA: a soma do que cada um do casal respondeu.
- *
- * As parcelas vêm juntas de propósito — num casal, um total sem as parcelas é
- * um número que parece imposto a quem não o escreveu.
- */
+/** Compatibilidade da API: contém as metas individuais convertidas. */
 export interface HouseholdFoodBudget {
-  /** Nulo = ninguém respondeu ainda. Diferente de zero. */
+  /** Meta mensal da pessoa autenticada (campo mantido por compatibilidade). */
   monthly: number | null;
-  /** O mesmo por semana, que é como o cardápio pensa. */
+  /** Meta semanal da pessoa autenticada. */
   weekly: number | null;
   parts: FoodBudgetPart[];
-  /** Alguém do casal ainda não respondeu — a soma existe mas está incompleta. */
+  /** Campos legados; nenhuma decisão deve somar os tectos individuais. */
   partial: boolean;
   complete: boolean;
   currency: string;
@@ -132,6 +146,8 @@ export interface MealPreferences {
   /** A meta desta pessoa. Nulo = ainda não respondeu (≠ respondeu zero). */
   monthlyFoodBudget: number | null;
   foodBudgetCurrency: string | null;
+  /** Teto desta pessoa convertido para a moeda do perfil, por semana. */
+  weeklyFoodBudget: number | null;
   foodBudget: HouseholdFoodBudget;
 }
 
@@ -285,11 +301,39 @@ export function useMealPlanner() {
     }
   }, []);
 
+  const createManualPlan = useCallback(async (body: ManualPlanBody) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await api.post<MealPlan>('/meal-planner/manual', body);
+      setActivePlan(data);
+      return data;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const toggleItem = useCallback(async (itemId: number) => {
     setIsLoading(true);
     setError(null);
     try {
       return await api.patch(`/meal-planner/item/${itemId}/toggle`, {});
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const updateItemPrice = useCallback(async (itemId: number, actualPrice: number | null) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      return await api.patch(`/meal-planner/item/${itemId}/price`, { actualPrice });
     } catch (err) {
       setError(err instanceof Error ? err : new Error(String(err)));
       throw err;
@@ -406,7 +450,9 @@ export function useMealPlanner() {
     getPreferenceOptions,
     saveSchedule,
     generatePlan,
+    createManualPlan,
     toggleItem,
+    updateItemPrice,
     closeShoppingList,
     reopenShoppingList,
     sendNotification,

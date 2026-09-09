@@ -9,6 +9,8 @@ interface BankAccountSelectProps {
   error?: string;
   className?: string;
   id?: string;
+  /** Quando definido, mostra apenas contas que podem receber esse lançamento. */
+  currency?: string | null;
 }
 
 /** "Jose Felipe" → "Jose" (o apelido não cabe num dropdown). */
@@ -35,6 +37,7 @@ export default function BankAccountSelect({
   error,
   className = '',
   id,
+  currency,
 }: BankAccountSelectProps) {
   const { accounts, loadAccounts } = useBankAccounts();
 
@@ -45,9 +48,13 @@ export default function BankAccountSelect({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const visibleAccounts = useMemo(
+    () => (currency ? accounts.filter((account) => account.currency === currency) : accounts),
+    [accounts, currency]
+  );
   const showOwner = useMemo(
-    () => new Set(accounts.map((a) => a.userId)).size > 1,
-    [accounts]
+    () => new Set(visibleAccounts.map((a) => a.userId)).size > 1,
+    [visibleAccounts]
   );
 
   return (
@@ -63,7 +70,7 @@ export default function BankAccountSelect({
       } ${value ? 'text-gray-800 dark:text-white/90' : 'text-gray-400'} ${className}`}
     >
       <option value="">{placeholder}</option>
-      {accounts.map((a) => {
+      {visibleAccounts.map((a) => {
         const owner = showOwner ? firstName(a.user?.name) : null;
         return (
           <option key={a.id} value={a.id} className="text-gray-800 dark:text-white/90">
