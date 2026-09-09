@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
+import { formatCivilDate } from '../../utils/civil-date';
 import SegmentedTabs from '../../components/common/SegmentedTabs';
 import DebtsView from '../../components/finance-metrics/debts/DebtsView';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -369,7 +370,16 @@ export default function BillsPage() {
   const [editingItem, setEditingItem] = useState<BillItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { getBills, getForecast, createBill, updateBill, deleteBill, payBill, unpayBill } =
+  const {
+    getBills,
+    getForecast,
+    createBill,
+    updateBill,
+    deleteBill,
+    payBill,
+    unpayBill,
+    deferToIncome,
+  } =
     useBills();
   const { profile, getProfile } = useUserProfile();
   const naming = useMemo(() => ownerNaming(profile), [profile]);
@@ -558,6 +568,28 @@ export default function BillsPage() {
 
   // ===== Render de uma linha =====
 
+  /**
+   * Empurra a conta para o próximo salário.
+   *
+   * A data não se escolhe — a app já sabe quando o salário cai, da recorrente
+   * de receita. Pagar uma propina que vence dia 30 é pagar com o dinheiro do
+   * mês anterior, e enquanto se limpam dívidas essa semana decide o mês.
+   */
+  const handleDefer = async (item: BillItem) => {
+    setTogglingId(item.id);
+    try {
+      const atualizada = await deferToIncome(item.id);
+      await Promise.all([load(month), loadMonthlyForecast()]);
+      toast.success(
+        `Adiada para ${formatCivilDate(atualizada.dueDate, 'pt-PT', { day: '2-digit', month: 'long' })}.`,
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Não foi possível adiar a conta.');
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
   const renderRow = (item: BillItem) => {
     const isIncome = item.type === 'income';
     const isPaid = item.status === 'paid';
@@ -609,6 +641,19 @@ export default function BillsPage() {
             >
               {item.description}
             </p>
+            {item.deferredFrom && (
+              <span
+                className="inline-flex items-center gap-1 rounded-md bg-brand-50 px-1.5 py-0.5 text-[10px] font-medium text-brand-600 dark:bg-brand-400/10 dark:text-brand-400"
+                title="Adiada para o próximo salário"
+              >
+                <i className="fas fa-calendar-plus text-[9px]"></i>
+                adiada de{' '}
+                {formatCivilDate(item.deferredFrom, 'pt-PT', {
+                  day: '2-digit',
+                  month: '2-digit',
+                })}
+              </span>
+            )}
             {isOverdue && (
               <span className="inline-flex items-center rounded-md border border-error-200 bg-error-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400">
                 Em atraso
@@ -732,6 +777,20 @@ export default function BillsPage() {
 
         {/* Ações: editar (só pendente) + excluir */}
         <div className="flex shrink-0 items-center gap-1">
+          {/* Adiar para o próximo salário. Só faz sentido numa despesa por
+              pagar — adiar uma receita seria adiar o dinheiro a entrar. */}
+          {!isPaid && item.type === 'expense' && (
+            <button
+              type="button"
+              onClick={() => void handleDefer(item)}
+              disabled={isToggling}
+              aria-label="Adiar para o próximo salário"
+              title="Adiar para o próximo salário"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-brand-50 hover:text-brand-500 disabled:opacity-50 dark:hover:bg-brand-400/10 dark:hover:text-brand-400"
+            >
+              <i className="fas fa-calendar-plus text-xs"></i>
+            </button>
+          )}
           {!isPaid && (
             <button
               type="button"

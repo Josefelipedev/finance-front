@@ -25,6 +25,11 @@ export interface BillItem {
   /** Conta bancária de onde sai (ou onde entra). Null = não foi dito. */
   accountId: number | null;
   dueDate: string; // ISO date
+  /**
+   * A data em que a conta vencia antes de ser adiada. Null = nunca foi.
+   * Guarda a PRIMEIRA: adiar duas vezes não apaga de onde ela veio.
+   */
+  deferredFrom?: string | null;
   status: 'pending' | 'paid';
   paidAt: string | null;
   overdue: boolean; // pendente e já venceu
@@ -278,6 +283,17 @@ export function useBills() {
     }
   }, []);
 
+  /**
+   * Adia a conta para o próximo salário.
+   *
+   * A data não se escolhe: a app já sabe quando o salário cai (está gravado na
+   * recorrente de receita, como "quinto dia útil" ou dia fixo). Pagar uma
+   * propina que vence dia 30 é pagar com o dinheiro do mês anterior.
+   */
+  const deferToIncome = useCallback(async (id: number) => {
+    return api.patch<BillItem>(`/bills/${id}/defer-to-income`, {});
+  }, []);
+
   return {
     getBills,
     getForecast,
@@ -286,6 +302,7 @@ export function useBills() {
     deleteBill,
     payBill,
     unpayBill,
+    deferToIncome,
     isLoading,
     error,
   };
