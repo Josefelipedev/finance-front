@@ -33,6 +33,23 @@ export interface MealShoppingItem {
   purchased: boolean;
 }
 
+/**
+ * O orçado contra o real.
+ *
+ * O `MealPlan.budget` era gravado em cada geração e nunca lido: a app sabia
+ * quanto se tinha combinado gastar e quanto se gastou, e nunca pôs os dois
+ * lado a lado.
+ */
+export interface BudgetComparison {
+  /** Nulo = não havia orçamento. Diferente de um orçamento de zero. */
+  budget: number | null;
+  spent: number;
+  /** `budget − spent`. Positivo = ainda sobra. Nulo sem orçamento. */
+  delta: number | null;
+  usedPct: number | null;
+  status: 'no_budget' | 'under' | 'close' | 'over';
+}
+
 export interface MealShoppingList {
   id: number;
   totalEstimate: number | null;
@@ -41,6 +58,12 @@ export interface MealShoppingList {
   /** Quando a lista foi fechada e virou despesa (C4). */
   closedAt?: string | null;
   financeId?: number | null;
+  /**
+   * O que vai comprado contra o orçamento da semana. Enquanto a lista está
+   * aberta conta só o que já foi marcado — é esse o número que responde a
+   * "ainda posso pôr isto no carrinho?".
+   */
+  budgetComparison?: BudgetComparison;
 }
 
 export interface MealPlan {

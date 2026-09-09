@@ -72,6 +72,18 @@ interface MealShoppingList {
   closedAt?: string | null;
   /** A despesa que ela gerou. */
   financeId?: number | null;
+  /**
+   * O que vai comprado contra o orçamento da semana (F4). Espelha o
+   * `BudgetComparison` do `useMealPlanner` — este ficheiro tem os seus próprios
+   * tipos desde antes do hook, e uni-los é uma arrumação para outro dia.
+   */
+  budgetComparison?: {
+    budget: number | null;
+    spent: number;
+    delta: number | null;
+    usedPct: number | null;
+    status: 'no_budget' | 'under' | 'close' | 'over';
+  };
 }
 
 interface MealPlan {
@@ -836,6 +848,48 @@ function ShoppingListView({
       {list.totalEstimate && (
         <div className="bg-brand-50 dark:bg-brand-900/20 rounded-lg px-4 py-2 mb-4 text-sm text-brand-700 dark:text-brand-300 font-medium">
           💰 Estimativa total da semana: {formatMoney(list.totalEstimate, displayCurrency)}
+        </div>
+      )}
+
+      {/*
+        O orçado contra o real. Aparece ENQUANTO a lista está aberta, e não só
+        no fim: estourar o orçamento era uma descoberta ao fechar, quando já
+        não há nada a fazer com a informação. Sem orçamento definido não se diz
+        nada — anunciar "0% usado" a quem nunca definiu um seria inventar-lhe
+        uma meta.
+      */}
+      {list.budgetComparison && list.budgetComparison.status !== 'no_budget' && (
+        <div
+          className={`mb-4 rounded-lg px-4 py-2.5 text-sm ${
+            list.budgetComparison.status === 'over'
+              ? 'bg-error-50 text-error-700 dark:bg-error-500/10 dark:text-error-400'
+              : list.budgetComparison.status === 'close'
+                ? 'bg-warning-50 text-warning-700 dark:bg-warning-500/10 dark:text-warning-400'
+                : 'bg-success-50 text-success-700 dark:bg-success-500/10 dark:text-success-400'
+          }`}
+        >
+          <span className="font-medium">
+            {isClosed ? 'Custou' : 'Vai em'}{' '}
+            {formatMoney(list.budgetComparison.spent, displayCurrency)} de{' '}
+            {formatMoney(list.budgetComparison.budget ?? 0, displayCurrency)} orçados
+          </span>
+          <span className="ml-2 opacity-80">
+            {list.budgetComparison.status === 'over'
+              ? `— passou ${formatMoney(Math.abs(list.budgetComparison.delta ?? 0), displayCurrency)}`
+              : `— sobram ${formatMoney(list.budgetComparison.delta ?? 0, displayCurrency)}`}
+          </span>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+            <div
+              className={`h-full rounded-full ${
+                list.budgetComparison.status === 'over'
+                  ? 'bg-error-500'
+                  : list.budgetComparison.status === 'close'
+                    ? 'bg-warning-500'
+                    : 'bg-success-500'
+              }`}
+              style={{ width: `${Math.min(100, list.budgetComparison.usedPct ?? 0)}%` }}
+            />
+          </div>
         </div>
       )}
 
