@@ -1,5 +1,6 @@
 // src/components/finance-metrics/budget/BudgetManager.tsx
 import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router';
 import { toast } from 'sonner';
 import { useBudget, BudgetLimit } from '../../../hooks/useBudget';
 import { useFinance, FinanceRecord } from '../../../hooks/useFinance';
@@ -338,6 +339,12 @@ const BudgetManager: React.FC = () => {
                           )}
                         </p>
                       )}
+                    {limit.source === 'food_budget' && (
+                      <p className="mt-0.5 text-xs text-brand-600 dark:text-brand-400">
+                        <i className="fas fa-utensils mr-1 text-[10px]"></i>
+                        da tua meta de alimentação
+                      </p>
+                    )}
                     {/* De quem é o gasto (C6). As partes somam o total acima. */}
                     {(() => {
                       const donos = Object.entries(spendByOwner[limit.categoryId] ?? {})
@@ -371,13 +378,30 @@ const BudgetManager: React.FC = () => {
                         {over ? 'Estourou' : 'Atenção'}
                       </span>
                     )}
-                    <button
-                      onClick={() => openEdit(limit)}
-                      className="p-2 text-gray-400 hover:text-brand-500 transition-colors"
-                      aria-label="Editar"
-                    >
-                      <i className="fas fa-pen text-sm"></i>
-                    </button>
+                    {/*
+                      Um tecto que nasceu da meta de alimentação não se edita
+                      aqui: o servidor recusa, e oferecer o lápis seria oferecer
+                      um caminho que acaba num erro. O atalho leva ao sítio onde
+                      o número existe de facto.
+                    */}
+                    {limit.source === 'food_budget' ? (
+                      <Link
+                        to="/meal-planner"
+                        className="p-2 text-gray-400 transition-colors hover:text-brand-500"
+                        aria-label="Alterar a meta de alimentação"
+                        title="Vem da tua meta de alimentação — altera-a no Planejador"
+                      >
+                        <i className="fas fa-arrow-up-right-from-square text-sm"></i>
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => openEdit(limit)}
+                        className="p-2 text-gray-400 hover:text-brand-500 transition-colors"
+                        aria-label="Editar"
+                      >
+                        <i className="fas fa-pen text-sm"></i>
+                      </button>
+                    )}
                     <button
                       onClick={() => setDeleting(limit)}
                       className="p-2 text-gray-400 hover:text-rose-500 transition-colors"

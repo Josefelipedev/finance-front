@@ -8,6 +8,7 @@ import type {
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { formatMoney, currencyOption } from '../../utils/currency';
 import PreferencesPanel from './PreferencesPanel';
+import MoneyInput from '../../components/form/MoneyInput';
 import OnboardingQuestionnaire from './OnboardingQuestionnaire';
 import { formatCivilDate } from '../../utils/civil-date';
 import OwnerChip from '../../components/common/OwnerChip';
@@ -899,7 +900,19 @@ export default function MealPlannerPage() {
   const [closingList, setClosingList] = useState(false);
   /** A conta de onde saiu o dinheiro das compras. Vazio = só no razão. */
   const [closeAccountId, setCloseAccountId] = useState<number | ''>('');
-  const [budget, setBudget] = useState('');
+  /**
+   * O orçamento desta geração. Nasce da meta de alimentação (a fatia semanal
+   * da meta da casa) em vez de vazio — antes, a caixa apagava-se a cada
+   * geração e a meta não chegava cá: o cardápio decidia sozinho mesmo quando
+   * alguém já tinha dito quanto podia gastar.
+   *
+   * É número e não string porque passou a `MoneyInput`: no `type="number"` de
+   * antes, quem escrevia 1.160,56 via o browser cortar na vírgula e gravar
+   * 1,16, sem aviso nenhum (ver `utils/money.ts`).
+   */
+  const [budget, setBudget] = useState(0);
+  /** `true` enquanto o valor for o que veio da meta e ninguém lhe tocou. */
+  const [budgetFromMeta, setBudgetFromMeta] = useState(true);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -991,10 +1004,22 @@ export default function MealPlannerPage() {
     }
   }
 
+  /**
+   * Põe na caixa a fatia semanal da meta — mas só enquanto ninguém lhe tocou.
+   *
+   * Reescrever por cima do que a pessoa acabou de digitar seria apagar-lhe o
+   * ajuste desta semana só porque as preferências recarregaram.
+   */
+  function aplicarMetaNoOrcamento(data: MealPreferences | null) {
+    if (!budgetFromMeta) return;
+    setBudget(data?.foodBudget?.weekly ?? 0);
+  }
+
   async function loadPreferences() {
     try {
       const data = await fetchPreferences();
       setPreferences(data);
+      aplicarMetaNoOrcamento(data);
       // First visit: ask what the household is and what they like to eat.
       if (data && !data.onboarded) setShowOnboarding(true);
     } catch { /* mantém os defaults */ }
@@ -1005,6 +1030,7 @@ export default function MealPlannerPage() {
     try {
       const updated = await persistPreferences(data);
       setPreferences(updated);
+      aplicarMetaNoOrcamento(updated);
       flash('success', successMsg);
       return true;
     } catch {
@@ -1044,8 +1070,11 @@ export default function MealPlannerPage() {
   async function generatePlan() {
     setGenerating(true);
     try {
+      // Zero não é "sem orçamento": é um orçamento de zero, e o servidor
+      // trataria isso como a meta a dizer que não se come. Sem valor, deixa-se
+      // o servidor usar a meta (que é o mesmo número, mas sempre fresco).
       const body: { budget?: number } = {};
-      if (budget) body.budget = parseFloat(budget);
+      if (budget > 0) body.budget = budget;
       const data = await requestPlan(body);
       setPlan(data);
       setActiveTab('plan');
@@ -1216,13 +1245,49 @@ export default function MealPlannerPage() {
           )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <input
-            type="number"
-            placeholder={`Orçamento (${currencySymbol})`}
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
-            className="text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-3 py-2 w-40 focus:outline-none focus:ring-2 focus:ring-brand-500"
-          />
+          <div className="w-40">
+            <MoneyInput
+              value={budget}
+              onChange={(v) => {
+                setBudget(v);
+                setBudgetFromMeta(false);
+              }}
+              currencySymbol={currencySymbol}
+              placeholder="Orçamento"
+            />
+            {/*
+              De onde veio o número. Sem isto, uma caixa pré-preenchida parece
+              um valor que a app inventou — e a pessoa não sabe que mexer aqui
+              vale só para esta semana.
+            */}
+            <p className="mt-1 text-[11px] leading-tight text-gray-500 dark:text-gray-400">
+              {budgetFromMeta && (preferences?.foodBudget?.weekly ?? 0) > 0 ? (
+                <>
+                  da tua meta ·{' '}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('preferences')}
+                    className="text-brand-600 hover:underline dark:text-brand-400"
+                  >
+                    alterar
+                  </button>
+                </>
+              ) : budgetFromMeta ? (
+                <>
+                  sem meta definida —{' '}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('preferences')}
+                    className="text-brand-600 hover:underline dark:text-brand-400"
+                  >
+                    definir
+                  </button>
+                </>
+              ) : (
+                'só para esta semana'
+              )}
+            </p>
+          </div>
           <button
             onClick={generatePlan}
             disabled={generating}

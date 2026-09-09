@@ -31,6 +31,12 @@ export interface BudgetLimit {
   spent?: number;
   /** Moedas sem taxa: o gasto é aproximado e o ecrã tem de o dizer (T7). */
   unconvertedCurrencies?: string[];
+  /**
+   * Quem escreveu este tecto: `manual` (alguém aqui) ou `food_budget` (nasceu
+   * da meta de alimentação). Um tecto da meta não se edita aqui — o servidor
+   * recusa, para a meta e o tecto não passarem a dizer coisas diferentes.
+   */
+  source?: 'manual' | 'food_budget' | string;
 }
 
 /** Quanto se gastou em comida este mês, pela definição da app. */
