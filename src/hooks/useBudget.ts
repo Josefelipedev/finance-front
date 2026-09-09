@@ -5,7 +5,13 @@ import api from '../services/api';
 // Os limites vivem no SERVIDOR (C1 da revisão). Viviam no `localStorage` do
 // browser e, no Android, numa base Room local: dois conjuntos que divergiam em
 // silêncio, que não sobreviviam a trocar de browser nem de telemóvel, e que o
-// casal nunca via igual. O gasto continua a vir das transações (useFinance).
+// casal nunca via igual.
+//
+// **O gasto passou a vir do servidor (F2).** Era somado aqui no browser, a
+// partir de todas as transações do mês — e o Android somava as suas, e o plano
+// de dívidas fazia uma terceira. Três somas para a mesma pergunta é três sítios
+// onde divergir; e a janela do mês era construída com a meia-noite do fuso do
+// BROWSER, o que a oeste de Greenwich deixava as despesas do dia 1 de fora.
 
 export interface BudgetLimit {
   categoryId: number;
@@ -18,6 +24,21 @@ export interface BudgetLimit {
   /** O que foi mesmo escrito, na moeda em que foi escrito. */
   originalMonthlyLimit?: number;
   originalCurrency?: string;
+  /**
+   * O que já saiu nesta categoria no mês civil corrente, somado NO SERVIDOR à
+   * taxa do dia de cada lançamento.
+   */
+  spent?: number;
+  /** Moedas sem taxa: o gasto é aproximado e o ecrã tem de o dizer (T7). */
+  unconvertedCurrencies?: string[];
+}
+
+/** Quanto se gastou em comida este mês, pela definição da app. */
+export interface FoodSpend {
+  spent: number;
+  currency: string;
+  unconvertedCurrencies: string[];
+  rateDate: string | null;
 }
 
 /** Chave da migração única do que estava guardado no browser. */
@@ -104,5 +125,12 @@ export function useBudget() {
     [load]
   );
 
-  return { limits, upsert, remove, isLoading, error, reload: load };
+  /**
+   * O gasto em comida não é a soma de uma categoria: uma lista de compras
+   * fechada é comida venha na categoria que vier, e uma despesa de supermercado
+   * lançada como conta a pagar continua a ser comida.
+   */
+  const getFoodSpend = useCallback(() => api.get<FoodSpend>('/budget/food'), []);
+
+  return { limits, upsert, remove, isLoading, error, reload: load, getFoodSpend };
 }

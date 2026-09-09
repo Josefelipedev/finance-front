@@ -85,9 +85,30 @@ const BudgetManager: React.FC = () => {
   // errado e mostra-se o aviso em vez dos números.
   const semTaxa = listMeta?.unconvertedCurrencies ?? [];
 
-  // Gasto por categoria, somado a partir do valor que o servidor já converteu
-  // à taxa do dia de cada lançamento (o casal mistura BRL e EUR).
+  /**
+   * Gasto por categoria — agora vindo do SERVIDOR (F2).
+   *
+   * Isto somava as transações do mês aqui no browser. Eram três somas para a
+   * mesma pergunta (esta, a do Android e a do plano de dívidas), e a janela do
+   * mês era construída com `new Date(ano, mes, 1)` — a meia-noite do fuso de
+   * quem olha. A oeste de Greenwich isso é o dia 1 às 03:00 UTC, e as despesas
+   * do próprio dia 1 ficavam de fora: o orçamento dizia que se tinha gasto
+   * menos do que se gastou, no dia do mês em que isso mais engana.
+   *
+   * O recuo para a soma local existe só para o APK/servidor antigo que ainda
+   * não devolva `spent`; assim que devolve, é ele que manda.
+   */
   const spendByCategory = useMemo(() => {
+    const doServidor: Record<number, number> = {};
+    let algumTemSpent = false;
+    for (const limit of limits) {
+      if (typeof limit.spent === 'number') {
+        doServidor[limit.categoryId] = limit.spent;
+        algumTemSpent = true;
+      }
+    }
+    if (algumTemSpent) return doServidor;
+
     const spend: Record<number, number> = {};
     for (const tx of transactions) {
       if (tx.type !== 'expense') continue;
@@ -96,7 +117,7 @@ const BudgetManager: React.FC = () => {
       spend[catId] = (spend[catId] || 0) + (tx.convertedAmount ?? tx.amount ?? 0);
     }
     return spend;
-  }, [transactions]);
+  }, [limits, transactions]);
 
   /**
    * De quem é o gasto de cada categoria (C6).
