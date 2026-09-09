@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Modal } from '../../components/ui/modal';
 import Button from '../../components/ui/button/Button';
 import TagField from './TagField';
+import MoneyInput from '../../components/form/MoneyInput';
+import { currencyOption } from '../../utils/currency';
 import type { PreferenceOptions, SavePreferencesBody } from '../../hooks/useMealPlanner';
 
 /**
@@ -10,9 +12,36 @@ import type { PreferenceOptions, SavePreferencesBody } from '../../hooks/useMeal
  * editable afterwards in the preferences tab.
  */
 
-const PROTEIN_CHOICES = ['Frango', 'Carne de vaca', 'Carne de porco', 'Peixe', 'Bacalhau', 'Atum', 'Ovos', 'Leguminosas'];
-const CARB_CHOICES = ['Arroz', 'Massa', 'Batata', 'Batata doce', 'Pão integral', 'Aveia', 'Cuscuz', 'Quinoa'];
-const VEGGIE_CHOICES = ['Brócolos', 'Cenoura', 'Espinafres', 'Tomate', 'Alface', 'Courgette', 'Feijão verde', 'Pimento'];
+const PROTEIN_CHOICES = [
+  'Frango',
+  'Carne de vaca',
+  'Carne de porco',
+  'Peixe',
+  'Bacalhau',
+  'Atum',
+  'Ovos',
+  'Leguminosas',
+];
+const CARB_CHOICES = [
+  'Arroz',
+  'Massa',
+  'Batata',
+  'Batata doce',
+  'Pão integral',
+  'Aveia',
+  'Cuscuz',
+  'Quinoa',
+];
+const VEGGIE_CHOICES = [
+  'Brócolos',
+  'Cenoura',
+  'Espinafres',
+  'Tomate',
+  'Alface',
+  'Courgette',
+  'Feijão verde',
+  'Pimento',
+];
 
 function MultiChips({
   choices,
@@ -51,12 +80,15 @@ export default function OnboardingQuestionnaire({
   isOpen,
   options,
   saving,
+  currency,
   onFinish,
   onSkip,
 }: {
   isOpen: boolean;
   options: PreferenceOptions | null;
   saving: boolean;
+  /** A moeda de quem está a responder — a meta é escrita nela. */
+  currency: string;
   onFinish: (data: SavePreferencesBody) => void;
   onSkip: () => void;
 }) {
@@ -68,6 +100,8 @@ export default function OnboardingQuestionnaire({
   const [carbs, setCarbs] = useState<string[]>([]);
   const [veggies, setVeggies] = useState<string[]>([]);
   const [dishes, setDishes] = useState<string[]>([]);
+  // `null` = "ainda não sei", que é uma resposta e não a ausência dela.
+  const [foodBudget, setFoodBudget] = useState<number | null>(null);
 
   const toggle = (list: string[], set: (v: string[]) => void) => (value: string) =>
     set(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -78,6 +112,7 @@ export default function OnboardingQuestionnaire({
       children,
       cuisineStyle,
       favoriteFoods: [...proteins, ...carbs, ...veggies, ...dishes],
+      monthlyFoodBudget: foodBudget,
       markOnboarded: true,
     });
 
@@ -92,7 +127,9 @@ export default function OnboardingQuestionnaire({
             { label: 'Crianças', value: children, set: setChildren, min: 0 },
           ].map((row) => (
             <div key={row.label} className="flex items-center justify-between gap-4">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{row.label}</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                {row.label}
+              </span>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -148,16 +185,34 @@ export default function OnboardingQuestionnaire({
       body: (
         <div className="space-y-4">
           <div>
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Proteínas</div>
-            <MultiChips choices={PROTEIN_CHOICES} selected={proteins} onToggle={toggle(proteins, setProteins)} />
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+              Proteínas
+            </div>
+            <MultiChips
+              choices={PROTEIN_CHOICES}
+              selected={proteins}
+              onToggle={toggle(proteins, setProteins)}
+            />
           </div>
           <div>
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Carboidratos</div>
-            <MultiChips choices={CARB_CHOICES} selected={carbs} onToggle={toggle(carbs, setCarbs)} />
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+              Carboidratos
+            </div>
+            <MultiChips
+              choices={CARB_CHOICES}
+              selected={carbs}
+              onToggle={toggle(carbs, setCarbs)}
+            />
           </div>
           <div>
-            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Legumes e vegetais</div>
-            <MultiChips choices={VEGGIE_CHOICES} selected={veggies} onToggle={toggle(veggies, setVeggies)} />
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+              Legumes e vegetais
+            </div>
+            <MultiChips
+              choices={VEGGIE_CHOICES}
+              selected={veggies}
+              onToggle={toggle(veggies, setVeggies)}
+            />
           </div>
         </div>
       ),
@@ -168,11 +223,53 @@ export default function OnboardingQuestionnaire({
       body: (
         <TagField
           items={dishes}
-          suggestions={['Lasanha', 'Feijoada', 'Bacalhau à Brás', 'Risoto', 'Strogonoff', 'Frango assado', 'Tacos', 'Sopa de legumes']}
+          suggestions={[
+            'Lasanha',
+            'Feijoada',
+            'Bacalhau à Brás',
+            'Risoto',
+            'Strogonoff',
+            'Frango assado',
+            'Tacos',
+            'Sopa de legumes',
+          ]}
           placeholder="Escreva o prato e Enter"
           tone="favorite"
           onChange={setDishes}
         />
+      ),
+    },
+    {
+      title: 'Quanto contas gastar em comida por mês?',
+      // Num casal, cada pessoa responde no seu dispositivo e a meta da casa é a
+      // soma das duas — há uma lista e uma ida ao supermercado, mas quem põe
+      // dinheiro são dois.
+      hint: 'Só a tua parte. Se vivem em casal, cada um responde a sua — a meta da casa é a soma.',
+      body: (
+        <div className="flex flex-col gap-3">
+          <div className="w-48">
+            <MoneyInput
+              value={foodBudget ?? 0}
+              onChange={(v) => setFoodBudget(v)}
+              currencySymbol={currencyOption(currency).symbol}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={() => setFoodBudget(null)}
+            className={`self-start text-sm font-medium transition ${
+              foodBudget === null
+                ? 'text-gray-400 dark:text-gray-500'
+                : 'text-brand-500 hover:text-brand-600 dark:text-brand-400'
+            }`}
+          >
+            {foodBudget === null ? 'Vais decidir depois' : 'Ainda não sei'}
+          </button>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            É esta meta que o cardápio passa a usar como orçamento da semana. Podes mudá-la a
+            qualquer momento nas preferências.
+          </p>
+        </div>
       ),
     },
   ];

@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import TagField from './TagField';
+import MoneyInput from '../../components/form/MoneyInput';
+import { currencyOption, formatMoney } from '../../utils/currency';
 import type {
+  HouseholdFoodBudget,
   MealPreferences,
   PreferenceOptions,
   SavePreferencesBody,
@@ -8,15 +11,43 @@ import type {
 
 /** Suggestions offered as one-tap chips; the user can type anything else. */
 const FAVORITE_SUGGESTIONS = [
-  'Frango', 'Atum', 'Ovos', 'Salmão', 'Carne moída', 'Bacalhau',
-  'Arroz', 'Massa', 'Batata doce', 'Feijão', 'Grão-de-bico', 'Aveia',
-  'Brócolos', 'Cenoura', 'Espinafres', 'Tomate', 'Abacate', 'Banana',
-  'Lasanha', 'Feijoada', 'Risoto', 'Tacos', 'Sopa de legumes', 'Omelete',
+  'Frango',
+  'Atum',
+  'Ovos',
+  'Salmão',
+  'Carne moída',
+  'Bacalhau',
+  'Arroz',
+  'Massa',
+  'Batata doce',
+  'Feijão',
+  'Grão-de-bico',
+  'Aveia',
+  'Brócolos',
+  'Cenoura',
+  'Espinafres',
+  'Tomate',
+  'Abacate',
+  'Banana',
+  'Lasanha',
+  'Feijoada',
+  'Risoto',
+  'Tacos',
+  'Sopa de legumes',
+  'Omelete',
 ];
 
 const DISLIKE_SUGGESTIONS = [
-  'Beringela', 'Coentros', 'Fígado', 'Cogumelos', 'Azeitonas',
-  'Pimento', 'Curgete', 'Peixe com espinhas', 'Picante', 'Queijo azul',
+  'Beringela',
+  'Coentros',
+  'Fígado',
+  'Cogumelos',
+  'Azeitonas',
+  'Pimento',
+  'Curgete',
+  'Peixe com espinhas',
+  'Picante',
+  'Queijo azul',
 ];
 
 // ── Small building blocks ─────────────────────────────────────────────────────
@@ -103,6 +134,107 @@ function OptionGrid({
   );
 }
 
+/**
+ * A meta de comida — a desta pessoa, e a da casa.
+ *
+ * Havia cinco números na app a dizer que eram "o orçamento da comida" e nenhum
+ * falava com os outros: uma caixa que se apagava a cada geração, um preset fixo
+ * no telemóvel, o tecto da categoria, o que a geração usou e o que o razão diz
+ * que se gastou. Este é o único que fica.
+ *
+ * Num casal pergunta-se a **cada um**, e a meta da casa é a soma — há uma lista
+ * e uma ida ao supermercado, mas quem põe dinheiro são dois. As parcelas ficam
+ * à vista para o total não parecer imposto a quem não o escreveu.
+ */
+function FoodBudgetSection({
+  value,
+  onChange,
+  household,
+  currency,
+}: {
+  value: number | null;
+  onChange: (v: number | null) => void;
+  household: HouseholdFoodBudget | null;
+  currency: string;
+}) {
+  const symbol = currencyOption(currency).symbol;
+  const money = (v: number) => formatMoney(v, household?.currency ?? currency);
+  const outros = (household?.parts ?? []).filter((p) => p.amount !== value);
+  const emCasal = (household?.parts.length ?? 0) > 1;
+
+  return (
+    <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 className="mb-1 text-lg font-semibold text-gray-800 dark:text-white">
+        💶 Quanto contas gastar em comida
+      </h3>
+      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Por mês, e só a tua parte. É esta meta que o cardápio passa a usar como orçamento da semana
+        — e é ela que aparece no teu orçamento e na sobra do fim do mês.
+      </p>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="w-44">
+          <MoneyInput value={value ?? 0} onChange={(v) => onChange(v)} currencySymbol={symbol} />
+        </div>
+        {value !== null && (
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="text-sm font-medium text-brand-500 transition hover:text-brand-600 dark:text-brand-400"
+          >
+            Ainda não sei
+          </button>
+        )}
+      </div>
+
+      {value === null && (
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          Sem resposta, o cardápio continua a decidir sozinho — a app prefere dizer que não sabe a
+          inventar um número por ti.
+        </p>
+      )}
+
+      {emCasal && household && (
+        <div className="mt-4 rounded-lg bg-gray-50 px-4 py-3 dark:bg-white/[0.03]">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            A meta da casa
+          </p>
+          <dl className="space-y-1 text-sm">
+            {household.parts.map((p) => (
+              <div key={p.userId} className="flex items-baseline justify-between gap-3">
+                <dt className="text-gray-600 dark:text-gray-400">{p.name}</dt>
+                <dd className="tabular-nums text-gray-700 dark:text-gray-300">
+                  {p.answered && p.amount !== null ? (
+                    money(p.amount)
+                  ) : (
+                    <span className="text-gray-400 dark:text-gray-500">por responder</span>
+                  )}
+                </dd>
+              </div>
+            ))}
+            <div className="!mt-2 flex items-baseline justify-between gap-3 border-t border-gray-200 pt-2 dark:border-white/[0.06]">
+              <dt className="font-medium text-gray-800 dark:text-white">Por mês</dt>
+              <dd className="font-semibold tabular-nums text-gray-900 dark:text-white">
+                {household.monthly === null ? '—' : money(household.monthly)}
+              </dd>
+            </div>
+          </dl>
+          {household.weekly !== null && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              São {money(household.weekly)} por semana — é este o valor que chega ao cardápio.
+            </p>
+          )}
+          {household.partial && (
+            <p className="mt-2 text-xs text-warning-600 dark:text-warning-400">
+              Falta a resposta de alguém: a meta da casa ainda não está completa.
+            </p>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ── Panel ─────────────────────────────────────────────────────────────────────
 
 export default function PreferencesPanel({
@@ -123,6 +255,8 @@ export default function PreferencesPanel({
   const [favoriteFoods, setFavoriteFoods] = useState<string[]>([]);
   const [dislikedFoods, setDislikedFoods] = useState<string[]>([]);
   const [mealPrepMode, setMealPrepMode] = useState(false);
+  // `null` é uma resposta possível ("ainda não sei"), por isso não pode ser 0.
+  const [monthlyFoodBudget, setMonthlyFoodBudget] = useState<number | null>(null);
 
   useEffect(() => {
     if (!initial) return;
@@ -133,41 +267,76 @@ export default function PreferencesPanel({
     setFavoriteFoods(initial.favoriteFoods);
     setDislikedFoods(initial.dislikedFoods);
     setMealPrepMode(initial.mealPrepMode);
+    setMonthlyFoodBudget(initial.monthlyFoodBudget);
   }, [initial]);
 
   // Mirrors the API: a child counts as half an adult portion.
   const servings = Math.max(1, Math.round((adults + children * 0.5) * 2) / 2);
 
   const submit = () =>
-    onSave({ adults, children, cuisineStyle, dietGoal, favoriteFoods, dislikedFoods, mealPrepMode });
+    onSave({
+      adults,
+      children,
+      cuisineStyle,
+      dietGoal,
+      favoriteFoods,
+      dislikedFoods,
+      mealPrepMode,
+      monthlyFoodBudget,
+    });
 
   return (
     <div className="space-y-5">
       {/* Casa */}
       <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">🏠 Quem come em casa</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
+          🏠 Quem come em casa
+        </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           As receitas e a lista de compras são multiplicadas para a casa toda.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Stepper label="Adultos" hint="Porção inteira cada" value={adults} min={1} max={12} onChange={setAdults} />
-          <Stepper label="Crianças" hint="Contam como meia porção" value={children} min={0} max={12} onChange={setChildren} />
+          <Stepper
+            label="Adultos"
+            hint="Porção inteira cada"
+            value={adults}
+            min={1}
+            max={12}
+            onChange={setAdults}
+          />
+          <Stepper
+            label="Crianças"
+            hint="Contam como meia porção"
+            value={children}
+            min={0}
+            max={12}
+            onChange={setChildren}
+          />
         </div>
 
         <div className="mt-3 text-sm rounded-lg bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 px-4 py-2.5">
-          Cada refeição vai render <strong>{servings} {servings === 1 ? 'porção' : 'porções'}</strong>
+          Cada refeição vai render{' '}
+          <strong>
+            {servings} {servings === 1 ? 'porção' : 'porções'}
+          </strong>
           {children > 0 && ' — e o cardápio evita picante e sabores fortes por causa das crianças'}.
         </div>
       </section>
 
       {/* Cozinha */}
       <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">🍳 Tipo de comida</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
+          🍳 Tipo de comida
+        </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           A tradição culinária do cardápio. "Variada" mistura tudo ao longo da semana.
         </p>
-        <OptionGrid options={options?.cuisineStyles ?? []} value={cuisineStyle} onChange={setCuisineStyle} />
+        <OptionGrid
+          options={options?.cuisineStyles ?? []}
+          value={cuisineStyle}
+          onChange={setCuisineStyle}
+        />
       </section>
 
       {/* Objetivo */}
@@ -186,7 +355,9 @@ export default function PreferencesPanel({
             className="mt-0.5 w-4 h-4 rounded accent-brand-500"
           />
           <span>
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Modo meal prep</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              Modo meal prep
+            </span>
             <span className="block text-xs text-gray-500 dark:text-gray-400">
               Concentra o cozinhado no domingo e reaproveita as preparações durante a semana.
             </span>
@@ -194,9 +365,18 @@ export default function PreferencesPanel({
         </label>
       </section>
 
+      <FoodBudgetSection
+        value={monthlyFoodBudget}
+        onChange={setMonthlyFoodBudget}
+        household={initial?.foodBudget ?? null}
+        currency={initial?.foodBudgetCurrency ?? initial?.foodBudget?.currency ?? 'BRL'}
+      />
+
       {/* Gostos */}
       <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">⭐ O que você gosta</h3>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">
+          ⭐ O que você gosta
+        </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Pelo menos metade das refeições da semana vai usar algo desta lista.
         </p>
@@ -208,7 +388,9 @@ export default function PreferencesPanel({
           onChange={setFavoriteFoods}
         />
 
-        <h4 className="text-sm font-semibold text-gray-800 dark:text-white mt-6 mb-1">✗ O que você não gosta</h4>
+        <h4 className="text-sm font-semibold text-gray-800 dark:text-white mt-6 mb-1">
+          ✗ O que você não gosta
+        </h4>
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
           Nunca aparece no cardápio nem na lista de compras.
         </p>

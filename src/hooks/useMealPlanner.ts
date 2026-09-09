@@ -64,6 +64,36 @@ export interface GeneratePlanBody {
   budget?: number;
 }
 
+/** A parcela de uma pessoa na meta de comida da casa. */
+export interface FoodBudgetPart {
+  userId: number;
+  name: string;
+  /** Já convertido para a moeda de exibição. Nulo enquanto não responder. */
+  amount: number | null;
+  /** O valor tal como foi escrito, na moeda em que foi escrito. */
+  nativeAmount: number | null;
+  nativeCurrency: string | null;
+  answered: boolean;
+}
+
+/**
+ * A meta de comida da CASA: a soma do que cada um do casal respondeu.
+ *
+ * As parcelas vêm juntas de propósito — num casal, um total sem as parcelas é
+ * um número que parece imposto a quem não o escreveu.
+ */
+export interface HouseholdFoodBudget {
+  /** Nulo = ninguém respondeu ainda. Diferente de zero. */
+  monthly: number | null;
+  /** O mesmo por semana, que é como o cardápio pensa. */
+  weekly: number | null;
+  parts: FoodBudgetPart[];
+  /** Alguém do casal ainda não respondeu — a soma existe mas está incompleta. */
+  partial: boolean;
+  complete: boolean;
+  currency: string;
+}
+
 /** The three axes that shape the menu: household, cuisine and nutritional goal. */
 export interface MealPreferences {
   adults: number;
@@ -76,10 +106,18 @@ export interface MealPreferences {
   onboarded: boolean;
   /** Adult-equivalent portions, computed by the API from adults + children. */
   servings: number;
+  /** A meta desta pessoa. Nulo = ainda não respondeu (≠ respondeu zero). */
+  monthlyFoodBudget: number | null;
+  foodBudgetCurrency: string | null;
+  foodBudget: HouseholdFoodBudget;
 }
 
-export type SavePreferencesBody = Partial<Omit<MealPreferences, 'onboarded' | 'servings'>> & {
+export type SavePreferencesBody = Partial<
+  Omit<MealPreferences, 'onboarded' | 'servings' | 'foodBudget'>
+> & {
   markOnboarded?: boolean;
+  /** `null` volta a "ainda não respondi"; omitir não mexe. */
+  monthlyFoodBudget?: number | null;
 };
 
 export interface PreferenceOption {

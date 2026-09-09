@@ -1491,6 +1491,7 @@ export default function MealPlannerPage() {
         isOpen={showOnboarding}
         options={prefOptions}
         saving={savingPrefs}
+        currency={userProfile?.currency ?? 'BRL'}
         onFinish={finishOnboarding}
         onSkip={skipOnboarding}
       />
