@@ -68,6 +68,14 @@ export interface MealShoppingList {
 
 export interface MealPlan {
   id: number;
+  /**
+   * Quantos preços que ESTA pessoa pagou a IA usou nesta geração (F5).
+   *
+   * Só vem na resposta da geração, não ao reler o plano. Sem ele a feature era
+   * invisível — e uma feature que ninguém consegue ver é indistinguível de uma
+   * que não existe.
+   */
+  paidPricesUsed?: number;
   weekStart: string;
   /** Moeda em que os preços do plano foram gerados — não a da conta hoje. */
   currency?: string;

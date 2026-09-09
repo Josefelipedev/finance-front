@@ -89,6 +89,8 @@ interface MealShoppingList {
 
 interface MealPlan {
   id: number;
+  /** Preços pagos por esta pessoa que a IA usou nesta geração (F5). */
+  paidPricesUsed?: number;
   /** Quem gerou o plano. O cardápio é do casal, mas gera-se um de cada vez. */
   userId?: number;
   weekStart: string;
@@ -1249,7 +1251,16 @@ export default function MealPlannerPage() {
       const data = await requestPlan(body);
       setPlan(data);
       setActiveTab('plan');
-      flash('success', 'Planejamento gerado!');
+      // Dizer que os preços dela foram usados: sem isto, a pessoa escreve o que
+      // pagou item a item e nunca fica a saber que aquilo serviu para alguma
+      // coisa.
+      const usados = data?.paidPricesUsed ?? 0;
+      flash(
+        'success',
+        usados > 0
+          ? `Planejamento gerado com ${usados} ${usados === 1 ? 'preço teu' : 'preços teus'}!`
+          : 'Planejamento gerado!',
+      );
     } catch {
       flash('error', 'Erro ao gerar planejamento. Tente novamente.');
     } finally {

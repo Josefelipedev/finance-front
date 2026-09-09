@@ -154,6 +154,20 @@ export interface ImportCandidate {
   kind: DebtKind;
 }
 
+/** O juro escondido num parcelamento, a partir do preço a pronto. */
+export interface ImpliedRate {
+  status: 'ok' | 'no_interest' | 'discount' | 'invalid';
+  monthlyRate: number | null;
+  /** Anual nominal (× 12) — é o que os contratos escrevem e a dívida guarda. */
+  annualNominalRate: number | null;
+  /** Anual efectivo, com juro sobre juro — é o que se paga de facto. */
+  annualEffectiveRate: number | null;
+  totalPaid: number;
+  totalInterest: number;
+  /** Quanto o parcelamento encarece a compra, em % do preço. */
+  surchargePct: number | null;
+}
+
 export interface DebtInput {
   name: string;
   kind?: DebtKind;
@@ -290,6 +304,19 @@ export function useDebts() {
     [write],
   );
 
+  /**
+   * O juro de um parcelamento, a partir do preço a pronto e das prestações.
+   *
+   * Não escreve nada — é uma calculadora. Existe porque a app pedia um juro
+   * escrito à mão e quase ninguém o sabe; mas toda a gente vê o preço a pronto
+   * e a prestação na montra.
+   */
+  const calcImpliedRate = useCallback(
+    (input: { cashPrice: number; instalment: number; count: number }) =>
+      api.post<ImpliedRate>('/debts/implied-rate', input),
+    [],
+  );
+
   const getCandidates = useCallback(
     () => api.get<ImportCandidate[]>('/debts/import/candidates'),
     [],
@@ -318,6 +345,7 @@ export function useDebts() {
     savePlan,
     getCandidates,
     importDebt,
+    calcImpliedRate,
     resetError: () => setError(null),
   };
 }

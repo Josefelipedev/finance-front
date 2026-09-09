@@ -54,6 +54,18 @@ function DebtCard({
             </span>
           </div>
 
+          {/*
+            De onde veio. Sem isto, não há como saber que esta dívida está
+            ligada a um parcelamento — nem que apagá-la a devolve à lista de
+            importação em vez de a perder.
+          */}
+          {(debt.recurringId != null || debt.accountId != null) && (
+            <span className="mt-1 inline-flex items-center gap-1 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">
+              <i className="fas fa-link text-[9px]" />
+              importada {debt.recurringId != null ? 'de uma recorrente' : 'de um cartão'}
+            </span>
+          )}
+
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             {KIND_LABEL[debt.kind]}
             {debt.annualInterestRate > 0 && ` · ${debt.annualInterestRate}% ao ano`}
@@ -145,6 +157,7 @@ export default function DebtsView() {
     savePlan,
     getCandidates,
     importDebt,
+    calcImpliedRate,
   } = useDebts();
 
   const { confirm, dialog } = useConfirm();
@@ -196,6 +209,7 @@ export default function DebtsView() {
         isSaving={isSaving}
         getCandidates={getCandidates}
         onImport={importDebt}
+        calcImpliedRate={calcImpliedRate}
         refreshKey={debts.length}
       />
 
@@ -238,7 +252,11 @@ export default function DebtsView() {
               onDelete={async () => {
                 const ok = await confirm({
                   title: 'Apagar a dívida?',
-                  message: `«${d.name}» sai do plano. Os lançamentos dos pagamentos ficam — é dinheiro que saiu de facto, e apagar a dívida não o traz de volta.`,
+                  message:
+                    `«${d.name}» sai do plano. Os lançamentos dos pagamentos ficam — é dinheiro que saiu de facto, e apagar a dívida não o traz de volta.` +
+                    (d.recurringId != null || d.accountId != null
+                      ? ' Como foi importada, volta a aparecer em "Já está na app" e podes trazê-la outra vez.'
+                      : ''),
                   danger: true,
                   confirmText: 'Apagar',
                 });
@@ -267,7 +285,11 @@ export default function DebtsView() {
                     onDelete={async () => {
                       const ok = await confirm({
                         title: 'Apagar a dívida?',
-                        message: `«${d.name}» desaparece da lista. Os lançamentos dos pagamentos ficam.`,
+                        message:
+                          `«${d.name}» desaparece da lista. Os lançamentos dos pagamentos ficam.` +
+                          (d.recurringId != null || d.accountId != null
+                            ? ' Como foi importada, volta a aparecer em "Já está na app".'
+                            : ''),
                         danger: true,
                         confirmText: 'Apagar',
                       });
