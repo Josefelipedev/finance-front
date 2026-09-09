@@ -36,11 +36,6 @@ const sections: NavSection[] = [
       // ecrãs apontava para lá, e ninguém tinha de adivinhar qual dos sete
       // itens desta secção respondia à pergunta que trazia.
       { name: 'Metas', path: '/metas', icon: 'trophy' },
-      // As dívidas ficam ao lado das Metas e não em "Dia a dia": as Contas a
-      // Pagar são o que vence este mês, isto é o saldo que fica por trás delas
-      // e a data em que acaba — a mesma pergunta de longo prazo que as Metas
-      // fazem, virada ao contrário.
-      { name: 'Dívidas', path: '/dividas', icon: 'hand-holding-dollar' },
       { name: 'Orçamento', path: '/orcamento', icon: 'wallet' },
       { name: 'Contas', path: '/contas', icon: 'building-columns' },
       { name: 'Categorias', path: '/categorias', icon: 'tags' },

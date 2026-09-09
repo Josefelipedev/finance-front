@@ -11,14 +11,15 @@ import { monthsLabel } from './kinds';
 interface Props {
   plan: PayoffPlan;
   isSaving?: boolean;
-  onSave: (input: { strategy?: PayoffStrategy; extraMonthly?: number }) => Promise<unknown>;
+  onSave: (input: { strategy?: PayoffStrategy; extraMonthly?: number | null }) => Promise<unknown>;
 }
 
 const ESTRATEGIAS: { key: PayoffStrategy; name: string; description: string }[] = [
   {
     key: 'SNOWBALL',
     name: 'Bola de neve',
-    description: 'A dívida mais pequena primeiro. Custa mais juro e dá a primeira vitória mais cedo.',
+    description:
+      'A dívida mais pequena primeiro. Custa mais juro e dá a primeira vitória mais cedo.',
   },
   {
     key: 'AVALANCHE',
@@ -71,6 +72,44 @@ function BalanceCurve({
   );
 }
 
+/** Uma linha da conta da sobra: o rótulo à esquerda, o dinheiro à direita. */
+function Linha({
+  label,
+  value,
+  strong,
+  negative,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+  negative?: boolean;
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <dt
+        className={
+          strong
+            ? 'text-sm font-medium text-gray-900 dark:text-white'
+            : 'text-sm text-gray-600 dark:text-gray-400'
+        }
+      >
+        {label}
+      </dt>
+      <dd
+        className={`tabular-nums ${
+          negative
+            ? 'font-semibold text-error-600 dark:text-error-400'
+            : strong
+              ? 'font-semibold text-gray-900 dark:text-white'
+              : 'text-gray-700 dark:text-gray-300'
+        }`}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
 export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
   const [extra, setExtra] = useState(plan.extraMonthly);
   const money = (v: number) => formatMoney(v, plan.displayCurrency);
@@ -81,6 +120,7 @@ export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
   useEffect(() => setExtra(plan.extraMonthly), [plan.extraMonthly]);
 
   const { comparison } = plan;
+  const afford = plan.affordability;
   const alternativa = plan.strategy === 'AVALANCHE' ? comparison.snowball : comparison.avalanche;
 
   return (
@@ -96,10 +136,7 @@ export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
 
       {plan.unconvertedCurrencies.length > 0 ? (
         <div className="mt-4">
-          <MixedCurrencyWarning
-            currencies={plan.unconvertedCurrencies}
-            rateDate={plan.rateDate}
-          />
+          <MixedCurrencyWarning currencies={plan.unconvertedCurrencies} rateDate={plan.rateDate} />
         </div>
       ) : null}
 
@@ -107,15 +144,14 @@ export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
       <div className="mt-4 rounded-xl bg-gray-50 p-4 dark:bg-white/[0.03]">
         {plan.totalBalance <= 0.005 ? (
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Nenhuma dívida activa. Não há plano a fazer — e isso é a melhor
-            resposta que este ecrã pode dar.
+            Nenhuma dívida activa. Não há plano a fazer — e isso é a melhor resposta que este ecrã
+            pode dar.
           </p>
         ) : !plan.feasible ? (
           <p className="text-sm text-error-600 dark:text-error-400">
-            <strong>Assim isto não fecha.</strong> Os {money(plan.monthlyBudget)} por
-            mês não chegam para o juro que corre — o saldo cresce todos os meses.
-            Subir o extra, baixar o juro (renegociar) ou consolidar são as três
-            saídas; mostrar-te uma data seria mentir.
+            <strong>Assim isto não fecha.</strong> Os {money(plan.monthlyBudget)} por mês não chegam
+            para o juro que corre — o saldo cresce todos os meses. Subir o extra, baixar o juro
+            (renegociar) ou consolidar são as três saídas; mostrar-te uma data seria mentir.
           </p>
         ) : (
           <>
@@ -127,27 +163,72 @@ export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
               </span>
             </p>
             <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-              A pagar <strong className="text-gray-900 dark:text-white">
-                {money(plan.monthlyBudget)}
-              </strong>{' '}
+              A pagar{' '}
+              <strong className="text-gray-900 dark:text-white">{money(plan.monthlyBudget)}</strong>{' '}
               por mês ({money(plan.totalMinimum)} de mínimos
-              {plan.extraMonthly > 0.005 && ` + ${money(plan.extraMonthly)} de extra`}).
-              Vais entregar {money(plan.totalPaid)} ao todo, dos quais{' '}
-              <strong className="text-gray-900 dark:text-white">
-                {money(plan.totalInterest)}
-              </strong>{' '}
+              {plan.extraMonthly > 0.005 && ` + ${money(plan.extraMonthly)} de extra`}). Vais
+              entregar {money(plan.totalPaid)} ao todo, dos quais{' '}
+              <strong className="text-gray-900 dark:text-white">{money(plan.totalInterest)}</strong>{' '}
               são só juro.
             </p>
           </>
         )}
       </div>
 
-      {/* ── O extra ───────────────────────────────────────────────────── */}
+      {/* ── De onde vem a sobra ───────────────────────────────────────── */}
       <div className="mt-5">
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
           O que sobra por mês, além dos mínimos
-        </label>
-        <div className="flex flex-wrap items-center gap-2">
+        </p>
+
+        {afford.monthsCovered === 0 ? (
+          <p className="rounded-lg bg-warning-50 px-3 py-2.5 text-sm text-warning-700 dark:bg-warning-500/10 dark:text-warning-400">
+            Ainda não há lançamentos que cheguem para saber quanto te sobra. Escreve o extra à mão
+            por agora — assim que houver um mês de movimento, a app passa a propor o número.
+          </p>
+        ) : (
+          <>
+            {/*
+              As linhas existem para o número não cair do céu. "Sobram-te 240 €"
+              só se acredita a ver que são o salário menos as contas, a comida e
+              o resto — e é a ver as linhas que alguém descobre onde apertar.
+            */}
+            <dl className="space-y-1 text-sm">
+              <Linha label="Entra por mês" value={money(afford.income)} />
+              <Linha label="Contas e prestações" value={`− ${money(afford.bills)}`} />
+              <Linha label="Alimentação" value={`− ${money(afford.food)}`} />
+              <Linha label="Tudo o resto" value={`− ${money(afford.other)}`} />
+              <Linha label="Mínimos das dívidas" value={`− ${money(afford.minimums)}`} />
+              <div className="!mt-2 border-t border-gray-100 pt-2 dark:border-white/[0.06]">
+                <Linha
+                  label="Sobra"
+                  value={money(afford.leftover)}
+                  strong
+                  negative={afford.leftover < -0.005}
+                />
+              </div>
+            </dl>
+            <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+              Média dos últimos {afford.monthsCovered}{' '}
+              {afford.monthsCovered === 1 ? 'mês' : 'meses'}.
+              {afford.debtPayments > 0.005 && (
+                <>
+                  {' '}
+                  Já entregas {money(afford.debtPayments)}/mês às dívidas — isso não desconta aqui,
+                  porque os mínimos já estão contados em cima.
+                </>
+              )}
+            </p>
+            {afford.leftover < -0.005 && (
+              <p className="mt-2 rounded-lg bg-error-50 px-3 py-2 text-sm text-error-600 dark:bg-error-500/10 dark:text-error-400">
+                <strong>Sai mais do que entra.</strong> Antes de acelerar a dívida, o que este plano
+                precisa é de {money(Math.abs(afford.leftover))} por mês que hoje não existem.
+              </p>
+            )}
+          </>
+        )}
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <div className="w-40">
             <MoneyInput value={extra} onChange={setExtra} currencySymbol={symbol} />
           </div>
@@ -159,7 +240,27 @@ export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
           >
             Recalcular
           </Button>
+          {/*
+            Uma proposta que não se pode recusar deixa de ser proposta: quem
+            apertou (ou aliviou) o que a app sugeriu tem de conseguir voltar
+            atrás sem adivinhar qual era o número.
+          */}
+          {!plan.extraIsAuto && (
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={() => void onSave({ extraMonthly: null })}
+              className="text-sm font-medium text-brand-500 hover:text-brand-600 disabled:opacity-60 dark:text-brand-400"
+            >
+              Voltar ao que a app calcula ({money(afford.suggestedExtra)})
+            </button>
+          )}
         </div>
+        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+          {plan.extraIsAuto
+            ? 'Este número é o que a app calculou que te sobra. Escreve outro por cima se quiseres apertar mais — ou menos.'
+            : 'Escrito à mão — manda sobre o que a app calculou.'}
+        </p>
         {comparison.monthsSavedByExtra != null && comparison.monthsSavedByExtra > 0 && (
           <p className="mt-2 text-sm text-success-600 dark:text-success-400">
             Este extra corta <strong>{monthsLabel(comparison.monthsSavedByExtra)}</strong>
@@ -214,8 +315,8 @@ export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
                     plan.months != null &&
                     alternativa.months !== plan.months &&
                     ` e ${monthsLabel(Math.abs(plan.months - alternativa.months))}`}
-                  . A bola de neve não é irracional por isso — é a que dá uma
-                  dívida fechada mais cedo, e é isso que faz continuar.
+                  . A bola de neve não é irracional por isso — é a que dá uma dívida fechada mais
+                  cedo, e é isso que faz continuar.
                 </>
               ) : (
                 <>
@@ -235,10 +336,7 @@ export default function PayoffPlanCard({ plan, isSaving, onSave }: Props) {
         <div className="mt-5 border-t border-gray-100 pt-4 dark:border-white/[0.06]">
           <ol className="space-y-2">
             {plan.queue.map((q) => (
-              <li
-                key={q.debtId}
-                className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm"
-              >
+              <li key={q.debtId} className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                 <span
                   className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                     q.position === 1

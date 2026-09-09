@@ -34,7 +34,6 @@ const AccountsPage = lazy(() => import('./pages/app/AccountsPage'));
 const FiscalPage = lazy(() => import('./pages/app/FiscalPage'));
 const MealPlannerPage = lazy(() => import('./pages/MealPlanner/MealPlannerPage'));
 const GoalsPage = lazy(() => import('./pages/app/GoalsPage'));
-const DebtsPage = lazy(() => import('./pages/app/DebtsPage'));
 const UserProfiles = lazy(() => import('./pages/UserProfiles'));
 
 export default function App() {
@@ -74,7 +73,18 @@ export default function App() {
               <Route path="/fiscal" element={<FiscalPage />} />
               <Route path="/meal-planner" element={<MealPlannerPage />} />
               <Route path="/metas" element={<GoalsPage />} />
-              <Route path="/dividas" element={<DebtsPage />} />
+              {/*
+                As Dívidas foram para dentro das Contas a Pagar — são a mesma
+                pergunta a duas distâncias, e um ecrã só delas era um beco que
+                mais nenhum ecrã apontava. A rota fica como reencaminhamento,
+                pela mesma razão do /planejamento: houve quem a pusesse nos
+                favoritos, e um 404 seria uma maneira pior de dizer que mudou
+                de sítio.
+              */}
+              <Route
+                path="/dividas"
+                element={<Navigate to="/contas-a-pagar?aba=dividas" replace />}
+              />
               {/*
                 O Planeamento foi dissolvido: as abas foram para casa (Metas,
                 Orçamento, Análises). A rota fica como reencaminhamento porque

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import PageShell, { Surface } from '../../components/common/PageShell';
+import SegmentedTabs from '../../components/common/SegmentedTabs';
+import DebtsView from '../../components/finance-metrics/debts/DebtsView';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import OwnerChip from '../../components/common/OwnerChip';
 import Button from '../../components/ui/button/Button';
@@ -62,7 +64,20 @@ function formatInstallmentLabel(item: BillItem): string | null {
   if (item.until) {
     const match = /^(\d{4})-(\d{2})/.exec(item.until);
     if (match) {
-      const shortMonths = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      const shortMonths = [
+        'jan',
+        'fev',
+        'mar',
+        'abr',
+        'mai',
+        'jun',
+        'jul',
+        'ago',
+        'set',
+        'out',
+        'nov',
+        'dez',
+      ];
       parts.push(`até ${shortMonths[Number(match[2]) - 1]}/${match[1].slice(-2)}`);
     }
   }
@@ -301,6 +316,19 @@ export default function BillsPage() {
     const pedido = searchParams.get('mes');
     return pedido && /^\d{4}-\d{2}$/.test(pedido) ? pedido : currentMonth();
   });
+  /*
+    As dívidas vivem aqui dentro e não num ecrã só delas. São a mesma pergunta
+    vista de duas distâncias: a aba do mês diz o que vence dia 8, esta diz o
+    saldo que fica por trás dessas prestações e quando é que acaba. Separadas,
+    quem estava a olhar para o que tem de pagar nunca tropeçava no plano de
+    deixar de pagar.
+
+    `?aba=dividas` existe para o antigo `/dividas` (que ficou nos favoritos de
+    alguém) poder reencaminhar para o sítio certo em vez de dar 404.
+  */
+  const [tab, setTab] = useState<'mes' | 'dividas'>(() =>
+    searchParams.get('aba') === 'dividas' ? 'dividas' : 'mes'
+  );
   const [items, setItems] = useState<BillItem[]>([]);
   // Totais JÁ convertidos pelo servidor para a moeda de exibição do usuário.
   const [expense, setExpense] = useState({ pending: 0, paid: 0 });
@@ -341,7 +369,8 @@ export default function BillsPage() {
   const [editingItem, setEditingItem] = useState<BillItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { getBills, getForecast, createBill, updateBill, deleteBill, payBill, unpayBill } = useBills();
+  const { getBills, getForecast, createBill, updateBill, deleteBill, payBill, unpayBill } =
+    useBills();
   const { profile, getProfile } = useUserProfile();
   const naming = useMemo(() => ownerNaming(profile), [profile]);
   const { confirm, dialog } = useConfirm();
@@ -802,281 +831,314 @@ export default function BillsPage() {
   const balanceClass = (v: number) =>
     v < 0 ? 'text-error-500 dark:text-error-400' : 'text-success-600 dark:text-success-400';
   const totalsAreSafe = unconvertedCurrencies.length === 0;
-  const summaryMoney = (value: number) => (totalsAreSafe ? formatMoney(value, displayCurrency) : '—');
+  const summaryMoney = (value: number) =>
+    totalsAreSafe ? formatMoney(value, displayCurrency) : '—';
 
   return (
     <PageShell
-      title="Contas do mês"
-      description="Acompanhe o que vence, o que entra e o saldo previsto × realizado."
-      actions={
-        <div className="flex items-center gap-2">
-          <Link
-            to="/recorrentes"
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-            title="As recorrentes geram as contas deste mês automaticamente"
-          >
-            <i className="fas fa-rotate text-xs"></i>
-            Recorrentes
-          </Link>
-          <Button type="button" variant="primary" size="sm" onClick={openCreate}>
-            <i className="fas fa-plus text-xs"></i>
-            Nova conta
-          </Button>
-          <div className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-1 dark:border-white/[0.08] dark:bg-gray-800">
-            <button
-              type="button"
-              onClick={() => setMonth((m) => shiftMonth(m, -1))}
-              aria-label="Mês anterior"
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
-            >
-              <i className="fas fa-chevron-left text-sm"></i>
-            </button>
-            <span className="min-w-[9rem] text-center text-sm font-semibold capitalize text-gray-900 dark:text-white">
-              {formatMonthLabel(month)}
-            </span>
-            <button
-              type="button"
-              onClick={() => setMonth((m) => shiftMonth(m, 1))}
-              aria-label="Próximo mês"
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
-            >
-              <i className="fas fa-chevron-right text-sm"></i>
-            </button>
-          </div>
-        </div>
+      title={tab === 'mes' ? 'Contas do mês' : 'Dívidas'}
+      description={
+        tab === 'mes'
+          ? 'Acompanhe o que vence, o que entra e o saldo previsto × realizado.'
+          : 'O que se deve por trás das prestações, por que ordem atacar, e quando ficas livre'
       }
-    >
-      <div className="px-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600 dark:text-brand-400">
-          Este mês
-        </p>
-        <h2 className="font-display text-lg font-semibold capitalize text-gray-900 dark:text-white">
-          {formatMonthLabel(month)}
-        </h2>
-      </div>
-
-      {/* Resumo do mês: A Pagar / A Receber / Saldo Previsto / Saldo Realizado */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Surface className="p-4">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-            A Pagar
-          </p>
-          <p className="mt-1 font-display text-xl font-semibold tabular-nums text-error-500 dark:text-error-400">
-            {summaryMoney(expense.pending)}
-          </p>
-        </Surface>
-        <Surface className="p-4">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-            A Receber
-          </p>
-          <p className="mt-1 font-display text-xl font-semibold tabular-nums text-success-600 dark:text-success-400">
-            {summaryMoney(income.pending)}
-          </p>
-        </Surface>
-        <Surface className="p-4">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-            Saldo Previsto
-          </p>
-          <p
-            className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(projectedBalance)}`}
-          >
-            {summaryMoney(projectedBalance)}
-          </p>
-        </Surface>
-        <Surface className="p-4">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
-            Saldo Realizado
-          </p>
-          <p
-            className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(realizedBalance)}`}
-          >
-            {summaryMoney(realizedBalance)}
-          </p>
-        </Surface>
-      </div>
-
-      {!totalsAreSafe && (
-        <Surface className="border-warning-200 bg-warning-50 px-5 py-3 text-sm text-warning-700 dark:border-warning-500/20 dark:bg-warning-500/10 dark:text-warning-400">
-          <i className="fas fa-triangle-exclamation mr-2"></i>
-          Falta câmbio para {unconvertedCurrencies.join(', ')}. Os totais ficam ocultos para não misturar moedas.
-        </Surface>
-      )}
-
-      {/* Lista de contas */}
-      {isFetching ? (
-        <div className="flex h-64 items-center justify-center">
-          <LoadingSpinner size="lg" color="brand" message="A carregar contas…" />
-        </div>
-      ) : error ? (
-        <Surface className="p-8 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-error-50 text-xl text-error-500 dark:bg-error-500/10 dark:text-error-400">
-            <i className="fas fa-triangle-exclamation"></i>
-          </span>
-          <h3 className="mt-4 font-display text-lg font-semibold text-gray-900 dark:text-white">
-            Algo correu mal
-          </h3>
-          <p className="mx-auto mt-1 max-w-md text-sm text-gray-500 dark:text-gray-400">{error}</p>
-          <div className="mt-5 flex justify-center">
-            <Button size="sm" variant="primary" type="button" onClick={() => load(month)}>
-              <i className="fas fa-rotate-right text-xs"></i>
-              Tentar de novo
-            </Button>
-          </div>
-        </Surface>
-      ) : items.length === 0 ? (
-        <Surface className="p-10 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-xl text-brand-600 dark:bg-brand-400/10 dark:text-brand-400">
-            <i className="fas fa-file-invoice-dollar"></i>
-          </span>
-          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Nenhuma conta neste mês.</p>
-          <div className="mt-5 flex justify-center">
-            <Button size="sm" variant="primary" type="button" onClick={openCreate}>
+      // O navegador de meses e o "Nova conta" são do mês, não do plano: deixá-los
+      // por cima das dívidas oferecia um mês a um ecrã que fala em anos.
+      actions={
+        tab !== 'mes' ? undefined : (
+          <div className="flex items-center gap-2">
+            <Link
+              to="/recorrentes"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+              title="As recorrentes geram as contas deste mês automaticamente"
+            >
+              <i className="fas fa-rotate text-xs"></i>
+              Recorrentes
+            </Link>
+            <Button type="button" variant="primary" size="sm" onClick={openCreate}>
               <i className="fas fa-plus text-xs"></i>
               Nova conta
             </Button>
-          </div>
-        </Surface>
-      ) : (
-        <div className="space-y-4">
-          <Surface className="flex flex-wrap items-center gap-2 p-3">
-            {carriedOverCount > 0 && (
+            <div className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-1 dark:border-white/[0.08] dark:bg-gray-800">
               <button
                 type="button"
-                onClick={() => setShowCarriedOver((v) => !v)}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                  showCarriedOver
-                    ? 'border-warning-500 bg-warning-50 text-warning-600 dark:bg-warning-500/10'
-                    : 'border-gray-300 text-gray-500 dark:border-gray-700 dark:text-gray-400'
-                }`}
-                title="Contas pendentes que vieram de meses anteriores"
+                onClick={() => setMonth((m) => shiftMonth(m, -1))}
+                aria-label="Mês anterior"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
               >
-                <i className={`fas ${showCarriedOver ? 'fa-eye' : 'fa-eye-slash'} text-[10px]`}></i>
-                Atrasadas de meses anteriores ({carriedOverCount})
+                <i className="fas fa-chevron-left text-sm"></i>
               </button>
-            )}
-
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
-              className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
-            >
-              <option value="all">A pagar e a receber</option>
-              <option value="expense">Só a pagar</option>
-              <option value="income">Só a receber</option>
-            </select>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-              className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
-            >
-              <option value="all">Pendentes e pagas</option>
-              <option value="pending">Só pendentes</option>
-              <option value="paid">Só pagas</option>
-            </select>
-
-            {categoriesInMonth.length > 1 && (
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
-              >
-                <option value="all">Todas as categorias</option>
-                {categoriesInMonth.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            )}
-
-            {profile?.id != null && new Set(items.map((i) => i.userId)).size > 1 && (
-              <select
-                value={ownerFilter}
-                onChange={(e) => setOwnerFilter(e.target.value as typeof ownerFilter)}
-                className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
-              >
-                <option value="all">Do casal</option>
-                <option value="mine">Só minhas</option>
-              </select>
-            )}
-
-            <span className="ml-auto flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-              <span>
-                {visibleItems.length} de {items.length}
-                {visibleTotal != null && visibleItems.length > 0 && (
-                  <> · {formatMoney(visibleTotal, visibleCurrencies[0])}</>
-                )}
+              <span className="min-w-[9rem] text-center text-sm font-semibold capitalize text-gray-900 dark:text-white">
+                {formatMonthLabel(month)}
               </span>
-              {filtersActive && (
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="text-brand-600 hover:underline dark:text-brand-400"
-                >
-                  Limpar filtros
-                </button>
-              )}
-            </span>
-          </Surface>
+              <button
+                type="button"
+                onClick={() => setMonth((m) => shiftMonth(m, 1))}
+                aria-label="Próximo mês"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
+              >
+                <i className="fas fa-chevron-right text-sm"></i>
+              </button>
+            </div>
+          </div>
+        )
+      }
+    >
+      <SegmentedTabs
+        tabs={[
+          { key: 'mes' as const, label: 'Este mês' },
+          { key: 'dividas' as const, label: 'Dívidas' },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
 
-          {visibleItems.length === 0 ? (
-            <Surface className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Nenhuma conta com estes filtros.
+      {tab === 'dividas' && <DebtsView />}
+
+      {tab === 'mes' && (
+        <>
+          <div className="px-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-600 dark:text-brand-400">
+              Este mês
+            </p>
+            <h2 className="font-display text-lg font-semibold capitalize text-gray-900 dark:text-white">
+              {formatMonthLabel(month)}
+            </h2>
+          </div>
+
+          {/* Resumo do mês: A Pagar / A Receber / Saldo Previsto / Saldo Realizado */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Surface className="p-4">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                A Pagar
               </p>
-              <div className="mt-4 flex justify-center">
-                <Button size="sm" variant="outline" type="button" onClick={clearFilters}>
-                  Limpar filtros
+              <p className="mt-1 font-display text-xl font-semibold tabular-nums text-error-500 dark:text-error-400">
+                {summaryMoney(expense.pending)}
+              </p>
+            </Surface>
+            <Surface className="p-4">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                A Receber
+              </p>
+              <p className="mt-1 font-display text-xl font-semibold tabular-nums text-success-600 dark:text-success-400">
+                {summaryMoney(income.pending)}
+              </p>
+            </Surface>
+            <Surface className="p-4">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                Saldo Previsto
+              </p>
+              <p
+                className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(projectedBalance)}`}
+              >
+                {summaryMoney(projectedBalance)}
+              </p>
+            </Surface>
+            <Surface className="p-4">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                Saldo Realizado
+              </p>
+              <p
+                className={`mt-1 font-display text-xl font-semibold tabular-nums ${balanceClass(realizedBalance)}`}
+              >
+                {summaryMoney(realizedBalance)}
+              </p>
+            </Surface>
+          </div>
+
+          {!totalsAreSafe && (
+            <Surface className="border-warning-200 bg-warning-50 px-5 py-3 text-sm text-warning-700 dark:border-warning-500/20 dark:bg-warning-500/10 dark:text-warning-400">
+              <i className="fas fa-triangle-exclamation mr-2"></i>
+              Falta câmbio para {unconvertedCurrencies.join(', ')}. Os totais ficam ocultos para não
+              misturar moedas.
+            </Surface>
+          )}
+
+          {/* Lista de contas */}
+          {isFetching ? (
+            <div className="flex h-64 items-center justify-center">
+              <LoadingSpinner size="lg" color="brand" message="A carregar contas…" />
+            </div>
+          ) : error ? (
+            <Surface className="p-8 text-center">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-error-50 text-xl text-error-500 dark:bg-error-500/10 dark:text-error-400">
+                <i className="fas fa-triangle-exclamation"></i>
+              </span>
+              <h3 className="mt-4 font-display text-lg font-semibold text-gray-900 dark:text-white">
+                Algo correu mal
+              </h3>
+              <p className="mx-auto mt-1 max-w-md text-sm text-gray-500 dark:text-gray-400">
+                {error}
+              </p>
+              <div className="mt-5 flex justify-center">
+                <Button size="sm" variant="primary" type="button" onClick={() => load(month)}>
+                  <i className="fas fa-rotate-right text-xs"></i>
+                  Tentar de novo
+                </Button>
+              </div>
+            </Surface>
+          ) : items.length === 0 ? (
+            <Surface className="p-10 text-center">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-xl text-brand-600 dark:bg-brand-400/10 dark:text-brand-400">
+                <i className="fas fa-file-invoice-dollar"></i>
+              </span>
+              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                Nenhuma conta neste mês.
+              </p>
+              <div className="mt-5 flex justify-center">
+                <Button size="sm" variant="primary" type="button" onClick={openCreate}>
+                  <i className="fas fa-plus text-xs"></i>
+                  Nova conta
                 </Button>
               </div>
             </Surface>
           ) : (
-            <div className="space-y-6">
-              {renderSection('A Pagar', 'fa-arrow-up', expenseItems)}
-              {renderSection('A Receber', 'fa-arrow-down', incomeItems)}
+            <div className="space-y-4">
+              <Surface className="flex flex-wrap items-center gap-2 p-3">
+                {carriedOverCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCarriedOver((v) => !v)}
+                    className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      showCarriedOver
+                        ? 'border-warning-500 bg-warning-50 text-warning-600 dark:bg-warning-500/10'
+                        : 'border-gray-300 text-gray-500 dark:border-gray-700 dark:text-gray-400'
+                    }`}
+                    title="Contas pendentes que vieram de meses anteriores"
+                  >
+                    <i
+                      className={`fas ${showCarriedOver ? 'fa-eye' : 'fa-eye-slash'} text-[10px]`}
+                    ></i>
+                    Atrasadas de meses anteriores ({carriedOverCount})
+                  </button>
+                )}
+
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
+                  className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                >
+                  <option value="all">A pagar e a receber</option>
+                  <option value="expense">Só a pagar</option>
+                  <option value="income">Só a receber</option>
+                </select>
+
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+                  className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                >
+                  <option value="all">Pendentes e pagas</option>
+                  <option value="pending">Só pendentes</option>
+                  <option value="paid">Só pagas</option>
+                </select>
+
+                {categoriesInMonth.length > 1 && (
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                  >
+                    <option value="all">Todas as categorias</option>
+                    {categoriesInMonth.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                {profile?.id != null && new Set(items.map((i) => i.userId)).size > 1 && (
+                  <select
+                    value={ownerFilter}
+                    onChange={(e) => setOwnerFilter(e.target.value as typeof ownerFilter)}
+                    className="rounded-lg border border-gray-300 bg-transparent px-2 py-1.5 text-xs text-gray-700 dark:border-gray-700 dark:text-gray-300"
+                  >
+                    <option value="all">Do casal</option>
+                    <option value="mine">Só minhas</option>
+                  </select>
+                )}
+
+                <span className="ml-auto flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                  <span>
+                    {visibleItems.length} de {items.length}
+                    {visibleTotal != null && visibleItems.length > 0 && (
+                      <> · {formatMoney(visibleTotal, visibleCurrencies[0])}</>
+                    )}
+                  </span>
+                  {filtersActive && (
+                    <button
+                      type="button"
+                      onClick={clearFilters}
+                      className="text-brand-600 hover:underline dark:text-brand-400"
+                    >
+                      Limpar filtros
+                    </button>
+                  )}
+                </span>
+              </Surface>
+
+              {visibleItems.length === 0 ? (
+                <Surface className="p-8 text-center">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Nenhuma conta com estes filtros.
+                  </p>
+                  <div className="mt-4 flex justify-center">
+                    <Button size="sm" variant="outline" type="button" onClick={clearFilters}>
+                      Limpar filtros
+                    </Button>
+                  </div>
+                </Surface>
+              ) : (
+                <div className="space-y-6">
+                  {renderSection('A Pagar', 'fa-arrow-up', expenseItems)}
+                  {renderSection('A Receber', 'fa-arrow-down', incomeItems)}
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      {!isFetching && !error && (
-        <Surface className="flex items-center justify-between gap-5 border-brand-200 bg-brand-50/60 p-5 dark:border-brand-400/20 dark:bg-brand-400/[0.06]">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">
-              Total de contas do mês
-            </p>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Pago + ainda por pagar</p>
-          </div>
-          <p className="font-display text-2xl font-bold tabular-nums text-gray-900 dark:text-white">
-            {summaryMoney(expense.pending + expense.paid)}
-          </p>
-        </Surface>
-      )}
+          {!isFetching && !error && (
+            <Surface className="flex items-center justify-between gap-5 border-brand-200 bg-brand-50/60 p-5 dark:border-brand-400/20 dark:bg-brand-400/[0.06]">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-brand-700 dark:text-brand-300">
+                  Total de contas do mês
+                </p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Pago + ainda por pagar
+                </p>
+              </div>
+              <p className="font-display text-2xl font-bold tabular-nums text-gray-900 dark:text-white">
+                {summaryMoney(expense.pending + expense.paid)}
+              </p>
+            </Surface>
+          )}
 
-      {!isFetching && !error && (
-        <BillsBucketSplit
-          byBucket={byBucket}
-          currency={displayCurrency}
-          isSafe={unconvertedCurrencies.length === 0}
-        />
-      )}
+          {!isFetching && !error && (
+            <BillsBucketSplit
+              byBucket={byBucket}
+              currency={displayCurrency}
+              isSafe={unconvertedCurrencies.length === 0}
+            />
+          )}
 
-      <MonthlyBillsForecast
-        forecast={monthlyForecast}
-        isLoading={isForecastLoading}
-        error={forecastError}
-        onRetry={() => void loadMonthlyForecast()}
-        scope={forecastScope}
-        onChangeScope={setForecastScope}
-        isShared={naming.isShared}
-      />
+          <MonthlyBillsForecast
+            forecast={monthlyForecast}
+            isLoading={isForecastLoading}
+            error={forecastError}
+            onRetry={() => void loadMonthlyForecast()}
+            scope={forecastScope}
+            onChangeScope={setForecastScope}
+            isShared={naming.isShared}
+          />
 
-      <CreditLimits accounts={bankAccounts} />
+          <CreditLimits accounts={bankAccounts} />
 
-      {/* Além do mapa do papel, mostra em que conta bancária o dinheiro fica. */}
-      {!isFetching && !error && (
-        <AccountForecastCards forecast={accountsForecast} currentUserId={profile?.id} />
+          {/* Além do mapa do papel, mostra em que conta bancária o dinheiro fica. */}
+          {!isFetching && !error && (
+            <AccountForecastCards forecast={accountsForecast} currentUserId={profile?.id} />
+          )}
+        </>
       )}
 
       {/* Modal: valor efetivamente pago/recebido ao marcar uma conta pendente como paga */}
@@ -1115,12 +1177,14 @@ export default function BillsPage() {
                     O `MoneyInput` é o campo de dinheiro do projeto e já lê o
                     que se escreve em português.
                   */}
-                  <div onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      void confirmPay();
-                    }
-                  }}>
+                  <div
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        void confirmPay();
+                      }
+                    }}
+                  >
                     <MoneyInput
                       id="bill-pay-amount"
                       value={payAmount}

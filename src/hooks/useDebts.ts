@@ -86,9 +86,35 @@ export interface StrategySummary {
   freeOn: string | null;
 }
 
+/**
+ * De onde sai a proposta de extra: a conta do mês médio, por linhas.
+ *
+ * Existe para o número não cair do céu. "Sobram-te 240 €" só se acredita
+ * quando se vê que são 2.100 de salário menos 900 de contas, 560 de comida e
+ * 400 do resto — e é a ver as linhas que alguém descobre onde é que pode
+ * apertar.
+ */
+export interface Affordability {
+  /** Meses de histórico que esta média cobre. Zero = a app ainda não sabe. */
+  monthsCovered: number;
+  income: number;
+  bills: number;
+  food: number;
+  other: number;
+  /** O que já se entrega às dívidas. Informativo — não desconta da sobra. */
+  debtPayments: number;
+  minimums: number;
+  /** Pode ser negativo: nesse caso já se vive a descoberto, e é essa a notícia. */
+  leftover: number;
+  suggestedExtra: number;
+}
+
 export interface PayoffPlan {
   strategy: PayoffStrategy;
   extraMonthly: number;
+  /** `true` = o extra é o que a app calculou; `false` = foi escrito à mão. */
+  extraIsAuto: boolean;
+  affordability: Affordability;
   displayCurrency: string;
   totalBalance: number;
   totalMinimum: number;
@@ -250,9 +276,17 @@ export function useDebts() {
     [write],
   );
 
+  /**
+   * `extraMonthly: null` volta ao automático (a app calcula o que sobra); um
+   * número passa a mandar. Omitir o campo não lhe toca — são três estados, e
+   * colapsá-los tirava a única forma de desfazer um valor escrito à mão.
+   */
   const savePlan = useCallback(
-    (input: { strategy?: PayoffStrategy; extraMonthly?: number; currency?: string }) =>
-      write(api.put<unknown>('/debts/plan', input)),
+    (input: {
+      strategy?: PayoffStrategy;
+      extraMonthly?: number | null;
+      currency?: string;
+    }) => write(api.put<unknown>('/debts/plan', input)),
     [write],
   );
 
