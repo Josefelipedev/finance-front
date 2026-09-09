@@ -34,6 +34,7 @@ const AccountsPage = lazy(() => import('./pages/app/AccountsPage'));
 const FiscalPage = lazy(() => import('./pages/app/FiscalPage'));
 const MealPlannerPage = lazy(() => import('./pages/MealPlanner/MealPlannerPage'));
 const GoalsPage = lazy(() => import('./pages/app/GoalsPage'));
+const DebtsPage = lazy(() => import('./pages/app/DebtsPage'));
 const UserProfiles = lazy(() => import('./pages/UserProfiles'));
 
 export default function App() {
@@ -73,6 +74,7 @@ export default function App() {
               <Route path="/fiscal" element={<FiscalPage />} />
               <Route path="/meal-planner" element={<MealPlannerPage />} />
               <Route path="/metas" element={<GoalsPage />} />
+              <Route path="/dividas" element={<DebtsPage />} />
               {/*
                 O Planeamento foi dissolvido: as abas foram para casa (Metas,
                 Orçamento, Análises). A rota fica como reencaminhamento porque
