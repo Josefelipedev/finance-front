@@ -34,6 +34,16 @@ export interface BillItem {
   paidAt: string | null;
   overdue: boolean; // pendente e já venceu
   carriedOver: boolean; // veio de um mês anterior (atrasada)
+  /**
+   * O dia em que o dinheiro se mexeu (ou se vai mexer), `YYYY-MM-DD`.
+   * É o do pagamento quando se pagou antes do vencimento, o do vencimento no
+   * resto — e é por ele que os totais do mês contam.
+   */
+  ledgerDate: string;
+  /** Paga antes do mês em que vencia: já saiu, e alivia o mês do vencimento. */
+  paidAhead: boolean;
+  /** Entra nos totais deste mês? Falso quando o dinheiro saiu noutro mês. */
+  countsInMonth: boolean;
   /** Posição desta ocorrência dentro do contrato recorrente. */
   installment: number | null;
   /** Total contratado; null quando a série só tem uma data de fim. */

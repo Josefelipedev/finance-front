@@ -664,6 +664,25 @@ export default function BillsPage() {
                 Mês anterior
               </span>
             )}
+            {/* Pagar antes tem duas faces, e a linha aparece nos dois meses:
+                no mês em que o dinheiro saiu (onde conta) e no mês em que ela
+                vencia (onde já não conta, senão o gasto era contado duas
+                vezes). O crachá diz de que lado desta conversa é a linha. */}
+            {item.paidAhead && (
+              <span
+                className="inline-flex items-center gap-1 rounded-md border border-brand-200 bg-brand-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-brand-600 dark:border-brand-400/30 dark:bg-brand-400/10 dark:text-brand-400"
+                title={
+                  item.countsInMonth
+                    ? `Paga adiantada — vence a ${formatDueDate(item.dueDate)}`
+                    : `O dinheiro saiu a ${formatDueDate(item.ledgerDate)}, e é nesse mês que conta`
+                }
+              >
+                <i className="fas fa-forward text-[9px]"></i>
+                {item.countsInMonth
+                  ? `antecipada · vence ${formatDueDate(item.dueDate)}`
+                  : `paga a ${formatDueDate(item.ledgerDate)}`}
+              </span>
+            )}
             {item.recurringId != null && (
               <Link
                 to="/recorrentes"
@@ -762,6 +781,14 @@ export default function BillsPage() {
                 {showPrevisto && (
                   <p className="mt-0.5 text-[11px] tabular-nums text-gray-400 dark:text-gray-500">
                     previsto {formatMoney(item.amount, item.currency)}
+                  </p>
+                )}
+                {/* Um valor que está na lista e não está no total tem de o
+                    dizer na própria linha: senão as contas do topo não fecham
+                    com o que se vê e o ecrã parece estar a somar mal. */}
+                {!item.countsInMonth && (
+                  <p className="mt-0.5 text-[11px] text-gray-400 dark:text-gray-500">
+                    fora do total deste mês
                   </p>
                 )}
               </>
