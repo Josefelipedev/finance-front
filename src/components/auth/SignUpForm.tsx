@@ -83,6 +83,7 @@ export default function SignUpForm() {
       });
 
       if (result.success) {
+        window.umami?.track('registo');
         navigate('/');
       }
     } catch (error: any) {
