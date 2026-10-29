@@ -27,8 +27,21 @@ export default function AuthLanding() {
               </p>
 
               <div className="grid gap-3 mt-8 sm:grid-cols-2">
-                <Button onClick={() => navigate('/signin')}>Entrar</Button>
-                <Button variant="outline" onClick={() => navigate('/signup')}>
+                <Button
+                  onClick={() => {
+                    window.umami?.track('landing-entrar');
+                    navigate('/signin');
+                  }}
+                >
+                  Entrar
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    window.umami?.track('landing-criar-conta');
+                    navigate('/signup');
+                  }}
+                >
                   Criar conta
                 </Button>
               </div>
